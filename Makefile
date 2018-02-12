@@ -7,6 +7,9 @@ start:
 	docker network inspect iloop >/dev/null || docker network create iloop
 	docker-compose up -d --build
 
+## Run all QA targets
+qa: test flake8 isort
+
 ## Run the tests
 test:
 	docker-compose run --rm --entrypoint "/bin/ash -c" web "py.test --cov=iam tests"
