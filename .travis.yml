@@ -26,7 +26,7 @@ after_success:
 
 deploy:
   provider: script
-  script: ./push_to_hub_travis.sh
+  script: ./scripts/push_to_hub_travis.sh
   on:
     all_branches: true
 

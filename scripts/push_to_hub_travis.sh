@@ -1,6 +1,6 @@
 #!/bin/bash
 set -ev
-REPO="dddecaf/model"
+REPO="dddecaf/iam"
 GIT_MASTER_HEAD_SHA=$(git rev-parse --short=12 --verify HEAD)
 BRANCH=$TRAVIS_BRANCH
 docker build -f Dockerfile -t $REPO:$BRANCH .
