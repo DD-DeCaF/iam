@@ -9,3 +9,6 @@ pytest
 pytest-cov
 codecov
 isort
+
+# Development
+ipython
