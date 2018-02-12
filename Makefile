@@ -10,6 +10,10 @@ network:
 start: network
 	docker-compose up -d --build
 
+## Create database fixtures
+setup: network
+	docker-compose run --rm web flask db upgrade
+
 ## Run all QA targets
 qa: test flake8 isort
 

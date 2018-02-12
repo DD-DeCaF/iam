@@ -1,7 +1,8 @@
 FROM python:3.6-alpine
 
 # g++ is required to build python gevent dependency
-RUN apk --update add g++ && rm -rf /var/cache/apk/*
+# postgresql-dev is required for psycopg2
+RUN apk --update add g++ postgresql-dev && rm -rf /var/cache/apk/*
 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt

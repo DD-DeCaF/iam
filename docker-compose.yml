@@ -10,8 +10,23 @@ services:
       - "./:/app"
     environment:
       - PYTHONUNBUFFERED=1
+      - FLASK_APP=iam/main.py
       - CONFIGURATION=dev
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=postgres
     env_file: .env
+    depends_on:
+      - postgres
+    networks:
+      - iloop
+
+  postgres:
+    image: postgres:10-alpine
+    volumes:
+      - /var/lib/postgresql/data
     networks:
       - iloop
 
