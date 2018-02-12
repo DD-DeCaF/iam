@@ -10,4 +10,4 @@ RUN mkdir /app
 WORKDIR /app
 COPY . /app
 
-CMD ["gunicorn", "-c", "gunicorn.py", "iam.main:create_app()"]
+CMD ["gunicorn", "-c", "gunicorn.py", "iam.main:app"]
