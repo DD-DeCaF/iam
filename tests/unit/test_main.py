@@ -1,5 +1,6 @@
-from iam import main
 from flask import Flask
+
+from iam import main
 
 
 def test_main():
