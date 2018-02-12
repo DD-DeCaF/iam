@@ -15,22 +15,22 @@ qa: test flake8 isort
 
 ## Run the tests
 test:
-	docker-compose run --rm --entrypoint "/bin/ash -c" web "py.test --cov=iam tests"
+	docker-compose run --rm web py.test --cov=iam tests
 
 unittest:
-	docker-compose run --rm --entrypoint "/bin/ash -c" web "py.test --cov=iam tests/unit"
+	docker-compose run --rm web py.test --cov=iam tests/unit
 
 ## Run flake8
 flake8:
-	docker-compose run --rm --entrypoint "/bin/ash -c" web "flake8 iam tests"
+	docker-compose run --rm web flake8 iam tests
 
 ## Check import sorting
 check-isort:
-	docker-compose run --rm --entrypoint "/bin/ash -c" web "isort --check-only --recursive iam tests"
+	docker-compose run --rm web isort --check-only --recursive iam tests
 
 ## Sort imports and write changes to files
 isort:
-	docker-compose run --rm --entrypoint "/bin/ash -c" web "isort --recursive iam tests"
+	docker-compose run --rm web isort --recursive iam tests
 
 ## Shut down the Docker containers.
 stop:
