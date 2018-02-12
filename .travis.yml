@@ -18,6 +18,7 @@ install:
 script:
   - py.test -vxs --cov=iam tests
   - flake8 iam tests
+  - isort --check-only --recursive iam tests
 
 after_success:
   - codecov
