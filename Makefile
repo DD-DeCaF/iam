@@ -2,9 +2,12 @@
 # COMMANDS                                                                      #
 #################################################################################
 
-## Install and start the service.
-start:
+## Create the external iloop network
+network:
 	docker network inspect iloop >/dev/null || docker network create iloop
+
+## Install and start the service.
+start: network
 	docker-compose up -d --build
 
 ## Run all QA targets
