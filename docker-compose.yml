@@ -1,0 +1,19 @@
+version: "3.1" # note: pycharm does not support newer versions than this
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./:/app"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CONFIGURATION=dev
+    networks:
+      - iloop
+
+networks:
+  iloop:
+    external: true

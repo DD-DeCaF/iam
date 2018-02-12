@@ -1,0 +1,36 @@
+sudo: required
+language: python
+
+branches:
+  only:
+  - master
+  - devel
+
+git:
+  depth: 3
+
+services:
+  - docker
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - py.test -vxs --cov=iam tests
+  - flake8 iam tests
+
+after_success:
+  - codecov
+  - docker login -u=$DOCKER_USERNAME -p=$DOCKER_PASSWORD
+
+deploy:
+  provider: script
+  script: ./push_to_hub_travis.sh
+  on:
+    all_branches: true
+
+notifications:
+  slack:
+    on_success: never
+    rooms:
+      - secure: GFboHh9KsjR5earrVk2ddz+ncxDYl53x22R0nvhBflSUjK1IY7kbM/ReUJIpd4JYgx+PSnk82gX/VrJ8ZmuiDSjQX0QgTJDaGB43bSTo0RrD8xBRGBQG5+DIh8YG51ZEZ2tHg91pJ4VJ1PJOs0+bYDDceyH4Ih5Ef2XMrdBzIzYVoegAm1RdjaXu9gp/C+ULc6JOnrudQxc2iEYo28QywYSQaYE+S/7J9LJ6rcfFmPNMvvEOfQJWreapnGALDT50PvtW4NrlkI6VJePRbLP2mLYC6Gva6HUY8Vys8bM6Xs+IZNKA4KRbWbVgsKfNTfySdGDiO+hsaBMEuM1IdsZkweAXZs/mQSr9mEtDgbeUkhyl3M0DS8ER/rs+XH13xW9Re7km73kmKdyPnjc6qJ7+io4521m6+XDYXxDrxMpTcfrTnqnPAAKAm2wRcddlFUJ6x6Nc+cGS0VvsQKjnU97sZFNo6iAAvIyiJ+QLNvRhQRDgAaMS8PF84UkrIlAvx4SeruMF+zf4EI9f1OtePklOrJPkYGgoV4ANEkfD4ez4dUqGLfppUMq70tIMRiLUWXRiLcyYc9P0mAW8NWLGw2Oi3+soRqOv/IzWHIZmUlTTjHfdESZPsCXYAemmhWmaSLtqBjIHCHM3YoXO1JTgqRW1mCA3/ronrfucGGgBzExxuf8=
