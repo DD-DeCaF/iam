@@ -22,8 +22,12 @@ flake8:
 	docker-compose run --rm --entrypoint "/bin/ash -c" web "flake8 iam tests"
 
 ## Check import sorting
-isort:
+check-isort:
 	docker-compose run --rm --entrypoint "/bin/ash -c" web "isort --check-only --recursive iam tests"
+
+## Sort imports and write changes to files
+isort:
+	docker-compose run --rm --entrypoint "/bin/ash -c" web "isort --recursive iam tests"
 
 ## Shut down the Docker containers.
 stop:
