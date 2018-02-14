@@ -2,17 +2,17 @@ import base64
 
 import pytest
 
-from iam import main
-
-
-@pytest.fixture
-def client():
-    return main.app.test_client()
+from iam.app import create_app
 
 
 @pytest.fixture
 def app():
-    return main.app
+    return create_app()
+
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
 
 
 def test_get_admin_unauthorized(client):
