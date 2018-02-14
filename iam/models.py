@@ -45,6 +45,8 @@ class User(db.Model):
         return f'{self.first_name} {self.last_name}'
 
     def set_password(self, password):
+        if not password:
+            raise ValueError("Password cannot be empty")
         self.password = hasher.encode(password)
 
     def check_password(self, password):
