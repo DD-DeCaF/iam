@@ -12,6 +12,7 @@ services:
       - PYTHONUNBUFFERED=1
       - FLASK_APP=iam/main.py
       - CONFIGURATION=dev
+      - SECRET_KEY=
       - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/postgres
     env_file: .env
     depends_on:

@@ -13,11 +13,10 @@ class Development(Default):
 
 class Production(Default):
     DEBUG = False
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+    SECRET_KEY = os.environ['SECRET_KEY']
 
 
 if os.environ['CONFIGURATION'] == 'prod':
     Settings = Production
-    assert Settings.SECRET_KEY
 else:
     Settings = Development
