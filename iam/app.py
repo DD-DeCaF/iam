@@ -1,7 +1,7 @@
 import getpass
 
 import click
-from flask import Flask, request
+from flask import Flask, request, abort
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
@@ -31,6 +31,26 @@ def create_app():
     def restrict_admin():
         if request.path.startswith(admin.url) and not basic_auth.authenticate():
             return basic_auth.challenge()
+
+    # HANDLERS
+    ############################################################################
+
+    @app.route('/authenticate', methods=['POST'])
+    def auth():
+        try:
+            email = request.form['email'].strip()
+            password = request.form['password'].strip()
+            user = User.query.filter_by(email=email).one()
+            if user.check_password(password):
+                # TODO: lots more
+                return f"Authenticated as {user}"
+            else:
+                abort(401)
+        except NoResultFound:
+            abort(401)
+
+    # CLI COMMANDS
+    ############################################################################
 
     @app.cli.command()
     def users():
