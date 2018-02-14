@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask_basicauth import BasicAuth
 from flask_migrate import Migrate
 
 from . import settings
@@ -18,6 +19,14 @@ def create_app():
     admin.add_view(ModelView(Organization, db.session))
     admin.add_view(ModelView(Project, db.session))
     admin.add_view(ModelView(User, db.session))
+
+    # Require basic authentication for admin views
+    basic_auth = BasicAuth(app)
+
+    @app.before_request
+    def restrict_admin():
+        if request.path.startswith(admin.url) and not basic_auth.authenticate():
+            return basic_auth.challenge()
 
     return app
 

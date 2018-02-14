@@ -15,6 +15,8 @@ services:
       - SECRET_KEY=
       - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/postgres
       - FEAT_AUTH=1
+      - BASIC_AUTH_USERNAME=admin
+      - BASIC_AUTH_PASSWORD=
     env_file: .env
     depends_on:
       - postgres

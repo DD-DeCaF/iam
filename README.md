@@ -20,3 +20,5 @@ Create a local `.env` file to override environment variables. See `docker-compos
 * `SECRET_KEY`: Flask secret key
 * `SQLALCHEMY_DATABASE_URI`: [Database configuration](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls)
 * `FEAT_AUTH`: `1` to local user database authentication, empty to disable
+* `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
+* `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface

@@ -5,6 +5,8 @@ class Default:
     SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FEAT_AUTH = os.environ['FEAT_AUTH']
+    BASIC_AUTH_USERNAME = os.environ['BASIC_AUTH_USERNAME']
+    BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
 
 
 class Development(Default):
