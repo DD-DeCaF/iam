@@ -18,8 +18,4 @@ Create a local `.env` file to override environment variables.
 
 * `CONFIGURATION` (default: `DEV`): Set to `DEV` for development configuration, or `PROD` for production configuration
 * `SECRET_KEY` (default: random) Flask secret key
-* `POSTGRES_USERNAME` (default: postgres)
-* `POSTGRES_PASSWORD` (default: *empty*)
-* `POSTGRES_HOST` (default: postgres)
-* `POSTGRES_PORT` (default: 5432)
-* `POSTGRES_DATABASE` (default: postgres)
+* `SQLALCHEMY_DATABASE_URI` (default: `postgres://postgres:@postgres:5432/postgres`)

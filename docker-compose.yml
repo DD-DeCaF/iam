@@ -12,11 +12,7 @@ services:
       - PYTHONUNBUFFERED=1
       - FLASK_APP=iam/main.py
       - CONFIGURATION=dev
-      - POSTGRES_USERNAME=postgres
-      - POSTGRES_PASSWORD=
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DATABASE=postgres
+      - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/postgres
     env_file: .env
     depends_on:
       - postgres
