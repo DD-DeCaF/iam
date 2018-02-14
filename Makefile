@@ -29,11 +29,11 @@ flake8:
 	docker-compose run --rm web flake8 iam tests
 
 ## Check import sorting
-check-isort:
+isort:
 	docker-compose run --rm web isort --check-only --recursive iam tests
 
 ## Sort imports and write changes to files
-isort:
+isort-save:
 	docker-compose run --rm web isort --recursive iam tests
 
 ## Shut down the Docker containers.
