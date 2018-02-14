@@ -21,6 +21,9 @@ def test_get_admin_unauthorized(client):
 
 
 def test_get_admin_authorized(client, app):
-    credentials = base64.b64encode(f'{app.config["BASIC_AUTH_USERNAME"]}:{app.config["BASIC_AUTH_PASSWORD"]}'.encode()).decode()
-    rv = client.get('/admin/', headers={'Authorization': f'Basic {credentials}'})
+    credentials = base64.b64encode(f'{app.config["BASIC_AUTH_USERNAME"]}:'
+                                   f'{app.config["BASIC_AUTH_PASSWORD"]}'
+                                   .encode()).decode()
+    rv = client.get('/admin/',
+                    headers={'Authorization': f'Basic {credentials}'})
     assert rv.status_code == 200

@@ -1,7 +1,7 @@
 import getpass
 
 import click
-from flask import Flask, request, abort
+from flask import Flask, abort, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth

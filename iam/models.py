@@ -18,8 +18,10 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship('Organization', backref=db.backref('projects', lazy=True))
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
+                                nullable=False)
+    organization = db.relationship('Organization',
+                                   backref=db.backref('projects', lazy=True))
 
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.id}: {self.name}>'
@@ -34,11 +36,14 @@ class User(db.Model):
     last_name = db.Column(db.String(256), nullable=False)
     email = db.Column(db.String(256), unique=True, nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship('Organization', backref=db.backref('users', lazy=True))
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
+                                nullable=False)
+    organization = db.relationship('Organization',
+                                   backref=db.backref('users', lazy=True))
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} {self.id}: {self.full_name} ({self.email})>'
+        return (f'<{self.__class__.__name__} {self.id}: {self.full_name} '
+                f'({self.email})>')
 
     @property
     def full_name(self):
