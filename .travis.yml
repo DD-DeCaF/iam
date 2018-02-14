@@ -16,7 +16,7 @@ services:
   - postgresql
 
 addons:
-  postgresql: "9.7"
+  postgresql: "9.6"  # note: travis does not yet support 10.x
 
 install:
   - pip install -r requirements.txt
