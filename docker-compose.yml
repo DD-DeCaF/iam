@@ -14,6 +14,7 @@ services:
       - CONFIGURATION=dev
       - SECRET_KEY=
       - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/postgres
+      - FEAT_AUTH=1
     env_file: .env
     depends_on:
       - postgres

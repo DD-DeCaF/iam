@@ -4,6 +4,7 @@ import os
 class Default:
     SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    FEAT_AUTH = os.environ['FEAT_AUTH']
 
 
 class Development(Default):
