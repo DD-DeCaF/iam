@@ -16,6 +16,6 @@ Note that DD-DeCaF services are expected to be connected to the `iloop` Docker n
 
 Create a local `.env` file to override environment variables.
 
-* `CONFIGURATION` (default: `DEV`): Set to `DEV` for development configuration, or `PROD` for production configuration
+* `CONFIGURATION` (default: `dev`): Set to `dev` for development configuration, or `prod` for production configuration
 * `SECRET_KEY` (default: random) Flask secret key
 * `SQLALCHEMY_DATABASE_URI` (default: `postgres://postgres:@postgres:5432/postgres`)
