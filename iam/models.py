@@ -32,7 +32,7 @@ class User(db.Model):
 
     first_name = db.Column(db.String(256), nullable=False)
     last_name = db.Column(db.String(256), nullable=False)
-    email = db.Column(db.String(256), nullable=False)
+    email = db.Column(db.String(256), unique=True, nullable=False)
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship('Organization', backref=db.backref('users', lazy=True))
