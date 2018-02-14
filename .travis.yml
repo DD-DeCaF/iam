@@ -18,6 +18,10 @@ services:
 addons:
   postgresql: "9.7"
 
+env:
+  - CONFIGURATION="dev"
+  - SQLALCHEMY_DATABASE_URI="postgres://postgres:@localhost:5432/postgres"
+
 install:
   - pip install -r requirements.txt
 
