@@ -1,5 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 
+from . import hasher
+
 
 db = SQLAlchemy()
 
@@ -26,6 +28,8 @@ class Project(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    password = db.Column(db.String(128), nullable=False)
+
     first_name = db.Column(db.String(256), nullable=False)
     last_name = db.Column(db.String(256), nullable=False)
     email = db.Column(db.String(256), nullable=False)
@@ -39,3 +43,9 @@ class User(db.Model):
     @property
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
+
+    def set_password(self, password):
+        self.password = hasher.encode(password)
+
+    def check_password(self, password):
+        return hasher.verify(password, self.password)
