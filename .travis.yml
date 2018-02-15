@@ -3,11 +3,6 @@ language: python
 python:
   - "3.6"
 
-branches:
-  only:
-  - master
-  - devel
-
 git:
   depth: 3
 
@@ -36,8 +31,3 @@ deploy:
   script: ./scripts/push_to_hub_travis.sh
   on:
     all_branches: true
-
-notifications:
-  slack:
-    on_success: never
-    secure: GFIa4MdSUOtA6QjnnZCEaaF05c8uCEJWfEslX5ybPsbEHnrAONh3Jz6shOF+DTG5zs6gLYM4o1Sn77op2Gdt3TjDaEZebft6II5IsqctX6SILVcUliJislGObSr2g1mRQtAfTRZfP2ZU6L0r8fCaj+c+EqUhFKlufNElH46I/iLm0SzyXB5lVyTslNEqy9x/YzVK/fsKrrd9xVLwwrMK9WIvGtE76EO8OMgGKK0fHvP2/2XY5UpgnMwgYy16GPAmaeNn80S9bPDMH/cSiBP0/ttI/gCd/XUacBRAEZr8rO98R6/TNQ9ZAJUb6+g565vOx4PU+AE4VVxKoRtQrgaLIlU1SW3tPL5aHefz4TH/UP9+RMJnsrz0iNoTescOVRWu9fM8cMhmzGBGl3UBDnrURe0bjEXdyUfOBTS7e5fzqvHoUi8PoXE4g82MExlLIpX97uGqblJW5xqYv8KNKrLFTHaWGLmGMjT2wFnu6RWHFBODRSgFs/xklaBKtGMXoJr19SFIPdXExCKYhKxwO5iHKMI3XxIeH6TdtURQA/ibWM49AXDK4a66IWu5HoxcaWvzFeWWRdlgIQKYKUZsVNmA4tGM9c+Zenq9OsrlMrYtyrFatKI3ZLg7xdTytMs70ITBVBbPu3fdbUGX1EdkPifKwJy69tyx49s9oXk+z+B3S3M=
