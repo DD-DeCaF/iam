@@ -14,7 +14,7 @@ Note that DD-DeCaF services are expected to be connected to the `iloop` Docker n
 
 ### Environment
 
-Create a local `.env` file to override environment variables. See `docker-compose.yml` for development defaults.
+Specify environment variables in `docker-compose.yml`. See the file for default development values.
 
 * `CONFIGURATION`: Set to `dev` for development configuration, or `prod` for production configuration
 * `SECRET_KEY`: Flask secret key
