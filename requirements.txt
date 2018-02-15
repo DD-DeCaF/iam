@@ -14,6 +14,7 @@ Flask-Migrate>=2.1.1,<2.2
 git+https://github.com/flask-admin/flask-admin
 Flask-BasicAuth>=0.2.0,<0.3
 python-jose>=2.0.2,<2.1
+raven[flask]>=6.5.0,<6.6
 
 # Testing and QA
 flake8
