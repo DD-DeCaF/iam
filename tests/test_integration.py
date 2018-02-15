@@ -53,6 +53,7 @@ def test_db(db):
     db.session.add(user)
     db.session.commit()
 
+
 def test_authenticate(app, client, db):
     user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
                 organization=Organization(name='FooOrg'))
@@ -75,5 +76,5 @@ def test_authenticate(app, client, db):
     })
     assert response.status_code == 200
     claims = jwt.decode(response.data, app.config['RSA_PUBLIC_KEY'],
-               app.config['ALGORITHM'])
+                        app.config['ALGORITHM'])
     assert user.organization_id == claims['org']
