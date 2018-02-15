@@ -18,6 +18,7 @@ install:
 
 script:
   - psql -U postgres -c "create database iam_test;"
+  - ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
   - py.test -vxs --cov=iam tests
   - flake8 iam tests
   - isort --check-only --recursive iam tests
