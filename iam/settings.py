@@ -5,9 +5,10 @@ from datetime import timedelta
 
 class Default:
     SERVICE_URL = os.environ['SERVICE_URL']
+    FEAT_AUTH = os.environ['FEAT_AUTH']
     SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    FEAT_AUTH = os.environ['FEAT_AUTH']
+    SENTRY_DSN = os.environ['SENTRY_DSN']
 
     BASIC_AUTH_USERNAME = os.environ['BASIC_AUTH_USERNAME']
     BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']

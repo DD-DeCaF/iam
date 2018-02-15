@@ -1,4 +1,5 @@
 import getpass
+import logging
 import secrets
 from datetime import datetime
 
@@ -9,6 +10,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from flask_migrate import Migrate
 from jose import jwk, jwt
+from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import settings
@@ -21,6 +23,10 @@ def create_app():
 
     Migrate(app, db)
     db.init_app(app)
+
+    sentry = Sentry(dsn=app.config['SENTRY_DSN'], logging=True,
+                    level=logging.WARNING)
+    sentry.init_app(app)
 
     # ADMIN VIEWS
     ############################################################################
