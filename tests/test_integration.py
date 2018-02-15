@@ -85,14 +85,14 @@ def test_authenticate_success(app, client, user):
     })
     assert response.status_code == 200
     data_decoded = json.loads(response.data)
-    signed_token = data_decoded['jwt']
+    raw_jwt_token = data_decoded['jwt']
     refresh_token = data_decoded['refresh_token']
 
     # Decode the provided JWT with the public key from the service endpoint
     keys = json.loads(client.get('/keys').data)
     key = keys['keys'][0]
-    claims = jwt.decode(signed_token, key, app.config['ALGORITHM'])
-    assert user.organization_id == claims['org']
+    returned_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
+    assert user.organization_id == returned_claims['org']
 
     # Check the refresh token
     assert len(user.refresh_token) == 64
@@ -100,3 +100,9 @@ def test_authenticate_success(app, client, user):
     assert user.refresh_token_expiry > datetime.now()
     assert user.refresh_token_expiry < (datetime.now() +
                                          app.config['REFRESH_TOKEN_VALIDITY'])
+
+    # Attempt to refresh token
+    response = client.post('/refresh', data={'refresh_token': refresh_token})
+    assert response.status_code == 200
+    refresh_claims = jwt.decode(response.data, key, app.config['ALGORITHM'])
+    assert refresh_claims == returned_claims
