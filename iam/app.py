@@ -4,6 +4,7 @@ import secrets
 from datetime import datetime
 
 import click
+from firebase_admin import auth
 from flask import Flask, abort, jsonify, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -48,34 +49,44 @@ def create_app():
     # HANDLERS
     ############################################################################
 
-    @app.route(f"{app.config['SERVICE_URL']}/authenticate", methods=['POST'])
-    def auth():
+    @app.route(f"{app.config['SERVICE_URL']}/authenticate/local",
+               methods=['POST'])
+    def auth_local():
         try:
             email = request.form['email'].strip()
             password = request.form['password'].strip()
             user = User.query.filter_by(email=email).one()
             if user.check_password(password):
-                # Authenticated, generate refresh token and return the JWT
-                user.refresh_token = secrets.token_hex(32)
-                user.refresh_token_expiry = (
-                    datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
-                db.session.commit()
-                claims = {
-                    'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
-                               .strftime('%s'))
-                }
-                claims.update(user.claims)
-                signed_token = jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
-                                          app.config['ALGORITHM'])
-                return jsonify({
-                    'jwt': signed_token,
-                    'refresh_token': {
-                        'val': user.refresh_token,
-                        'exp': int(user.refresh_token_expiry.strftime('%s')),
-                    }
-                })
+                payload = sign_claims(app, user)
+                return jsonify(payload)
             else:
                 abort(401)
+        except NoResultFound:
+            abort(401)
+
+    @app.route(f"{app.config['SERVICE_URL']}/authenticate/firebase",
+               methods=['POST'])
+    def auth_firebase():
+        try:
+            uid = request.form['uid'].strip()
+            token = request.form['token'].strip()
+            decoded_token = auth.verify_id_token(token)
+            if 'email' not in decoded_token:
+                decoded_token['email'] = (
+                    auth.get_user(uid).provider_data[0].email)
+            try:
+                user = User.query.filter_by(firebase_uid=uid).one()
+            except NoResultFound:
+                try:
+                    # no firebase user for this provider, but they may have
+                    # signed up with a different provider but the same email
+                    user = User.query.filter_by(email=decoded_token['email'])
+                except NoResultFound:
+                    # no such user - create a new one
+                    user = create_firebase_user(uid, decoded_token)
+
+            payload = sign_claims(app, user)
+            return jsonify(payload)
         except NoResultFound:
             abort(401)
 
@@ -133,3 +144,42 @@ def create_app():
             print(f"No user has id {id} (try `flask users`)")
 
     return app
+
+
+def sign_claims(app, user):
+    """return signed jwt and refresh token for the given authenticated user"""
+    user.refresh_token = secrets.token_hex(32)
+    user.refresh_token_expiry = (
+        datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
+    db.session.commit()
+    claims = {
+        'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
+                   .strftime('%s'))
+    }
+    claims.update(user.claims)
+    signed_token = jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
+                              app.config['ALGORITHM'])
+    return {
+        'jwt': signed_token,
+        'refresh_token': {
+            'val': user.refresh_token,
+            'exp': int(user.refresh_token_expiry.strftime('%s')),
+        }
+    }
+
+
+def create_firebase_user(uid, decoded_token):
+    if ' ' in decoded_token['name']:
+        first_name, last_name = decoded_token['name'].split(None, 1)
+    else:
+        first_name, last_name = decoded_token['name'], ''
+
+    user = User(
+        firebase_uid=uid,
+        first_name=first_name,
+        last_name=last_name,
+        email=decoded_token['email'],
+    )
+    db.session.add(user)
+    db.session.commit()
+    return user

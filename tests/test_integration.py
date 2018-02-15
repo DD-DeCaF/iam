@@ -68,10 +68,10 @@ def test_db(db):
 
 def test_authenticate_failure(app, client, db, user):
     user, password = user
-    response = client.post('/authenticate')
+    response = client.post('/authenticate/local')
     assert response.status_code == 400
 
-    response = client.post('/authenticate', data={
+    response = client.post('/authenticate/local', data={
         'email': user.email,
         'password': 'invalid',
     })
@@ -80,7 +80,7 @@ def test_authenticate_failure(app, client, db, user):
 
 def test_authenticate_success(app, client, user):
     user, password = user
-    response = client.post('/authenticate', data={
+    response = client.post('/authenticate/local', data={
         'email': user.email,
         'password': password,
     })

@@ -38,7 +38,6 @@ class User(db.Model):
     refresh_token_expiry = db.Column(db.DateTime)
 
     firebase_uid = db.Column(db.String(256))
-    firebase_token = db.Column(db.String(256))
 
     first_name = db.Column(db.String(256))
     last_name = db.Column(db.String(256))
