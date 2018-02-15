@@ -3,11 +3,23 @@ import base64
 import pytest
 
 from iam.app import create_app
+from iam.models import Organization, Project, User
+from iam.models import db as db_
 
 
 @pytest.fixture
 def app():
-    return create_app()
+    app = create_app()
+    app.app_context().push()
+    return app
+
+
+@pytest.fixture
+def db():
+    db_.create_all()
+    yield db_
+    db_.session.remove()
+    db_.drop_all()
 
 
 @pytest.fixture
@@ -27,3 +39,15 @@ def test_get_admin_authorized(client, app):
     rv = client.get('/admin/',
                     headers={'Authorization': f'Basic {credentials}'})
     assert rv.status_code == 200
+
+
+def test_db(db):
+    organization = Organization(name='FooOrg')
+    project = Project(name='FooProject', organization=organization)
+    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
+                organization=organization)
+    user.set_password('hunter2')
+    db.session.add(organization)
+    db.session.add(project)
+    db.session.add(user)
+    db.session.commit()

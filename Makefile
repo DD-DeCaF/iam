@@ -14,7 +14,9 @@ start: network
 setup: network
 	docker-compose up -d
 	docker-compose exec postgres psql -U postgres -c "create database iam;"
+	docker-compose exec postgres psql -U postgres -c "create database iam_test;"
 	docker-compose exec web flask db upgrade
+	# note: not migrating iam_test db; tests will create and tear down tables
 	docker-compose stop
 
 ## Run all QA targets
@@ -22,7 +24,7 @@ qa: test flake8 isort
 
 ## Run the tests
 test:
-	docker-compose run --rm web py.test --cov=iam tests
+	docker-compose run --rm -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests
 
 unittest:
 	docker-compose run --rm web py.test --cov=iam tests/unit
