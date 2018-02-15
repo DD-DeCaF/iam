@@ -15,6 +15,7 @@ git+https://github.com/flask-admin/flask-admin
 Flask-BasicAuth>=0.2.0,<0.3
 python-jose>=2.0.2,<2.1
 raven[flask]>=6.5.0,<6.6
+firebase_admin>=2.9.0,<2.10
 
 # Testing and QA
 flake8
