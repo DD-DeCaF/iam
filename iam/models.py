@@ -18,10 +18,13 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
-                                nullable=False)
+    # note: a project should belong to an organization or user, but not both
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
     organization = db.relationship('Organization',
                                    backref=db.backref('projects'))
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', backref=db.backref('projects'))
 
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.id}: {self.name}>'
@@ -33,6 +36,9 @@ class User(db.Model):
     password = db.Column(db.String(128))
     refresh_token = db.Column(db.String(64))
     refresh_token_expiry = db.Column(db.DateTime)
+
+    firebase_uid = db.Column(db.String(256))
+    firebase_token = db.Column(db.String(256))
 
     first_name = db.Column(db.String(256))
     last_name = db.Column(db.String(256))
@@ -62,5 +68,6 @@ class User(db.Model):
     def claims(self):
         return {
             'org': self.organization_id,
-            'prj': [p.id for p in self.organization.projects],
+            'prj': list({p.id for p in self.organization.projects}.union(
+                {p.id for p in self.projects})),
         }
