@@ -43,8 +43,7 @@ class User(db.Model):
     last_name = db.Column(db.String(256))
     email = db.Column(db.String(256), unique=True, nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
-                                nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
     organization = db.relationship('Organization', backref=db.backref('users'))
 
     def __repr__(self):
@@ -65,8 +64,11 @@ class User(db.Model):
 
     @property
     def claims(self):
+        projects = {p.id for p in self.projects}
+        if self.organization_id is not None:
+            projects = projects.union({
+                p.id for p in self.organization.projects})
         return {
             'org': self.organization_id,
-            'prj': list({p.id for p in self.organization.projects}.union(
-                {p.id for p in self.projects})),
+            'prj': list(projects),
         }
