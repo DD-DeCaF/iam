@@ -1,5 +1,6 @@
 import os
 import pathlib
+from datetime import timedelta
 
 
 class Default:
@@ -10,6 +11,8 @@ class Default:
     BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
     RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
     ALGORITHM = 'RS512'
+    JWT_VALIDITY = timedelta(minutes=10)
+    REFRESH_TOKEN_VALIDITY = timedelta(days=30)
 
 
 class Development(Default):

@@ -1,4 +1,6 @@
 import getpass
+import secrets
+from datetime import datetime
 
 import click
 from flask import Flask, abort, jsonify, request
@@ -46,7 +48,12 @@ def create_app():
             password = request.form['password'].strip()
             user = User.query.filter_by(email=email).one()
             if user.check_password(password):
-                # Authenticated, return the JWT
+                # Authenticated, generate refresh token and return the JWT
+                refresh_token = secrets.token_hex(32)
+                user.refresh_token = refresh_token
+                user.refresh_token_expiry = (
+                    datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
+                db.session.commit()
                 claims = {
                     'org': user.organization_id,
                     'prj': [p.id for p in user.organization.projects],
@@ -57,6 +64,26 @@ def create_app():
                 abort(401)
         except NoResultFound:
             abort(401)
+
+    @app.route('/refresh')
+    def refresh():
+        try:
+            user = User.query.filter(
+                refresh_token=request.form['refresh_token'])
+            if datetime.now() >= user.refresh_token_expiry:
+                response = jsonify({'error': "The refresh token has expired, "
+                                    "please re-authenticate."})
+                response.status_code = 401
+                return response
+
+            claims = {
+                'org': user.organization_id,
+                'prj': [p.id for p in user.organization.projects],
+            }
+            return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
+                              app.config['ALGORITHM'])
+        except NoResultFound:
+            abort(404)
 
     @app.route('/keys')
     def public_key():
