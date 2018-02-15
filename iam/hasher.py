@@ -1,13 +1,13 @@
 import base64
 import hashlib
 import hmac
-import random
+import secrets
 
 
 def new_salt(n=12):
     salt_chars = ('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
                   '0123456789')
-    salt = [random.SystemRandom().choice(salt_chars) for _ in range(n)]
+    salt = [secrets.choice(salt_chars) for _ in range(n)]
     return ''.join(salt)
 
 
