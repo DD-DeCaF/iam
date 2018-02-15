@@ -97,13 +97,14 @@ def test_authenticate_success(app, client, user):
 
     # Check the refresh token
     assert len(user.refresh_token) == 64
-    assert user.refresh_token == refresh_token
+    assert user.refresh_token == refresh_token['val']
     assert user.refresh_token_expiry > datetime.now()
     assert user.refresh_token_expiry < (datetime.now() +
                                         app.config['REFRESH_TOKEN_VALIDITY'])
 
     # Attempt to refresh token
-    response = client.post('/refresh', data={'refresh_token': refresh_token})
+    response = client.post('/refresh',
+                           data={'refresh_token': refresh_token['val']})
     assert response.status_code == 200
     refresh_claims = jwt.decode(response.data, key, app.config['ALGORITHM'])
     assert refresh_claims == returned_claims

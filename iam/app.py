@@ -49,20 +49,24 @@ def create_app():
             user = User.query.filter_by(email=email).one()
             if user.check_password(password):
                 # Authenticated, generate refresh token and return the JWT
-                refresh_token = secrets.token_hex(32)
-                user.refresh_token = refresh_token
+                user.refresh_token = secrets.token_hex(32)
                 user.refresh_token_expiry = (
                     datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
                 db.session.commit()
                 claims = {
-                    'exp': (datetime.now() +
-                            app.config['JWT_VALIDITY']).strftime('%s')
+                    'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
+                               .strftime('%s'))
                 }
                 claims.update(user.claims)
                 signed_token = jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
                                           app.config['ALGORITHM'])
-                return jsonify({'jwt': signed_token,
-                                'refresh_token': refresh_token})
+                return jsonify({
+                    'jwt': signed_token,
+                    'refresh_token': {
+                        'val': user.refresh_token,
+                        'exp': int(user.refresh_token_expiry.strftime('%s')),
+                    }
+                })
             else:
                 abort(401)
         except NoResultFound:
@@ -80,8 +84,8 @@ def create_app():
                 return response
 
             claims = {
-                'exp': (datetime.now() +
-                        app.config['JWT_VALIDITY']).strftime('%s')
+                'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
+                           .strftime('%s'))
             }
             claims.update(user.claims)
             return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
