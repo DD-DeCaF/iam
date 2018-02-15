@@ -26,8 +26,9 @@ qa: test flake8 isort
 test:
 	docker-compose run --rm -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests
 
+## Run only unit tests
 unittest:
-	docker-compose run --rm web py.test --cov=iam tests/unit
+	docker-compose run --rm -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests/unit
 
 ## Run flake8
 flake8:
