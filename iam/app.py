@@ -60,7 +60,7 @@ def create_app():
                 }
                 claims.update(user.claims)
                 signed_token = jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
-                                  app.config['ALGORITHM'])
+                                          app.config['ALGORITHM'])
                 return jsonify({'jwt': signed_token,
                                 'refresh_token': refresh_token})
             else:

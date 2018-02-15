@@ -1,6 +1,6 @@
-from datetime import datetime
 import base64
 import json
+from datetime import datetime
 
 import pytest
 from jose import jwt
@@ -28,6 +28,7 @@ def db():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
 
 @pytest.fixture
 def user(db):
@@ -99,7 +100,7 @@ def test_authenticate_success(app, client, user):
     assert user.refresh_token == refresh_token
     assert user.refresh_token_expiry > datetime.now()
     assert user.refresh_token_expiry < (datetime.now() +
-                                         app.config['REFRESH_TOKEN_VALIDITY'])
+                                        app.config['REFRESH_TOKEN_VALIDITY'])
 
     # Attempt to refresh token
     response = client.post('/refresh', data={'refresh_token': refresh_token})
