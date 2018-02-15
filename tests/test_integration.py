@@ -65,7 +65,7 @@ def test_db(db):
     db.session.commit()
 
 
-def test_authenticate(app, client, db, user):
+def test_authenticate_failure(app, client, db, user):
     user, password = user
     response = client.post('/authenticate')
     assert response.status_code == 400
@@ -76,22 +76,27 @@ def test_authenticate(app, client, db, user):
     })
     assert response.status_code == 401
 
+
+def test_authenticate_success(app, client, user):
+    user, password = user
     response = client.post('/authenticate', data={
         'email': user.email,
         'password': password,
     })
     assert response.status_code == 200
     data_decoded = json.loads(response.data)
+    signed_token = data_decoded['jwt']
+    refresh_token = data_decoded['refresh_token']
 
     # Decode the provided JWT with the public key from the service endpoint
     keys = json.loads(client.get('/keys').data)
     key = keys['keys'][0]
-    claims = jwt.decode(data_decoded['jwt'], key, app.config['ALGORITHM'])
+    claims = jwt.decode(signed_token, key, app.config['ALGORITHM'])
     assert user.organization_id == claims['org']
 
     # Check the refresh token
     assert len(user.refresh_token) == 64
-    assert user.refresh_token == data_decoded['refresh_token']
+    assert user.refresh_token == refresh_token
     assert user.refresh_token_expiry > datetime.now()
     assert user.refresh_token_expiry < (datetime.now() +
                                          app.config['REFRESH_TOKEN_VALIDITY'])
