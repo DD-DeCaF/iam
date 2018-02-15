@@ -68,11 +68,11 @@ def create_app():
         except NoResultFound:
             abort(401)
 
-    @app.route('/refresh')
+    @app.route('/refresh', methods=['POST'])
     def refresh():
         try:
-            user = User.query.filter(
-                refresh_token=request.form['refresh_token'])
+            user = User.query.filter_by(
+                refresh_token=request.form['refresh_token']).one()
             if datetime.now() >= user.refresh_token_expiry:
                 response = jsonify({'error': "The refresh token has expired, "
                                     "please re-authenticate."})
