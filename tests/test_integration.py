@@ -1,6 +1,7 @@
 import base64
 
 import pytest
+from jose import jwt
 
 from iam.app import create_app
 from iam.models import Organization, Project, User
@@ -51,3 +52,28 @@ def test_db(db):
     db.session.add(project)
     db.session.add(user)
     db.session.commit()
+
+def test_authenticate(app, client, db):
+    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
+                organization=Organization(name='FooOrg'))
+    password = 'hunter2'
+    user.set_password(password)
+    db.session.add(user)
+
+    response = client.post('/authenticate')
+    assert response.status_code == 400
+
+    response = client.post('/authenticate', data={
+        'email': user.email,
+        'password': 'invalid',
+    })
+    assert response.status_code == 401
+
+    response = client.post('/authenticate', data={
+        'email': user.email,
+        'password': password,
+    })
+    assert response.status_code == 200
+    claims = jwt.decode(response.data, app.config['RSA_PUBLIC_KEY'],
+               app.config['ALGORITHM'])
+    assert user.organization_id == claims['org']
