@@ -19,7 +19,7 @@ Specify environment variables in `docker-compose.yml`. See the file for default 
 * `CONFIGURATION`: Set to `dev` for development configuration, or `prod` for production configuration
 * `SECRET_KEY`: Flask secret key
 * `SQLALCHEMY_DATABASE_URI`: [Database configuration](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls)
-* `FEAT_TOGGLE_LOCAL_AUTH`: `1` Feature toggle: local user database authentication
-* `FEAT_TOGGLE_FIREBASE`: `1` Feature toggle: firebase authentication
+* `FEAT_TOGGLE_LOCAL_AUTH`: Feature toggle: local user database authentication
+* `FEAT_TOGGLE_FIREBASE`: Feature toggle: firebase authentication
 * `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
