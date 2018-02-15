@@ -10,6 +10,7 @@ class Default:
     BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
     RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
     RSA_PUBLIC_KEY = pathlib.Path('keys/rsa.pub').read_text()
+    ALGORITHM = 'RS512'
 
 
 class Development(Default):

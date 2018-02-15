@@ -52,7 +52,7 @@ def create_app():
                     'prj': [p.id for p in user.organization.projects],
                 }
                 return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
-                                  'RS512')
+                                  app.config['ALGORITHM'])
             else:
                 abort(401)
         except NoResultFound:
@@ -60,7 +60,8 @@ def create_app():
 
     @app.route('/keys')
     def public_key():
-        key = jwk.get_key('RS512')(app.config['RSA_PUBLIC_KEY'], 'RS512')
+        key = jwk.get_key(app.config['ALGORITHM'])(app.config['RSA_PUBLIC_KEY'],
+                                                   app.config['ALGORITHM'])
         public_key = key.public_key().to_dict()
         # python-jose outputs exponent and modulus as bytes
         public_key['e'] = public_key['e'].decode()
