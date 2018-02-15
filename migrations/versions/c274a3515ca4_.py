@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 7fbe9b07e014
+Revision ID: c274a3515ca4
 Revises: 
-Create Date: 2018-02-14 13:42:38.421560
+Create Date: 2018-02-15 13:27:58.798429
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7fbe9b07e014'
+revision = 'c274a3515ca4'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -32,12 +32,16 @@ def upgrade():
     )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('first_name', sa.String(length=256), nullable=False),
-    sa.Column('last_name', sa.String(length=256), nullable=False),
+    sa.Column('password', sa.String(length=128), nullable=True),
+    sa.Column('refresh_token', sa.String(length=64), nullable=True),
+    sa.Column('refresh_token_expiry', sa.DateTime(), nullable=True),
+    sa.Column('first_name', sa.String(length=256), nullable=True),
+    sa.Column('last_name', sa.String(length=256), nullable=True),
     sa.Column('email', sa.String(length=256), nullable=False),
     sa.Column('organization_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email')
     )
     # ### end Alembic commands ###
 
