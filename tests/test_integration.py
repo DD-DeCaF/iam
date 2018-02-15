@@ -1,6 +1,6 @@
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from jose import jwt
@@ -112,3 +112,8 @@ def test_authenticate_success(app, client, user):
     returned_claims.pop('exp')
     refresh_claims.pop('exp')
     assert refresh_claims == returned_claims
+
+    user.refresh_token_expiry = datetime.now() - timedelta(seconds=1)
+    response = client.post('/refresh',
+                           data={'refresh_token': user.refresh_token})
+    assert response.status_code == 401
