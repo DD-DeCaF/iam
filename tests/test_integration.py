@@ -1,3 +1,4 @@
+from datetime import datetime
 import base64
 import json
 
@@ -28,6 +29,15 @@ def db():
 def client(app):
     return app.test_client()
 
+@pytest.fixture
+def user(db):
+    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
+                organization=Organization(name='FooOrg'))
+    password = 'hunter2'
+    user.set_password(password)
+    db.session.add(user)
+    return (user, password)
+
 
 def test_get_admin_unauthorized(client):
     rv = client.get('/admin/')
@@ -55,13 +65,8 @@ def test_db(db):
     db.session.commit()
 
 
-def test_authenticate(app, client, db):
-    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
-                organization=Organization(name='FooOrg'))
-    password = 'hunter2'
-    user.set_password(password)
-    db.session.add(user)
-
+def test_authenticate(app, client, db, user):
+    user, password = user
     response = client.post('/authenticate')
     assert response.status_code == 400
 
@@ -83,3 +88,10 @@ def test_authenticate(app, client, db):
     key = keys['keys'][0]
     claims = jwt.decode(data_decoded['jwt'], key, app.config['ALGORITHM'])
     assert user.organization_id == claims['org']
+
+    # Check the refresh token
+    assert len(user.refresh_token) == 64
+    assert user.refresh_token == data_decoded['refresh_token']
+    assert user.refresh_token_expiry > datetime.now()
+    assert user.refresh_token_expiry < (datetime.now() +
+                                         app.config['REFRESH_TOKEN_VALIDITY'])
