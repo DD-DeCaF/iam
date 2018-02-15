@@ -14,7 +14,8 @@ services:
       - CONFIGURATION=dev
       - SECRET_KEY=
       - SERVICE_URL=
-      - FEAT_AUTH=1
+      - FEAT_TOGGLE_LOCAL_AUTH=1
+      - FEAT_TOGGLE_FIREBASE=
       - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam
       - SENTRY_DSN=
       - BASIC_AUTH_USERNAME=admin

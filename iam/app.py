@@ -4,7 +4,8 @@ import secrets
 from datetime import datetime
 
 import click
-from firebase_admin import auth
+import firebase_admin
+from firebase_admin import auth, credentials
 from flask import Flask, abort, jsonify, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -28,6 +29,22 @@ def create_app():
     sentry = Sentry(dsn=app.config['SENTRY_DSN'], logging=True,
                     level=logging.WARNING)
     sentry.init_app(app)
+
+    if app.config['FEAT_TOGGLE_FIREBASE']:
+        cred = credentials.Certificate({
+            'type': 'service_account',
+            'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
+            'token_uri': 'https://accounts.google.com/o/oauth2/token',
+            'auth_provider_x509_cert_url':
+                'https://www.googleapis.com/oauth2/v1/certs',
+            'project_id': app.config['FIREBASE_PROJECT_ID'],
+            'private_key_id': app.config['FIREBASE_PRIVATE_KEY_ID'],
+            'private_key': app.config['FIREBASE_PRIVATE_KEY'],
+            'client_email': app.config['FIREBASE_CLIENT_EMAIL'],
+            'client_id': app.config['FIREBASE_CLIENT_ID'],
+            'client_x509_cert_url': app.config['FIREBASE_CLIENT_CERT_URL'],
+        })
+        firebase_admin.initialize_app(cred)
 
     # ADMIN VIEWS
     ############################################################################
