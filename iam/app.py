@@ -54,10 +54,7 @@ def create_app():
                 user.refresh_token_expiry = (
                     datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
                 db.session.commit()
-                claims = {
-                    'org': user.organization_id,
-                    'prj': [p.id for p in user.organization.projects],
-                }
+                claims = user.claims
                 return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
                                   app.config['ALGORITHM'])
             else:
@@ -76,10 +73,7 @@ def create_app():
                 response.status_code = 401
                 return response
 
-            claims = {
-                'org': user.organization_id,
-                'prj': [p.id for p in user.organization.projects],
-            }
+            claims = user.claims
             return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
                               app.config['ALGORITHM'])
         except NoResultFound:

@@ -57,3 +57,10 @@ class User(db.Model):
 
     def check_password(self, password):
         return hasher.verify(password, self.password)
+
+    @property
+    def claims(self):
+        return {
+            'org': self.organization_id,
+            'prj': [p.id for p in self.organization.projects],
+        }
