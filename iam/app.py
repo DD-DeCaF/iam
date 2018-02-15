@@ -6,7 +6,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from flask_migrate import Migrate
-from jose import jwk
+from jose import jwk, jwt
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import settings
@@ -46,8 +46,13 @@ def create_app():
             password = request.form['password'].strip()
             user = User.query.filter_by(email=email).one()
             if user.check_password(password):
-                # TODO: lots more
-                return f"Authenticated as {user}"
+                # Authenticated, return the JWT
+                claims = {
+                    'org': user.organization_id,
+                    'prj': [p.id for p in user.organization.projects],
+                }
+                return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
+                                  'RS512')
             else:
                 abort(401)
         except NoResultFound:
