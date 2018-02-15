@@ -20,6 +20,9 @@ def create_app():
     Migrate(app, db)
     db.init_app(app)
 
+    # ADMIN VIEWS
+    ############################################################################
+
     admin = Admin(app, template_mode='bootstrap3')
     admin.add_view(ModelView(Organization, db.session))
     admin.add_view(ModelView(Project, db.session))
