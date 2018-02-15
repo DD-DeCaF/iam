@@ -1,3 +1,4 @@
+import pathlib
 import os
 
 
@@ -7,6 +8,8 @@ class Default:
     FEAT_AUTH = os.environ['FEAT_AUTH']
     BASIC_AUTH_USERNAME = os.environ['BASIC_AUTH_USERNAME']
     BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
+    RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
+    RSA_PUBLIC_KEY = pathlib.Path('keys/rsa.pub').read_text()
 
 
 class Development(Default):

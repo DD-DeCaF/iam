@@ -8,7 +8,7 @@ Identity and access management
 
 ## Development
 
-Type `make` to see all make targets.
+Run `make setup` once to create the database, run migrations and create a local RSA keypair. Type `make` to see all make targets.
 
 Note that DD-DeCaF services are expected to be connected to the `iloop` Docker network.
 

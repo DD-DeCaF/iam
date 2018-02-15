@@ -10,14 +10,21 @@ network:
 start: network
 	docker-compose up -d --build
 
-## Create databases and database fixtures
-setup: network
+## Create initial databases and RSA keys. You must only run this once.
+setup: network databases keypair
+
+## Create initial databases. You must only run this once.
+databases:
 	docker-compose up -d
 	docker-compose exec postgres psql -U postgres -c "create database iam;"
 	docker-compose exec postgres psql -U postgres -c "create database iam_test;"
 	docker-compose exec web flask db upgrade
 	# note: not migrating iam_test db; tests will create and tear down tables
 	docker-compose stop
+
+## Create RSA keypair used for signing JWTs.
+keypair:
+	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
 
 ## Run all QA targets
 qa: test flake8 isort
