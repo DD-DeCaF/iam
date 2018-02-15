@@ -76,9 +76,10 @@ def test_authenticate(app, client, db):
         'password': password,
     })
     assert response.status_code == 200
+    data_decoded = json.loads(response.data)
 
     # Decode the provided JWT with the public key from the service endpoint
     keys = json.loads(client.get('/keys').data)
     key = keys['keys'][0]
-    claims = jwt.decode(response.data, key, app.config['ALGORITHM'])
+    claims = jwt.decode(data_decoded['jwt'], key, app.config['ALGORITHM'])
     assert user.organization_id == claims['org']

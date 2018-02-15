@@ -59,8 +59,10 @@ def create_app():
                             app.config['JWT_VALIDITY']).strftime('%s')
                 }
                 claims.update(claims)
-                return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
+                signed_token = jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
                                   app.config['ALGORITHM'])
+                return jsonify({'jwt': signed_token,
+                                'refresh_token': refresh_token})
             else:
                 abort(401)
         except NoResultFound:
