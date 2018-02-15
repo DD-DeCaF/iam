@@ -58,7 +58,7 @@ def create_app():
                     'exp': (datetime.now() +
                             app.config['JWT_VALIDITY']).strftime('%s')
                 }
-                claims.update(claims)
+                claims.update(user.claims)
                 signed_token = jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
                                   app.config['ALGORITHM'])
                 return jsonify({'jwt': signed_token,
@@ -83,7 +83,7 @@ def create_app():
                 'exp': (datetime.now() +
                         app.config['JWT_VALIDITY']).strftime('%s')
             }
-            claims.update(claims)
+            claims.update(user.claims)
             return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
                               app.config['ALGORITHM'])
         except NoResultFound:
