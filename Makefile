@@ -10,9 +10,12 @@ network:
 start: network
 	docker-compose up -d --build
 
-## Create database fixtures
+## Create databases and database fixtures
 setup: network
-	docker-compose run --rm web flask db upgrade
+	docker-compose up -d
+	docker-compose exec postgres psql -U postgres -c "create database iam;"
+	docker-compose exec web flask db upgrade
+	docker-compose stop
 
 ## Run all QA targets
 qa: test flake8 isort
