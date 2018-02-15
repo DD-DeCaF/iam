@@ -30,10 +30,10 @@ class Project(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    password = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(128))
 
-    first_name = db.Column(db.String(256), nullable=False)
-    last_name = db.Column(db.String(256), nullable=False)
+    first_name = db.Column(db.String(256))
+    last_name = db.Column(db.String(256))
     email = db.Column(db.String(256), unique=True, nullable=False)
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
