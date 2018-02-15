@@ -1,12 +1,13 @@
 import getpass
 
 import click
-from flask import Flask, abort, request
+from flask import Flask, abort, request, jsonify
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from flask_migrate import Migrate
 from sqlalchemy.orm.exc import NoResultFound
+from jose import jwk
 
 from . import settings
 from .models import Organization, Project, User, db
@@ -48,6 +49,15 @@ def create_app():
                 abort(401)
         except NoResultFound:
             abort(401)
+
+    @app.route('/keys')
+    def public_key():
+        key = jwk.get_key('RS512')(app.config['RSA_PUBLIC_KEY'], 'RS512')
+        public_key = key.public_key().to_dict()
+        # python-jose outputs exponent and modulus as bytes
+        public_key['e'] = public_key['e'].decode()
+        public_key['n'] = public_key['n'].decode()
+        return jsonify({'keys': [public_key]})
 
     # CLI COMMANDS
     ############################################################################
