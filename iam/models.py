@@ -21,7 +21,7 @@ class Project(db.Model):
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
                                 nullable=False)
     organization = db.relationship('Organization',
-                                   backref=db.backref('projects', lazy=True))
+                                   backref=db.backref('projects'))
 
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.id}: {self.name}>'
@@ -38,8 +38,7 @@ class User(db.Model):
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
                                 nullable=False)
-    organization = db.relationship('Organization',
-                                   backref=db.backref('users', lazy=True))
+    organization = db.relationship('Organization', backref=db.backref('users'))
 
     def __repr__(self):
         return (f'<{self.__class__.__name__} {self.id}: {self.full_name} '
