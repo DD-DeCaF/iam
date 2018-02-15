@@ -13,6 +13,7 @@ services:
       - FLASK_APP=iam/main.py
       - CONFIGURATION=dev
       - SECRET_KEY=
+      - SERVICE_URL=
       - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam
       - FEAT_AUTH=1
       - BASIC_AUTH_USERNAME=admin

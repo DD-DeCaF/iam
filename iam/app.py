@@ -25,7 +25,8 @@ def create_app():
     # ADMIN VIEWS
     ############################################################################
 
-    admin = Admin(app, template_mode='bootstrap3')
+    admin = Admin(app, template_mode='bootstrap3',
+                  url=f"{app.config['SERVICE_URL']}/admin")
     admin.add_view(ModelView(Organization, db.session))
     admin.add_view(ModelView(Project, db.session))
     admin.add_view(ModelView(User, db.session))
@@ -41,7 +42,7 @@ def create_app():
     # HANDLERS
     ############################################################################
 
-    @app.route('/authenticate', methods=['POST'])
+    @app.route(f"{app.config['SERVICE_URL']}/authenticate", methods=['POST'])
     def auth():
         try:
             email = request.form['email'].strip()
@@ -72,7 +73,7 @@ def create_app():
         except NoResultFound:
             abort(401)
 
-    @app.route('/refresh', methods=['POST'])
+    @app.route(f"{app.config['SERVICE_URL']}/refresh", methods=['POST'])
     def refresh():
         try:
             user = User.query.filter_by(
@@ -93,7 +94,7 @@ def create_app():
         except NoResultFound:
             abort(404)
 
-    @app.route('/keys')
+    @app.route(f"{app.config['SERVICE_URL']}/keys")
     def public_key():
         key = jwk.get_key(app.config['ALGORITHM'])(
             app.config['RSA_PRIVATE_KEY'], app.config['ALGORITHM'])

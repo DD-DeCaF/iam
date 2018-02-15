@@ -4,6 +4,7 @@ from datetime import timedelta
 
 
 class Default:
+    SERVICE_URL = os.environ['SERVICE_URL']
     SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FEAT_AUTH = os.environ['FEAT_AUTH']
