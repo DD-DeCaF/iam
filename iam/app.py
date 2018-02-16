@@ -92,6 +92,11 @@ def create_app():
     @app.route(f"{app.config['SERVICE_URL']}/authenticate/firebase",
                methods=['POST'])
     def auth_firebase():
+        if not app.config['FEAT_TOGGLE_FIREBASE']:
+            response = jsonify({'error': "Firebase authentication is disabled"})
+            response.status_code = 501
+            return response
+
         try:
             uid = request.form['uid'].strip()
             token = request.form['token'].strip()
