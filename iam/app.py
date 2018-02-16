@@ -6,7 +6,7 @@ from datetime import datetime
 import click
 import firebase_admin
 from firebase_admin import auth, credentials
-from flask import Flask, abort, jsonify, request
+from flask import Flask, jsonify, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
@@ -81,9 +81,13 @@ def create_app():
                 payload = sign_claims(app, user)
                 return jsonify(payload)
             else:
-                abort(401)
+                response = jsonify({'error': "Invalid credentials"})
+                response.status_code = 401
+                return response
         except NoResultFound:
-            abort(401)
+            response = jsonify({'error': "Invalid credentials"})
+            response.status_code = 401
+            return response
 
     @app.route(f"{app.config['SERVICE_URL']}/authenticate/firebase",
                methods=['POST'])
@@ -93,7 +97,9 @@ def create_app():
             token = request.form['token'].strip()
             decoded_token = auth.verify_id_token(token)
         except ValueError:
-            abort(401)
+            response = jsonify({'error': "Invalid firebase credentials"})
+            response.status_code = 401
+            return response
 
         if 'email' not in decoded_token:
             decoded_token['email'] = (
@@ -119,7 +125,7 @@ def create_app():
                 refresh_token=request.form['refresh_token']).one()
             if datetime.now() >= user.refresh_token_expiry:
                 response = jsonify({'error': "The refresh token has expired, "
-                                    "please re-authenticate."})
+                                    "please re-authenticate"})
                 response.status_code = 401
                 return response
 
@@ -131,7 +137,9 @@ def create_app():
             return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
                               app.config['ALGORITHM'])
         except NoResultFound:
-            abort(404)
+            response = jsonify({'error': "Invalid refresh token"})
+            response.status_code = 401
+            return response
 
     @app.route(f"{app.config['SERVICE_URL']}/keys")
     def public_key():
