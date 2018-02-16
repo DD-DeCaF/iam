@@ -92,24 +92,25 @@ def create_app():
             uid = request.form['uid'].strip()
             token = request.form['token'].strip()
             decoded_token = auth.verify_id_token(token)
-            if 'email' not in decoded_token:
-                decoded_token['email'] = (
-                    auth.get_user(uid).provider_data[0].email)
-            try:
-                user = User.query.filter_by(firebase_uid=uid).one()
-            except NoResultFound:
-                try:
-                    # no firebase user for this provider, but they may have
-                    # signed up with a different provider but the same email
-                    user = User.query.filter_by(email=decoded_token['email'])
-                except NoResultFound:
-                    # no such user - create a new one
-                    user = create_firebase_user(uid, decoded_token)
-
-            payload = sign_claims(app, user)
-            return jsonify(payload)
-        except NoResultFound:
+        except ValueError:
             abort(401)
+
+        if 'email' not in decoded_token:
+            decoded_token['email'] = (
+                auth.get_user(uid).provider_data[0].email)
+        try:
+            user = User.query.filter_by(firebase_uid=uid).one()
+        except NoResultFound:
+            try:
+                # no firebase user for this provider, but they may have
+                # signed up with a different provider but the same email
+                user = User.query.filter_by(email=decoded_token['email'])
+            except NoResultFound:
+                # no such user - create a new one
+                user = create_firebase_user(uid, decoded_token)
+
+        payload = sign_claims(app, user)
+        return jsonify(payload)
 
     @app.route(f"{app.config['SERVICE_URL']}/refresh", methods=['POST'])
     def refresh():
