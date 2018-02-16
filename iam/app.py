@@ -110,7 +110,7 @@ def create_app():
             try:
                 # no firebase user for this provider, but they may have
                 # signed up with a different provider but the same email
-                user = User.query.filter_by(email=decoded_token['email'])
+                user = User.query.filter_by(email=decoded_token['email']).one()
             except NoResultFound:
                 # no such user - create a new one
                 user = create_firebase_user(uid, decoded_token)
