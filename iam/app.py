@@ -27,9 +27,10 @@ def create_app():
     Migrate(app, db)
     db.init_app(app)
 
-    sentry = Sentry(dsn=app.config['SENTRY_DSN'], logging=True,
-                    level=logging.WARNING)
-    sentry.init_app(app)
+    if app.config['SENTRY_DSN']:
+        sentry = Sentry(dsn=app.config['SENTRY_DSN'], logging=True,
+                        level=logging.WARNING)
+        sentry.init_app(app)
 
     # XXX this allows all origins, should be narrowed down
     CORS(app)
