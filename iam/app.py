@@ -73,6 +73,12 @@ def create_app():
     @app.route(f"{app.config['SERVICE_URL']}/authenticate/local",
                methods=['POST'])
     def auth_local():
+        if not app.config['FEAT_TOGGLE_LOCAL_AUTH']:
+            response = jsonify({'error': "Local user authentication is "
+                                "disabled"})
+            response.status_code = 501
+            return response
+
         try:
             email = request.form['email'].strip()
             password = request.form['password'].strip()

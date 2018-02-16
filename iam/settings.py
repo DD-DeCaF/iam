@@ -5,7 +5,6 @@ from datetime import timedelta
 
 class Default:
     SERVICE_URL = os.environ['SERVICE_URL']
-    # TODO: actually use local auth toggle
     FEAT_TOGGLE_LOCAL_AUTH = bool(os.environ['FEAT_TOGGLE_LOCAL_AUTH'])
     FEAT_TOGGLE_FIREBASE = bool(os.environ['FEAT_TOGGLE_FIREBASE'])
     SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
