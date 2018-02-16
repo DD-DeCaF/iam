@@ -29,6 +29,12 @@ Specify environment variables in `docker-compose.yml`. See the file for default 
 * `FEAT_TOGGLE_FIREBASE`: Feature toggle: firebase authentication
 * `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
+* `FIREBASE_CLIENT_CERT_URL`
+* `FIREBASE_CLIENT_EMAIL`
+* `FIREBASE_CLIENT_ID`
+* `FIREBASE_PRIVATE_KEY`
+* `FIREBASE_PRIVATE_KEY_ID`
+* `FIREBASE_PROJECT_ID`
 
 ## API
 
