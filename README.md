@@ -29,3 +29,69 @@ Specify environment variables in `docker-compose.yml`. See the file for default 
 * `FEAT_TOGGLE_FIREBASE`: Feature toggle: firebase authentication
 * `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
+
+## API
+
+### Admin UI
+
+`GET /admin`
+
+### Authenticate as local user
+
+`POST /authenticate/local`
+
+Parameters:
+
+* `email`
+* `password`
+
+Returns:
+
+    {
+      'jwt': <Signed JWT>,
+      'refresh_token': {
+        'val': <Refresh Token>,
+        'exp': <Expiry (unix time)>,
+      },
+    }
+
+### Authenticate as Firebase user
+
+`POST /authenticate/firebase`
+
+Parameters:
+
+* `uid`
+* `token`
+
+Returns:
+
+    {
+      'jwt': <Signed JWT>,
+      'refresh_token': {
+        'val': <Refresh Token>,
+        'exp': <Expiry (unix time)>,
+      },
+    }
+
+### Refresh JWT
+
+`POST /refresh`
+
+Parameters:
+
+* `refresh_token`
+
+Returns:
+
+    <Signed JWT>
+
+### Get signing keys
+
+`GET /keys`
+
+Returns:
+
+    <JWK>
+
+See also: [RFC 7517](https://tools.ietf.org/html/rfc7517) or [the OpenID Connect implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys).
