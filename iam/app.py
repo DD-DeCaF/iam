@@ -10,6 +10,7 @@ from flask import Flask, abort, jsonify, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
+from flask_cors import CORS
 from flask_migrate import Migrate
 from jose import jwk, jwt
 from raven.contrib.flask import Sentry
@@ -29,6 +30,9 @@ def create_app():
     sentry = Sentry(dsn=app.config['SENTRY_DSN'], logging=True,
                     level=logging.WARNING)
     sentry.init_app(app)
+
+    # XXX this allows all origins, should be narrowed down
+    CORS(app)
 
     if app.config['FEAT_TOGGLE_FIREBASE']:
         cred = credentials.Certificate({
