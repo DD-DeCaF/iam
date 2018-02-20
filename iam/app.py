@@ -18,6 +18,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import settings
 from .models import Organization, Project, User, db
+from .openid_connect import OpenIDConnect
 
 
 def create_app():
@@ -52,7 +53,8 @@ def create_app():
         firebase_admin.initialize_app(cred)
 
     if app.config['FEAT_TOGGLE_OIDC']:
-        pass
+        oidc = OpenIDConnect(app.config['OIDC_DISCOVERY_URL'])
+        oidc.init_app(app)
 
     # ADMIN VIEWS
     ############################################################################
