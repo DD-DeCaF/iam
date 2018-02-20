@@ -51,6 +51,9 @@ def create_app():
         })
         firebase_admin.initialize_app(cred)
 
+    if app.config['FEAT_TOGGLE_OIDC']:
+        pass
+
     # ADMIN VIEWS
     ############################################################################
 

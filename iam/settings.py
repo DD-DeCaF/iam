@@ -26,6 +26,12 @@ class Default:
     FIREBASE_PRIVATE_KEY_ID = os.environ.get('FIREBASE_PRIVATE_KEY_ID')
     FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID')
 
+    FEAT_TOGGLE_OIDC = bool(os.environ['FEAT_TOGGLE_OIDC'])
+    OIDC_DISCOVERY_URL = os.environ.get('OIDC_DISCOVERY_URL')
+    OIDC_CLIENT_ID = os.environ.get('OIDC_CLIENT_ID')
+    OIDC_CLIENT_SECRET = os.environ.get('OIDC_CLIENT_SECRET')
+    OIDC_REDIRECT_BASE = os.environ.get('OIDC_REDIRECT_BASE')
+
 
 class Development(Default):
     DEBUG = True

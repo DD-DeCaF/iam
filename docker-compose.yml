@@ -20,6 +20,7 @@ services:
       - FEAT_TOGGLE_LOCAL_AUTH=1
       - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam
       - FEAT_TOGGLE_FIREBASE=
+      - FEAT_TOGGLE_OIDC=
     depends_on:
       - postgres
     networks:
