@@ -18,7 +18,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import settings
 from .models import Organization, Project, User, db
-from .openid_connect import OpenIDConnect
+from .oidc import OpenIDConnect
 
 
 def create_app():
