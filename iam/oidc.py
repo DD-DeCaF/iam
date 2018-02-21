@@ -3,7 +3,7 @@ import secrets
 from urllib.parse import quote
 
 import requests
-from flask import jsonify, redirect, request, session
+from flask import jsonify, redirect, request, session, url_for
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class OpenIDConnect:
                 'response_type': 'code',
                 'scope': 'openid email',
                 'redirect_uri': (f"{app.config['OIDC_REDIRECT_BASE']}"
-                                 "/authenticate/oidc/return"),
+                                 f"{url_for('return_')}"),
                 'state': self.create_random_token(),
                 'nonce': self.create_random_token(),
             }
@@ -63,7 +63,7 @@ class OpenIDConnect:
                 'client_id': app.config['OIDC_CLIENT_ID'],
                 'client_secret': app.config['OIDC_CLIENT_SECRET'],
                 'redirect_uri': (f"{app.config['OIDC_REDIRECT_BASE']}"
-                                 "/authenticate/oidc/return"),
+                                 f"{url_for('return_')}"),
                 'grant_type': 'authorization_code',
             })
             r.raise_for_status()
