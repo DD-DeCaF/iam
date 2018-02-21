@@ -24,6 +24,8 @@ Specify environment variables in `docker-compose.yml`. See the file for default 
 
 * `CONFIGURATION`: Set to `dev` for development configuration, or `prod` for production configuration
 * `SECRET_KEY`: Flask secret key
+* `SERVICE_URL`: URL path prefix for the service API endpoint
+* `SENTRY_DSN`: Sentry DSN
 * `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
 * `FEAT_TOGGLE_LOCAL_AUTH`: Feature toggle: local user database authentication
