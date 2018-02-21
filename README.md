@@ -30,13 +30,25 @@ Specify environment variables in `docker-compose.yml`. See the file for default 
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
 * `FEAT_TOGGLE_LOCAL_AUTH`: Feature toggle: local user database authentication
 * `SQLALCHEMY_DATABASE_URI`: [Database configuration](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls)
-* `FEAT_TOGGLE_FIREBASE`: Feature toggle: firebase authentication
+
+Firebase:
+
+* `FEAT_TOGGLE_FIREBASE`: Feature toggle: Firebase authentication
 * `FIREBASE_CLIENT_CERT_URL`
 * `FIREBASE_CLIENT_EMAIL`
 * `FIREBASE_CLIENT_ID`
 * `FIREBASE_PRIVATE_KEY`
 * `FIREBASE_PRIVATE_KEY_ID`
 * `FIREBASE_PROJECT_ID`
+
+OpenID Connect:
+
+* `FEAT_TOGGLE_OIDC`: Feature toggle: OpenID Connect authentication
+* `OIDC_DISCOVERY_URL`: Provider's [OpenID configuration](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig)
+* `OIDC_CLIENT_ID`: Client ID
+* `OIDC_CLIENT_SECRET`: Client Secret
+* `OIDC_REDIRECT_BASE`: Base URI for the service API endpoint (*not*  including `SERVICE_URL`)
+
 
 ## API
 
