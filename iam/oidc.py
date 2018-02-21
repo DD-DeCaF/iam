@@ -1,5 +1,6 @@
 import logging
 import secrets
+import string
 from urllib.parse import quote
 
 import requests
@@ -71,5 +72,5 @@ class OpenIDConnect:
 
     @staticmethod
     def create_random_token(n=12):
-        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        chars = string.ascii_letters + string.digits
         return ''.join([secrets.choice(chars) for _ in range(n)])
