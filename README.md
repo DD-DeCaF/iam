@@ -94,6 +94,10 @@ Returns:
       },
     }
 
+### Authenticate as OpenID Connect user
+
+`GET /authenticate/oidc`
+
 ### Refresh JWT
 
 `POST /refresh`
