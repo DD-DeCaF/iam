@@ -2,11 +2,11 @@ import base64
 import hashlib
 import hmac
 import secrets
+import string
 
 
 def new_salt(n=12):
-    salt_chars = ('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-                  '0123456789')
+    salt_chars = string.ascii_letters + string.digits
     salt = [secrets.choice(salt_chars) for _ in range(n)]
     return ''.join(salt)
 
