@@ -33,7 +33,7 @@ keypair:
 
 ## Run all QA targets
 .PHONY: qa
-qa: test flake8 isort
+qa: test flake8 isort license
 
 ## Run the tests
 .PHONY: test
@@ -58,6 +58,11 @@ isort:
 ## Sort imports and write changes to files
 isort-save:
 	docker-compose run --rm web isort --recursive iam tests
+
+## Verify source code license headers
+.PHONY: license
+license:
+	./scripts/verify_license_headers.sh iam
 
 ## Shut down the Docker containers.
 .PHONY: stop
