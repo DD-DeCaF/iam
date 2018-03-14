@@ -16,8 +16,6 @@ Identity and access management
 
 Run `make setup` once to create the database, run migrations and create a local RSA keypair. Type `make` to see all make targets.
 
-Note that DD-DeCaF services are expected to be connected to the `iloop` Docker network.
-
 ### Environment
 
 Specify environment variables in `docker-compose.yml`. See the file for default development values.
