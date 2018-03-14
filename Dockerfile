@@ -11,7 +11,7 @@ WORKDIR /app
 
 RUN pip install pipenv
 COPY Pipfile Pipfile.lock /app/
-RUN pipenv install --dev --ignore-pipfile --system --deploy
+RUN pipenv install --dev --system --deploy
 
 COPY . /app
 

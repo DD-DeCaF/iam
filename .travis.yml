@@ -15,7 +15,7 @@ addons:
 
 install:
   - pip install pipenv
-  - pipenv install --dev --ignore-pipfile --system --deploy
+  - pipenv install --dev --system --deploy
   - psql -U postgres -c "create database iam_test;"
   - ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
 
