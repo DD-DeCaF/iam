@@ -21,7 +21,7 @@ Prerequisites: Docker, make and pipenv. Run `make setup` once to create the data
 Specify environment variables in `docker-compose.yml`. See the file for default development values.
 
 * `CONFIGURATION`: Set to `dev` for development configuration, or `prod` for production configuration
-* `SECRET_KEY`: Flask secret key
+* `SECRET_KEY`: Flask secret key. Will be randomly generated in dev env
 * `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
 * `FEAT_TOGGLE_LOCAL_AUTH`: Feature toggle: local user database authentication

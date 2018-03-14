@@ -12,7 +12,6 @@ services:
       - PYTHONUNBUFFERED=1
       - FLASK_APP=iam/main.py
       - CONFIGURATION=dev
-      - SECRET_KEY=
       - SERVICE_URL=
       - SENTRY_DSN=
       - BASIC_AUTH_USERNAME=admin
