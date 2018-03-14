@@ -14,7 +14,7 @@ Identity and access management
 
 ## Development
 
-Run `make setup` once to create the database, run migrations and create a local RSA keypair. Type `make` to see all make targets.
+Prerequisites: Docker, make and pipenv. Run `make setup` once to create the database, run migrations and create a local RSA keypair. Type `make` to see all make targets.
 
 ### Environment
 
