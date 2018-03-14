@@ -14,7 +14,8 @@ addons:
   postgresql: "9.6"  # note: travis does not yet support 10.x
 
 install:
-  - pip install -r requirements.txt
+  - pip install pipenv
+  - pipenv install --dev --ignore-pipfile --system --deploy
   - psql -U postgres -c "create database iam_test;"
   - ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
 

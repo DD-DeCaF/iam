@@ -1,0 +1,40 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+gunicorn = "*"
+"psycopg2-binary" = "*"
+Flask-Admin = {git = "https://github.com/flask-admin/flask-admin"}
+gevent = "*"
+flask = "*"
+flask-cors = "*"
+sqlalchemy = "*"
+flask-sqlalchemy = "*"
+alembic = "*"
+flask-migrate = "*"
+flask-admin = {git = "https://github.com/flask-admin/flask-admin"}
+flask-basicauth = "*"
+python-jose = "*"
+raven = {extras = ["flask"], version = "*"}
+firebase-admin = "*"
+requests = "*"
+
+
+[dev-packages]
+
+"flake8" = "*"
+pytest = "*"
+pytest-cov = "*"
+codecov = "*"
+isort = "*"
+ipython = "*"
+
+
+[requires]
+
+python_version = "3.6"
