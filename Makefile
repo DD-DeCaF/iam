@@ -56,6 +56,7 @@ isort:
 	docker-compose run --rm web isort --check-only --recursive iam tests
 
 ## Sort imports and write changes to files
+.PHONY: isort-save
 isort-save:
 	docker-compose run --rm web isort --recursive iam tests
 
