@@ -1,4 +1,4 @@
-.PHONY: network start setup databases keypair qa test unittest flake8 isort isort-save license stop clean logs
+.PHONY: network start setup databases keypair qa test unittest flake8 isort isort-save license pipenv-check stop clean logs
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -29,7 +29,7 @@ keypair:
 	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
 
 ## Run all QA targets
-qa: test flake8 isort license
+qa: test flake8 isort license pipenv-check
 
 ## Run the tests
 test:
@@ -54,6 +54,10 @@ isort-save:
 ## Verify source code license headers
 license:
 	./scripts/verify_license_headers.sh iam
+
+## Check for known vulnerabilities in python dependencies
+pipenv-check:
+	pipenv check
 
 ## Shut down the Docker containers.
 stop:

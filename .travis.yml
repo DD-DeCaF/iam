@@ -24,6 +24,7 @@ script:
   - flake8 iam tests
   - isort --check-only --recursive iam tests
   - ./scripts/verify_license_headers.sh iam
+  - pipenv check
 
 after_success:
   - codecov
