@@ -1,23 +1,21 @@
+.PHONY: network start setup databases keypair qa test unittest flake8 isort isort-save license stop clean logs
+
 #################################################################################
 # COMMANDS                                                                      #
 #################################################################################
 
 ## Create the external iloop network
-.PHONY: network
 network:
 	docker network inspect iloop >/dev/null || docker network create iloop
 
 ## Install and start the service.
-.PHONY: start
 start: network
 	docker-compose up -d --build
 
 ## Create initial databases and RSA keys. You must only run this once.
-.PHONY: setup
 setup: network databases keypair
 
 ## Create initial databases. You must only run this once.
-.PHONY: databases
 databases:
 	docker-compose up -d
 	docker-compose exec postgres psql -U postgres -c "create database iam;"
@@ -27,56 +25,45 @@ databases:
 	docker-compose stop
 
 ## Create RSA keypair used for signing JWTs.
-.PHONY: keypair
 keypair:
 	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
 
 ## Run all QA targets
-.PHONY: qa
 qa: test flake8 isort license
 
 ## Run the tests
-.PHONY: test
 test:
 	docker-compose run --rm -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests
 
 ## Run only unit tests
-.PHONY: unittest
 unittest:
 	docker-compose run --rm -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests/unit
 
 ## Run flake8
-.PHONY: flake8
 flake8:
 	docker-compose run --rm web flake8 iam tests
 
 ## Check import sorting
-.PHONY: isort
 isort:
 	docker-compose run --rm web isort --check-only --recursive iam tests
 
 ## Sort imports and write changes to files
-.PHONY: isort-save
 isort-save:
 	docker-compose run --rm web isort --recursive iam tests
 
 ## Verify source code license headers
-.PHONY: license
 license:
 	./scripts/verify_license_headers.sh iam
 
 ## Shut down the Docker containers.
-.PHONY: stop
 stop:
 	docker-compose stop
 
 ## Remove all containers.
-.PHONY: clean
 clean:
 	docker-compose down
 
 ## Read the logs.
-.PHONY: logs
 logs:
 	docker-compose logs --tail="all" -f
 
