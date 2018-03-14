@@ -15,10 +15,10 @@ addons:
 
 install:
   - pip install -r requirements.txt
-
-script:
   - psql -U postgres -c "create database iam_test;"
   - ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
+
+script:
   - py.test -vxs --cov=iam tests
   - flake8 iam tests
   - isort --check-only --recursive iam tests
