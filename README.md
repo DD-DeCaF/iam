@@ -18,7 +18,7 @@ Prerequisites: Docker, make and pipenv. Run `make setup` once to create the data
 
 ### Environment
 
-Specify environment variables in `docker-compose.yml`. See the file for default development values.
+Specify environment variables in `.env`. See `docker-compose.yml` for default development values.
 
 * `ENVIRONMENT`: Set to `development`, `testing` or `production`
 * `SECRET_KEY`: Flask secret key. Will be randomly generated in dev/testing envs
