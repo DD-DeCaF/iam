@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED 1
 # g++ is required to build python gevent dependency
 # postgresql-dev is required for psycopg2
 # openssh is required to generate rsa keys
-# git is required for github references in requirements.txt (hopefully temporary)
+# git is required for github references in Pipenv (hopefully temporary)
 RUN apk --no-cache add g++ postgresql-dev openssh git
 
 RUN mkdir /app
