@@ -19,15 +19,15 @@ from datetime import datetime
 
 import click
 import firebase_admin
-from firebase_admin import auth, credentials
-from flask import Flask, jsonify, request
+from firebase_admin import credentials
+from flask import Flask, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restplus import Api
-from jose import jwk, jwt
+from jose import jwt
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -44,6 +44,8 @@ api = Api(
 
 
 def init_app(application, interface):
+    from . import resources
+
     application.config.from_object(settings.Settings)
 
     Migrate(application, db)
@@ -90,104 +92,20 @@ def init_app(application, interface):
         if request.path.startswith(admin.url) and not basic_auth.authenticate():
             return basic_auth.challenge()
 
-    # HANDLERS
+    # API RESOURCES
     ############################################################################
 
+    interface.add_resource(resources.AuthenticateLocal,
+                           f"{application.config['SERVICE_URL']}"
+                           f"/authenticate/local")
+    interface.add_resource(resources.AuthenticateFirebase,
+                           f"{application.config['SERVICE_URL']}"
+                           f"/authenticate/firebase")
+    interface.add_resource(resources.Refresh,
+                           f"{application.config['SERVICE_URL']}/refresh")
+    interface.add_resource(resources.PublicKeys,
+                           f"{application.config['SERVICE_URL']}/keys")
     interface.init_app(application)
-
-    @application.route(f"{application.config['SERVICE_URL']}"
-                       f"/authenticate/local", methods=['POST'])
-    def auth_local():
-        if not application.config['FEAT_TOGGLE_LOCAL_AUTH']:
-            response = jsonify({'error': "Local user authentication is "
-                                "disabled"})
-            response.status_code = 501
-            return response
-
-        try:
-            email = request.form['email'].strip()
-            password = request.form['password'].strip()
-            user = User.query.filter_by(email=email).one()
-            if user.check_password(password):
-                payload = sign_claims(application, user)
-                return jsonify(payload)
-            else:
-                response = jsonify({'error': "Invalid credentials"})
-                response.status_code = 401
-                return response
-        except NoResultFound:
-            response = jsonify({'error': "Invalid credentials"})
-            response.status_code = 401
-            return response
-
-    @application.route(f"{application.config['SERVICE_URL']}"
-                       f"/authenticate/firebase", methods=['POST'])
-    def auth_firebase():
-        if not application.config['FEAT_TOGGLE_FIREBASE']:
-            response = jsonify({'error': "Firebase authentication is disabled"})
-            response.status_code = 501
-            return response
-
-        try:
-            uid = request.form['uid'].strip()
-            token = request.form['token'].strip()
-            decoded_token = auth.verify_id_token(token)
-        except ValueError:
-            response = jsonify({'error': "Invalid firebase credentials"})
-            response.status_code = 401
-            return response
-
-        if 'email' not in decoded_token:
-            decoded_token['email'] = (
-                auth.get_user(uid).provider_data[0].email)
-        try:
-            user = User.query.filter_by(firebase_uid=uid).one()
-        except NoResultFound:
-            try:
-                # no firebase user for this provider, but they may have
-                # signed up with a different provider but the same email
-                user = User.query.filter_by(email=decoded_token['email']).one()
-            except NoResultFound:
-                # no such user - create a new one
-                user = create_firebase_user(uid, decoded_token)
-
-        payload = sign_claims(application, user)
-        return jsonify(payload)
-
-    @application.route(f"{application.config['SERVICE_URL']}/refresh",
-                       methods=['POST'])
-    def refresh():
-        try:
-            user = User.query.filter_by(
-                refresh_token=request.form['refresh_token']).one()
-            if datetime.now() >= user.refresh_token_expiry:
-                response = jsonify({'error': "The refresh token has expired, "
-                                    "please re-authenticate"})
-                response.status_code = 401
-                return response
-
-            claims = {
-                'exp': int((datetime.now() + application.config['JWT_VALIDITY'])
-                           .strftime('%s'))
-            }
-            claims.update(user.claims)
-            return jwt.encode(claims, application.config['RSA_PRIVATE_KEY'],
-                              application.config['ALGORITHM'])
-        except NoResultFound:
-            response = jsonify({'error': "Invalid refresh token"})
-            response.status_code = 401
-            return response
-
-    @application.route(f"{application.config['SERVICE_URL']}/keys")
-    def public_key():
-        key = jwk.get_key(application.config['ALGORITHM'])(
-            application.config['RSA_PRIVATE_KEY'],
-            application.config['ALGORITHM'])
-        public_key = key.public_key().to_dict()
-        # python-jose outputs exponent and modulus as bytes
-        public_key['e'] = public_key['e'].decode()
-        public_key['n'] = public_key['n'].decode()
-        return jsonify({'keys': [public_key]})
 
     # CLI COMMANDS
     ############################################################################
@@ -214,7 +132,7 @@ def init_app(application, interface):
     return application
 
 
-def sign_claims(app, user):
+def sign_claims(user):
     """return signed jwt and refresh token for the given authenticated user"""
     user.refresh_token = secrets.token_hex(32)
     user.refresh_token_expiry = (
