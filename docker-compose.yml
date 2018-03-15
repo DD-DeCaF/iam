@@ -6,8 +6,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    networks:
+      - iloop
     volumes:
       - "./:/app"
+    depends_on:
+      - postgres
     environment:
       - FLASK_APP=iam/main.py
       - ENVIRONMENT=development
@@ -18,10 +22,6 @@ services:
       - FEAT_TOGGLE_LOCAL_AUTH=1
       - SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam
       - FEAT_TOGGLE_FIREBASE=
-    depends_on:
-      - postgres
-    networks:
-      - iloop
     command: gunicorn -c gunicorn.py iam.main:app
 
   postgres:
