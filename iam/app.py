@@ -34,7 +34,6 @@ from . import settings
 from .models import Organization, Project, User, db
 
 
-
 app = Flask(__name__)
 
 
@@ -63,7 +62,8 @@ def init_app(application):
             'private_key': application.config['FIREBASE_PRIVATE_KEY'],
             'client_email': application.config['FIREBASE_CLIENT_EMAIL'],
             'client_id': application.config['FIREBASE_CLIENT_ID'],
-            'client_x509_cert_url': application.config['FIREBASE_CLIENT_CERT_URL'],
+            'client_x509_cert_url':
+                application.config['FIREBASE_CLIENT_CERT_URL'],
         })
         firebase_admin.initialize_app(cred)
 
@@ -87,8 +87,8 @@ def init_app(application):
     # HANDLERS
     ############################################################################
 
-    @application.route(f"{application.config['SERVICE_URL']}/authenticate/local",
-                       methods=['POST'])
+    @application.route(f"{application.config['SERVICE_URL']}"
+                       f"/authenticate/local", methods=['POST'])
     def auth_local():
         if not application.config['FEAT_TOGGLE_LOCAL_AUTH']:
             response = jsonify({'error': "Local user authentication is "
@@ -112,8 +112,8 @@ def init_app(application):
             response.status_code = 401
             return response
 
-    @application.route(f"{application.config['SERVICE_URL']}/authenticate/firebase",
-                       methods=['POST'])
+    @application.route(f"{application.config['SERVICE_URL']}"
+                       f"/authenticate/firebase", methods=['POST'])
     def auth_firebase():
         if not application.config['FEAT_TOGGLE_FIREBASE']:
             response = jsonify({'error': "Firebase authentication is disabled"})
@@ -146,7 +146,8 @@ def init_app(application):
         payload = sign_claims(application, user)
         return jsonify(payload)
 
-    @application.route(f"{application.config['SERVICE_URL']}/refresh", methods=['POST'])
+    @application.route(f"{application.config['SERVICE_URL']}/refresh",
+                       methods=['POST'])
     def refresh():
         try:
             user = User.query.filter_by(
@@ -172,7 +173,8 @@ def init_app(application):
     @application.route(f"{application.config['SERVICE_URL']}/keys")
     def public_key():
         key = jwk.get_key(application.config['ALGORITHM'])(
-            application.config['RSA_PRIVATE_KEY'], application.config['ALGORITHM'])
+            application.config['RSA_PRIVATE_KEY'],
+            application.config['ALGORITHM'])
         public_key = key.public_key().to_dict()
         # python-jose outputs exponent and modulus as bytes
         public_key['e'] = public_key['e'].decode()
