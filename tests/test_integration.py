@@ -99,3 +99,9 @@ def test_authenticate_success(app, client, user):
     response = client.post('/refresh',
                            data={'refresh_token': user.refresh_token})
     assert response.status_code == 401
+
+
+def test_openapi_schema(app, client):
+    response = client.get('/openapi.json')
+    assert response.status_code == 200
+    assert len(json.loads(response.data)['definitions'].keys()) > 0
