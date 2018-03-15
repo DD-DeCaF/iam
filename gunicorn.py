@@ -6,7 +6,7 @@ _environment = os.environ['ENVIRONMENT']
 
 bind = "0.0.0.0:8000"
 worker_class = "gevent"
-timeout = 30
+timeout = 20
 loglevel = "info"
 accesslog = "-"
 
