@@ -50,7 +50,6 @@ class Development(Default):
 class Testing(Default):
     DEBUG = True
     SECRET_KEY = os.urandom(24)
-    SQLALCHEMY_DATABASE_URI = "postgres://postgres:@postgres:5432/iam_test"
 
 
 class Production(Default):
