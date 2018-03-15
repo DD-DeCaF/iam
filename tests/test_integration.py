@@ -16,42 +16,9 @@ import base64
 import json
 from datetime import datetime, timedelta
 
-import pytest
 from jose import jwt
 
-from iam.app import create_app
 from iam.models import Organization, Project, User
-from iam.models import db as db_
-
-
-@pytest.fixture
-def app():
-    app = create_app()
-    app.app_context().push()
-    return app
-
-
-@pytest.fixture
-def db():
-    db_.create_all()
-    yield db_
-    db_.session.remove()
-    db_.drop_all()
-
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
-
-
-@pytest.fixture
-def user(db):
-    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
-                organization=Organization(name='FooOrg'))
-    password = 'hunter2'
-    user.set_password(password)
-    db.session.add(user)
-    return (user, password)
 
 
 def test_get_admin_unauthorized(client):
