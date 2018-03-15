@@ -2,18 +2,20 @@ FROM python:3.6-alpine
 
 ENV PYTHONUNBUFFERED 1
 
-# g++ is required to build python gevent dependency
 # postgresql-dev is required for psycopg2
 # openssh is required to generate rsa keys
-# git is required for github references in Pipenv (hopefully temporary)
-RUN apk --no-cache add g++ postgresql-dev openssh git
+RUN apk --no-cache add postgresql-dev openssh
 
 RUN mkdir /app
 WORKDIR /app
 
-RUN pip install pipenv
 COPY Pipfile Pipfile.lock /app/
-RUN pipenv install --dev --system --deploy
+# g++ is required to build python gevent dependency
+# git is required for github references in Pipenv (hopefully temporary)
+RUN apk add --no-cache --virtual .build-deps g++ git \
+    && pip install pipenv \
+    && pipenv install --dev --system --deploy \
+    && apk del .build-deps
 
 COPY . /app
 
