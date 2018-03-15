@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED 1
 # postgresql-dev is required for psycopg2
 # openssh is required to generate rsa keys
 # git is required for github references in requirements.txt (hopefully temporary)
-RUN apk --update add g++ postgresql-dev openssh git && rm -rf /var/cache/apk/*
+RUN apk --no-cache add g++ postgresql-dev openssh git
 
 RUN mkdir /app
 WORKDIR /app
