@@ -22,6 +22,7 @@ services:
       - postgres
     networks:
       - iloop
+    command: gunicorn -c gunicorn.py iam.main:app
 
   postgres:
     image: postgres:10-alpine

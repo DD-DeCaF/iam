@@ -18,5 +18,3 @@ RUN apk add --no-cache --virtual .build-deps g++ git \
     && apk del .build-deps
 
 COPY . /app
-
-CMD ["gunicorn", "-c", "gunicorn.py", "iam.main:app"]
