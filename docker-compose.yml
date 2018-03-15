@@ -9,7 +9,6 @@ services:
     volumes:
       - "./:/app"
     environment:
-      - PYTHONUNBUFFERED=1
       - FLASK_APP=iam/main.py
       - CONFIGURATION=dev
       - SERVICE_URL=

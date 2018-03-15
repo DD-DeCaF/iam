@@ -1,5 +1,7 @@
 FROM python:3.6-alpine
 
+ENV PYTHONUNBUFFERED 1
+
 # g++ is required to build python gevent dependency
 # postgresql-dev is required for psycopg2
 # openssh is required to generate rsa keys
