@@ -17,7 +17,6 @@ sqlalchemy = "*"
 flask-sqlalchemy = "*"
 alembic = "*"
 flask-migrate = "*"
-flask-admin = {git = "https://github.com/flask-admin/flask-admin"}
 flask-basicauth = "*"
 python-jose = "*"
 raven = {extras = ["flask"], version = "*"}
