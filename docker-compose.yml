@@ -10,7 +10,7 @@ services:
       - "./:/app"
     environment:
       - FLASK_APP=iam/main.py
-      - CONFIGURATION=dev
+      - ENVIRONMENT=development
       - SERVICE_URL=
       - SENTRY_DSN=
       - BASIC_AUTH_USERNAME=admin

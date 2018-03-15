@@ -46,12 +46,19 @@ class Development(Default):
     SECRET_KEY = os.urandom(24)
 
 
+class Testing(Default):
+    DEBUG = True
+    SECRET_KEY = os.urandom(24)
+
+
 class Production(Default):
     DEBUG = False
     SECRET_KEY = os.environ['SECRET_KEY']
 
 
-if os.environ['CONFIGURATION'] == 'prod':
+if os.environ['ENVIRONMENT'] == 'production':
     Settings = Production
+elif os.environ['ENVIRONMENT'] == 'testing':
+    Settings = Testing
 else:
     Settings = Development
