@@ -87,7 +87,8 @@ def test_authenticate_success(app, client, user):
     response = client.post('/refresh',
                            data={'refresh_token': refresh_token['val']})
     assert response.status_code == 200
-    refresh_claims = jwt.decode(response.data, key, app.config['ALGORITHM'])
+    raw_jwt_token = json.loads(response.data)['jwt']
+    refresh_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
     # Assert that the claims are equal, but not the expiry, which will have
     # refreshed
     returned_claims.pop('exp')
