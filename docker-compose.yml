@@ -14,7 +14,7 @@ services:
       - postgres
     env_file: .env
     environment:
-      - FLASK_APP=${FLASK_APP:-iam/main.py}
+      - FLASK_APP=${FLASK_APP:-iam/wsgi.py}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - SERVICE_URL=${SERVICE_URL:-}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
@@ -24,7 +24,7 @@ services:
       - FEAT_TOGGLE_LOCAL_AUTH=${FEAT_TOGGLE_LOCAL_AUTH:-1}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI:-postgres://postgres:@postgres:5432/iam}
       - FEAT_TOGGLE_FIREBASE=${FEAT_TOGGLE_FIREBASE:-}
-    command: gunicorn -c gunicorn.py iam.main:app
+    command: gunicorn -c gunicorn.py iam.wsgi:app
 
   postgres:
     image: postgres:10-alpine

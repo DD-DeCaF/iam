@@ -34,49 +34,52 @@ from . import settings
 from .models import Organization, Project, User, db
 
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object(settings.Settings)
 
-    Migrate(app, db)
-    db.init_app(app)
+app = Flask(__name__)
 
-    if app.config['SENTRY_DSN']:
-        sentry = Sentry(dsn=app.config['SENTRY_DSN'], logging=True,
+
+def init_app(application):
+    application.config.from_object(settings.Settings)
+
+    Migrate(application, db)
+    db.init_app(application)
+
+    if application.config['SENTRY_DSN']:
+        sentry = Sentry(dsn=application.config['SENTRY_DSN'], logging=True,
                         level=logging.WARNING)
-        sentry.init_app(app)
+        sentry.init_app(application)
 
-    CORS(app)
+    CORS(application)
 
-    if app.config['FEAT_TOGGLE_FIREBASE']:
+    if application.config['FEAT_TOGGLE_FIREBASE']:
         cred = credentials.Certificate({
             'type': 'service_account',
             'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
             'token_uri': 'https://accounts.google.com/o/oauth2/token',
             'auth_provider_x509_cert_url':
                 'https://www.googleapis.com/oauth2/v1/certs',
-            'project_id': app.config['FIREBASE_PROJECT_ID'],
-            'private_key_id': app.config['FIREBASE_PRIVATE_KEY_ID'],
-            'private_key': app.config['FIREBASE_PRIVATE_KEY'],
-            'client_email': app.config['FIREBASE_CLIENT_EMAIL'],
-            'client_id': app.config['FIREBASE_CLIENT_ID'],
-            'client_x509_cert_url': app.config['FIREBASE_CLIENT_CERT_URL'],
+            'project_id': application.config['FIREBASE_PROJECT_ID'],
+            'private_key_id': application.config['FIREBASE_PRIVATE_KEY_ID'],
+            'private_key': application.config['FIREBASE_PRIVATE_KEY'],
+            'client_email': application.config['FIREBASE_CLIENT_EMAIL'],
+            'client_id': application.config['FIREBASE_CLIENT_ID'],
+            'client_x509_cert_url': application.config['FIREBASE_CLIENT_CERT_URL'],
         })
         firebase_admin.initialize_app(cred)
 
     # ADMIN VIEWS
     ############################################################################
 
-    admin = Admin(app, template_mode='bootstrap3',
-                  url=f"{app.config['SERVICE_URL']}/admin")
+    admin = Admin(application, template_mode='bootstrap3',
+                  url=f"{application.config['SERVICE_URL']}/admin")
     admin.add_view(ModelView(Organization, db.session))
     admin.add_view(ModelView(Project, db.session))
     admin.add_view(ModelView(User, db.session))
 
     # Require basic authentication for admin views
-    basic_auth = BasicAuth(app)
+    basic_auth = BasicAuth(application)
 
-    @app.before_request
+    @application.before_request
     def restrict_admin():
         if request.path.startswith(admin.url) and not basic_auth.authenticate():
             return basic_auth.challenge()
@@ -84,10 +87,10 @@ def create_app():
     # HANDLERS
     ############################################################################
 
-    @app.route(f"{app.config['SERVICE_URL']}/authenticate/local",
-               methods=['POST'])
+    @application.route(f"{application.config['SERVICE_URL']}/authenticate/local",
+                       methods=['POST'])
     def auth_local():
-        if not app.config['FEAT_TOGGLE_LOCAL_AUTH']:
+        if not application.config['FEAT_TOGGLE_LOCAL_AUTH']:
             response = jsonify({'error': "Local user authentication is "
                                 "disabled"})
             response.status_code = 501
@@ -98,7 +101,7 @@ def create_app():
             password = request.form['password'].strip()
             user = User.query.filter_by(email=email).one()
             if user.check_password(password):
-                payload = sign_claims(app, user)
+                payload = sign_claims(application, user)
                 return jsonify(payload)
             else:
                 response = jsonify({'error': "Invalid credentials"})
@@ -109,10 +112,10 @@ def create_app():
             response.status_code = 401
             return response
 
-    @app.route(f"{app.config['SERVICE_URL']}/authenticate/firebase",
-               methods=['POST'])
+    @application.route(f"{application.config['SERVICE_URL']}/authenticate/firebase",
+                       methods=['POST'])
     def auth_firebase():
-        if not app.config['FEAT_TOGGLE_FIREBASE']:
+        if not application.config['FEAT_TOGGLE_FIREBASE']:
             response = jsonify({'error': "Firebase authentication is disabled"})
             response.status_code = 501
             return response
@@ -140,10 +143,10 @@ def create_app():
                 # no such user - create a new one
                 user = create_firebase_user(uid, decoded_token)
 
-        payload = sign_claims(app, user)
+        payload = sign_claims(application, user)
         return jsonify(payload)
 
-    @app.route(f"{app.config['SERVICE_URL']}/refresh", methods=['POST'])
+    @application.route(f"{application.config['SERVICE_URL']}/refresh", methods=['POST'])
     def refresh():
         try:
             user = User.query.filter_by(
@@ -155,21 +158,21 @@ def create_app():
                 return response
 
             claims = {
-                'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
+                'exp': int((datetime.now() + application.config['JWT_VALIDITY'])
                            .strftime('%s'))
             }
             claims.update(user.claims)
-            return jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
-                              app.config['ALGORITHM'])
+            return jwt.encode(claims, application.config['RSA_PRIVATE_KEY'],
+                              application.config['ALGORITHM'])
         except NoResultFound:
             response = jsonify({'error': "Invalid refresh token"})
             response.status_code = 401
             return response
 
-    @app.route(f"{app.config['SERVICE_URL']}/keys")
+    @application.route(f"{application.config['SERVICE_URL']}/keys")
     def public_key():
-        key = jwk.get_key(app.config['ALGORITHM'])(
-            app.config['RSA_PRIVATE_KEY'], app.config['ALGORITHM'])
+        key = jwk.get_key(application.config['ALGORITHM'])(
+            application.config['RSA_PRIVATE_KEY'], application.config['ALGORITHM'])
         public_key = key.public_key().to_dict()
         # python-jose outputs exponent and modulus as bytes
         public_key['e'] = public_key['e'].decode()
@@ -179,13 +182,13 @@ def create_app():
     # CLI COMMANDS
     ############################################################################
 
-    @app.cli.command()
+    @application.cli.command()
     def users():
         """List all users"""
         for user in User.query.all():
             print(user)
 
-    @app.cli.command()
+    @application.cli.command()
     @click.argument('id')
     def set_password(id):
         """Set a users password. (Run 'users' to see all user ids)"""
@@ -198,7 +201,7 @@ def create_app():
         except NoResultFound:
             print(f"No user has id {id} (try `flask users`)")
 
-    return app
+    return application
 
 
 def sign_claims(app, user):
