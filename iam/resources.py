@@ -27,14 +27,17 @@ from .models import User
 
 
 json_web_token = api.model("JSON Web Token", {
-    'jwt': fields.String(required=True),
+    'jwt': fields.String(required=True, description="Signed JWT"),
 })
 
 token_set = api.model("JWT and refresh token", {
-    'jwt': fields.String(required=True),
+    'jwt': fields.String(required=True, description="Signed JWT"),
     'refresh_token': fields.Nested(api.model("Refresh Token", {
-        'val': fields.String(required=True),
-        'exp': fields.Integer(required=True),
+        'val': fields.String(required=True,
+                             description="Refresh token. Use this to request a "
+                                         "new JWT when it expires"),
+        'exp': fields.Integer(required=True,
+                              description="Refresh token expiry (unix time)"),
     })),
 })
 
@@ -44,7 +47,10 @@ json_web_keys = api.model("JSON Web Keys", {
         'e': fields.String,
         'n': fields.String,
         'kty': fields.String,
-    })))
+    })), description="List of public keys used for signing. See [RFC 7517](http"
+                     "s://tools.ietf.org/html/rfc7517) or [the OpenID Connect i"
+                     "mplementation](https://connect2id.com/products/server/doc"
+                     "s/api/jwk-set#keys)")
 })
 
 

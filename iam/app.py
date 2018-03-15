@@ -20,7 +20,7 @@ from datetime import datetime
 import click
 import firebase_admin
 from firebase_admin import credentials
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
@@ -106,6 +106,10 @@ def init_app(application, interface):
     interface.add_resource(resources.PublicKeys,
                            f"{application.config['SERVICE_URL']}/keys")
     interface.init_app(application)
+
+    @application.route(f"{application.config['SERVICE_URL']}/openapi.json")
+    def openapi_schema():
+        return jsonify(api.__schema__)
 
     # CLI COMMANDS
     ############################################################################
