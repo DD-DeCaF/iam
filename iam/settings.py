@@ -53,7 +53,7 @@ class Testing(Default):
 
 class Production(Default):
     DEBUG = False
-    SECRET_KEY = os.environ['SECRET_KEY']
+    SECRET_KEY = os.environ.get('SECRET_KEY')
 
 
 if os.environ['ENVIRONMENT'] == 'production':
