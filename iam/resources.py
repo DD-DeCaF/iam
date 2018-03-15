@@ -22,7 +22,8 @@ from flask_restplus import Resource, fields
 from jose import jwk, jwt
 from sqlalchemy.orm.exc import NoResultFound
 
-from .app import api, app, create_firebase_user, sign_claims
+from .app import api, app
+from .domain import create_firebase_user, sign_claims
 from .models import User
 
 

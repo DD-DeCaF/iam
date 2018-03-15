@@ -14,8 +14,6 @@
 
 import getpass
 import logging
-import secrets
-from datetime import datetime
 
 import click
 import firebase_admin
@@ -27,7 +25,6 @@ from flask_basicauth import BasicAuth
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restplus import Api
-from jose import jwt
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -134,42 +131,3 @@ def init_app(application, interface):
             print(f"No user has id {id} (try `flask users`)")
 
     return application
-
-
-def sign_claims(user):
-    """return signed jwt and refresh token for the given authenticated user"""
-    user.refresh_token = secrets.token_hex(32)
-    user.refresh_token_expiry = (
-        datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
-    db.session.commit()
-    claims = {
-        'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
-                   .strftime('%s'))
-    }
-    claims.update(user.claims)
-    signed_token = jwt.encode(claims, app.config['RSA_PRIVATE_KEY'],
-                              app.config['ALGORITHM'])
-    return {
-        'jwt': signed_token,
-        'refresh_token': {
-            'val': user.refresh_token,
-            'exp': int(user.refresh_token_expiry.strftime('%s')),
-        }
-    }
-
-
-def create_firebase_user(uid, decoded_token):
-    if ' ' in decoded_token['name']:
-        first_name, last_name = decoded_token['name'].split(None, 1)
-    else:
-        first_name, last_name = decoded_token['name'], ''
-
-    user = User(
-        firebase_uid=uid,
-        first_name=first_name,
-        last_name=last_name,
-        email=decoded_token['email'],
-    )
-    db.session.add(user)
-    db.session.commit()
-    return user

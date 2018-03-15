@@ -14,7 +14,7 @@
 
 from flask import Flask
 
-from iam import app as app_module
+from iam.domain import create_firebase_user
 from iam.models import User
 
 
@@ -23,7 +23,7 @@ def test_app(app):
 
 
 def test_create_firebase_user(db):
-    user = app_module.create_firebase_user('foo_token', {
+    user = create_firebase_user('foo_token', {
         'name': 'Foo Bar',
         'email': 'foo@bar.dk',
     })
