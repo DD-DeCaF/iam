@@ -15,14 +15,14 @@
 import pytest
 
 from iam.app import app as app_
-from iam.app import init_app
+from iam.app import api, init_app
 from iam.models import Organization, User
 from iam.models import db as db_
 
 
 @pytest.fixture(scope='session')
 def app():
-    init_app(app_)
+    init_app(app_, api)
     app_.app_context().push()
     return app_
 

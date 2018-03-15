@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .app import app, init_app
+from .app import api, app, init_app
 
 
-init_app(app)
+init_app(app, api)
