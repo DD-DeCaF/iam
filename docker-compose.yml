@@ -17,6 +17,7 @@ services:
       - FLASK_APP=${FLASK_APP:-iam/main.py}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - SERVICE_URL=${SERVICE_URL:-}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME:-admin}
       - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD:-}

@@ -23,6 +23,7 @@ Specify environment variables in `.env`. See `docker-compose.yml` for default de
 * `ENVIRONMENT`: Set to `development`, `testing` or `production`
 * `SECRET_KEY`: Flask secret key. Will be randomly generated in dev/testing envs
 * `SERVICE_URL`: URL prefix to the API service, defaults to empty
+* `ALLOWED_ORIGINS`: Comma-seperated list of CORS allowed origins
 * `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
 * `FEAT_TOGGLE_LOCAL_AUTH`: Feature toggle: local user database authentication

@@ -19,6 +19,7 @@ from datetime import timedelta
 
 class Default:
     SERVICE_URL = os.environ['SERVICE_URL']
+    CORS_ORIGINS = os.environ['ALLOWED_ORIGINS'].split(',')
     RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
     ALGORITHM = 'RS512'
     JWT_VALIDITY = timedelta(minutes=10)

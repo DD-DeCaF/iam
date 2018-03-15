@@ -46,7 +46,6 @@ def create_app():
                         level=logging.WARNING)
         sentry.init_app(app)
 
-    # XXX this allows all origins, should be narrowed down
     CORS(app)
 
     if app.config['FEAT_TOGGLE_FIREBASE']:
