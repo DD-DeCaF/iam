@@ -9,7 +9,7 @@ name = "pypi"
 
 gunicorn = "*"
 "psycopg2-binary" = "*"
-Flask-Admin = {git = "https://github.com/flask-admin/flask-admin"}
+flask-admin = {git = "https://github.com/flask-admin/flask-admin"}
 gevent = "*"
 flask = "*"
 flask-cors = "*"
@@ -22,6 +22,7 @@ python-jose = "*"
 raven = {extras = ["flask"], version = "*"}
 firebase-admin = "*"
 requests = "*"
+flask-restplus = "*"
 
 
 [dev-packages]
