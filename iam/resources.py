@@ -58,6 +58,7 @@ json_web_keys = api.model("JSON Web Keys", {
 class AuthenticateLocal(Resource):
     @api.marshal_with(token_set)
     def post(self):
+        """Authenticate with credentials in the local database"""
         if not app.config['FEAT_TOGGLE_LOCAL_AUTH']:
             return abort(501, "Local user authentication is disabled")
 
@@ -76,6 +77,7 @@ class AuthenticateLocal(Resource):
 class AuthenticateFirebase(Resource):
     @api.marshal_with(token_set)
     def post(self):
+        """Authenticate with Firebase uid and token"""
         if not app.config['FEAT_TOGGLE_FIREBASE']:
             return abort(501, "Firebase authentication is disabled")
 
@@ -106,6 +108,7 @@ class AuthenticateFirebase(Resource):
 class Refresh(Resource):
     @api.marshal_with(json_web_token)
     def post(self):
+        """Receive a fresh JWT by providing a valid refresh token"""
         try:
             user = User.query.filter_by(
                 refresh_token=request.form['refresh_token']).one()
@@ -129,6 +132,10 @@ class Refresh(Resource):
 class PublicKeys(Resource):
     @api.marshal_with(json_web_keys)
     def get(self):
+        """List of public keys used for JWT signing.
+
+        See [RFC 7517](https://tools.ietf.org/html/rfc7517) or [the OpenID
+        Connect implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys)"""  # noqa :(
         key = jwk.get_key(app.config['ALGORITHM'])(
             app.config['RSA_PRIVATE_KEY'],
             app.config['ALGORITHM'])
