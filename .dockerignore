@@ -1,6 +1,7 @@
 *
 !iam
 !tests
+!migrations
 !gunicorn.py
 !setup.py
 !setup.cfg
