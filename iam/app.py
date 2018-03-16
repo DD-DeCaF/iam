@@ -129,5 +129,3 @@ def init_app(application, interface):
             db.session.commit()
         except NoResultFound:
             print(f"No user has id {id} (try `flask users`)")
-
-    return application
