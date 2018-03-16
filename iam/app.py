@@ -29,7 +29,7 @@ from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import settings
-from .models import Organization, Project, User, db
+from .models import Organization, Project, User
 
 
 app = Flask(__name__)
@@ -40,7 +40,7 @@ api = Api(
 )
 
 
-def init_app(application, interface):
+def init_app(application, interface, db):
     from . import resources
 
     application.config.from_object(settings.Settings)

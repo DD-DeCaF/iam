@@ -23,7 +23,7 @@ from iam.models import db as db_
 
 @pytest.fixture(scope='session')
 def app():
-    init_app(app_, api)
+    init_app(app_, api, db_)
     app_.app_context().push()
     return app_
 

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from .app import api, app, init_app
+from .models import db
 
 
-init_app(app, api)
+init_app(app, api, db)
