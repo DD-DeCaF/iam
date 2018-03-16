@@ -31,7 +31,7 @@ class Default:
         self.BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
 
         self.FEAT_TOGGLE_LOCAL_AUTH = bool(os.environ['FEAT_TOGGLE_LOCAL_AUTH'])
-        self.SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+        self.SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
         self.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
         self.FEAT_TOGGLE_FIREBASE = bool(os.environ['FEAT_TOGGLE_FIREBASE'])
@@ -61,7 +61,7 @@ class Production(Default):
     def __init__(self):
         super().__init__()
         self.DEBUG = False
-        self.SECRET_KEY = os.environ.get('SECRET_KEY')
+        self.SECRET_KEY = os.environ['SECRET_KEY']
 
 
 if os.environ['ENVIRONMENT'] == 'production':
