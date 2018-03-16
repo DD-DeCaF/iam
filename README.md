@@ -12,6 +12,12 @@ Identity and access management
 [![Codecov](https://codecov.io/gh/DD-DeCaF/iam/branch/devel/graph/badge.svg)](https://codecov.io/gh/DD-DeCaF/iam/branch/devel)
 [![Requirements Status](https://requires.io/github/DD-DeCaF/iam/requirements.svg?branch=devel)](https://requires.io/github/DD-DeCaF/iam/requirements/?branch=devel)
 
+## Endpoints
+
+* Admin UI: `/admin`
+* OpenAPI JSON: `/openapi.json`
+* API docs: See https://docs.dd-decaf.eu
+
 ## Development
 
 Prerequisites: Docker, make and pipenv. Run `make setup` once to create the database, run migrations and create a local RSA keypair. Type `make` to see all make targets.
@@ -35,69 +41,3 @@ Specify environment variables in `.env`. See `docker-compose.yml` for default de
 * `FIREBASE_PRIVATE_KEY`
 * `FIREBASE_PRIVATE_KEY_ID`
 * `FIREBASE_PROJECT_ID`
-
-## API
-
-### Admin UI
-
-`GET /admin`
-
-### Authenticate as local user
-
-`POST /authenticate/local`
-
-Parameters:
-
-* `email`
-* `password`
-
-Returns:
-
-    {
-      'jwt': <Signed JWT>,
-      'refresh_token': {
-        'val': <Refresh Token>,
-        'exp': <Expiry (unix time)>,
-      },
-    }
-
-### Authenticate as Firebase user
-
-`POST /authenticate/firebase`
-
-Parameters:
-
-* `uid`
-* `token`
-
-Returns:
-
-    {
-      'jwt': <Signed JWT>,
-      'refresh_token': {
-        'val': <Refresh Token>,
-        'exp': <Expiry (unix time)>,
-      },
-    }
-
-### Refresh JWT
-
-`POST /refresh`
-
-Parameters:
-
-* `refresh_token`
-
-Returns:
-
-    <Signed JWT>
-
-### Get signing keys
-
-`GET /keys`
-
-Returns:
-
-    <JWK>
-
-See also: [RFC 7517](https://tools.ietf.org/html/rfc7517) or [the OpenID Connect implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys).
