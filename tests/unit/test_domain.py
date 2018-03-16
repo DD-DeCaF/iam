@@ -12,8 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from iam.domain import create_firebase_user
+from datetime import datetime
+
+from iam.domain import create_firebase_user, sign_claims
 from iam.models import User
+
+
+def test_sign_claims(app, user):
+    user, password = user
+    claims = sign_claims(user)
+    assert len(claims['jwt']) > 0
+    assert len(claims['refresh_token']['val']) > 0
+    expiry = datetime.fromtimestamp(claims['refresh_token']['exp'])
+    assert datetime.now() < expiry
+    assert datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'] >= expiry
 
 
 def test_create_firebase_user(db):
