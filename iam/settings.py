@@ -35,7 +35,8 @@ class Default:
         self.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
         self.FEAT_TOGGLE_FIREBASE = bool(os.environ['FEAT_TOGGLE_FIREBASE'])
-        self.FIREBASE_CLIENT_CERT_URL = os.environ.get('FIREBASE_CLIENT_CERT_URL')
+        self.FIREBASE_CLIENT_CERT_URL = os.environ.get(
+            'FIREBASE_CLIENT_CERT_URL')
         self.FIREBASE_CLIENT_EMAIL = os.environ.get('FIREBASE_CLIENT_EMAIL')
         self.FIREBASE_CLIENT_ID = os.environ.get('FIREBASE_CLIENT_ID')
         self.FIREBASE_PRIVATE_KEY = os.environ.get('FIREBASE_PRIVATE_KEY')
