@@ -18,48 +18,55 @@ from datetime import timedelta
 
 
 class Default:
-    SERVICE_URL = os.environ['SERVICE_URL']
-    CORS_ORIGINS = os.environ['ALLOWED_ORIGINS'].split(',')
-    RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
-    ALGORITHM = 'RS512'
-    JWT_VALIDITY = timedelta(minutes=10)
-    REFRESH_TOKEN_VALIDITY = timedelta(days=30)
-    SENTRY_DSN = os.environ.get('SENTRY_DSN')
+    def __init__(self):
+        self.SERVICE_URL = os.environ['SERVICE_URL']
+        self.CORS_ORIGINS = os.environ['ALLOWED_ORIGINS'].split(',')
+        self.RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
+        self.ALGORITHM = 'RS512'
+        self.JWT_VALIDITY = timedelta(minutes=10)
+        self.REFRESH_TOKEN_VALIDITY = timedelta(days=30)
+        self.SENTRY_DSN = os.environ.get('SENTRY_DSN')
 
-    BASIC_AUTH_USERNAME = os.environ['BASIC_AUTH_USERNAME']
-    BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
+        self.BASIC_AUTH_USERNAME = os.environ['BASIC_AUTH_USERNAME']
+        self.BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
 
-    FEAT_TOGGLE_LOCAL_AUTH = bool(os.environ['FEAT_TOGGLE_LOCAL_AUTH'])
-    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+        self.FEAT_TOGGLE_LOCAL_AUTH = bool(os.environ['FEAT_TOGGLE_LOCAL_AUTH'])
+        self.SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+        self.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    FEAT_TOGGLE_FIREBASE = bool(os.environ['FEAT_TOGGLE_FIREBASE'])
-    FIREBASE_CLIENT_CERT_URL = os.environ.get('FIREBASE_CLIENT_CERT_URL')
-    FIREBASE_CLIENT_EMAIL = os.environ.get('FIREBASE_CLIENT_EMAIL')
-    FIREBASE_CLIENT_ID = os.environ.get('FIREBASE_CLIENT_ID')
-    FIREBASE_PRIVATE_KEY = os.environ.get('FIREBASE_PRIVATE_KEY')
-    FIREBASE_PRIVATE_KEY_ID = os.environ.get('FIREBASE_PRIVATE_KEY_ID')
-    FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID')
+        self.FEAT_TOGGLE_FIREBASE = bool(os.environ['FEAT_TOGGLE_FIREBASE'])
+        self.FIREBASE_CLIENT_CERT_URL = os.environ.get('FIREBASE_CLIENT_CERT_URL')
+        self.FIREBASE_CLIENT_EMAIL = os.environ.get('FIREBASE_CLIENT_EMAIL')
+        self.FIREBASE_CLIENT_ID = os.environ.get('FIREBASE_CLIENT_ID')
+        self.FIREBASE_PRIVATE_KEY = os.environ.get('FIREBASE_PRIVATE_KEY')
+        self.FIREBASE_PRIVATE_KEY_ID = os.environ.get('FIREBASE_PRIVATE_KEY_ID')
+        self.FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID')
 
 
 class Development(Default):
-    DEBUG = True
-    SECRET_KEY = os.urandom(24)
+    def __init__(self):
+        super().__init__()
+        self.DEBUG = True
+        self.SECRET_KEY = os.urandom(24)
 
 
 class Testing(Default):
-    DEBUG = True
-    SECRET_KEY = os.urandom(24)
+    def __init__(self):
+        super().__init__()
+        self.DEBUG = True
+        self.SECRET_KEY = os.urandom(24)
 
 
 class Production(Default):
-    DEBUG = False
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+    def __init__(self):
+        super().__init__()
+        self.DEBUG = False
+        self.SECRET_KEY = os.environ.get('SECRET_KEY')
 
 
 if os.environ['ENVIRONMENT'] == 'production':
-    Settings = Production
+    Settings = Production()
 elif os.environ['ENVIRONMENT'] == 'testing':
-    Settings = Testing
+    Settings = Testing()
 else:
-    Settings = Development
+    Settings = Development()
