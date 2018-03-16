@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from flask import Flask
+from iam.domain import create_firebase_user
+from iam.models import User
 
 
-def test_app(app):
-    assert isinstance(app, Flask)
+def test_create_firebase_user(db):
+    user = create_firebase_user('foo_token', {
+        'name': 'Foo Bar',
+        'email': 'foo@bar.dk',
+    })
+    assert isinstance(user, User)
+    assert user.claims['org'] is None
