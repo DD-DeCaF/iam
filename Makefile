@@ -33,19 +33,19 @@ qa: test flake8 isort license pipenv-check
 
 ## Run the tests
 test:
-	docker-compose run --rm -e ENVIRONMENT=testing -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests
+	-docker-compose run --rm -e ENVIRONMENT=testing -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests
 
 ## Run only unit tests
 unittest:
-	docker-compose run --rm -e ENVIRONMENT=testing -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests/unit
+	-docker-compose run --rm -e ENVIRONMENT=testing -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests/unit
 
 ## Run flake8
 flake8:
-	docker-compose run --rm web flake8 iam tests
+	-docker-compose run --rm web flake8 iam tests
 
 ## Check import sorting
 isort:
-	docker-compose run --rm web isort --check-only --recursive iam tests
+	-docker-compose run --rm web isort --check-only --recursive iam tests
 
 ## Sort imports and write changes to files
 isort-save:
@@ -53,7 +53,7 @@ isort-save:
 
 ## Verify source code license headers
 license:
-	./scripts/verify_license_headers.sh iam
+	-./scripts/verify_license_headers.sh iam
 
 ## Check for known vulnerabilities in python dependencies
 pipenv-check:
