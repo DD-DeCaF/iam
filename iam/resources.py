@@ -56,6 +56,7 @@ json_web_keys = api.model("JSON Web Keys", {
 
 
 class AuthenticateLocal(Resource):
+    @api.doc(params={'email': "Email address", 'password': "Password"})
     @api.marshal_with(token_set)
     def post(self):
         """Authenticate with credentials in the local database"""
@@ -75,6 +76,7 @@ class AuthenticateLocal(Resource):
 
 
 class AuthenticateFirebase(Resource):
+    @api.doc(params={'uid': "Firebase UID", 'token': "Firebase token"})
     @api.marshal_with(token_set)
     def post(self):
         """Authenticate with Firebase uid and token"""
@@ -106,6 +108,7 @@ class AuthenticateFirebase(Resource):
 
 
 class Refresh(Resource):
+    @api.doc(params={'refresh_token': "Refresh token"})
     @api.marshal_with(json_web_token)
     def post(self):
         """Receive a fresh JWT by providing a valid refresh token"""
