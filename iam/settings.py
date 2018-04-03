@@ -44,6 +44,33 @@ class Default:
         self.FIREBASE_PRIVATE_KEY_ID = os.environ.get('FIREBASE_PRIVATE_KEY_ID')
         self.FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID')
 
+        self.LOGGING = {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'simple': {
+                    'format': "%(asctime)s [%(levelname)s] [%(name)s] "
+                              "%(message)s",
+                },
+            },
+            'handlers': {
+                'console': {
+                    'level': 'DEBUG',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'simple',
+                },
+            },
+            'loggers': {
+                # All loggers will by default use the root logger below (and
+                # hence be very verbose). To silence spammy/uninteresting log
+                # output, add the loggers here and increase the loglevel.
+            },
+            'root': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            },
+        }
+
 
 class Development(Default):
     def __init__(self):
@@ -64,3 +91,4 @@ class Production(Default):
         super().__init__()
         self.DEBUG = False
         self.SECRET_KEY = os.environ['SECRET_KEY']
+        self.LOGGING['root']['level'] = 'INFO'

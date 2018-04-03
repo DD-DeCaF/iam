@@ -11,14 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
-import sys
-
-
-formatter = logging.Formatter('[%(levelname)s] %(name)s: %(message)s')
-handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(formatter)
-logger = logging.getLogger()
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
