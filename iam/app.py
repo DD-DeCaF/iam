@@ -34,7 +34,7 @@ from .models import Organization, Project, User
 
 app = Flask(__name__)
 api = Api(
-    title="IAM API",
+    title="IAM",
     version="0.0.1",
     description="Identity and access management",
 )
