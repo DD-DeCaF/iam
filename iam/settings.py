@@ -21,6 +21,7 @@ class Default:
     def __init__(self):
         self.SERVICE_URL = os.environ['SERVICE_URL']
         self.CORS_ORIGINS = os.environ['ALLOWED_ORIGINS'].split(',')
+        self.RESTPLUS_MASK_SWAGGER = False
         self.RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
         self.ALGORITHM = 'RS512'
         self.JWT_VALIDITY = timedelta(minutes=10)
