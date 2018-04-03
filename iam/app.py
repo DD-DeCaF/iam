@@ -14,6 +14,7 @@
 
 import getpass
 import logging
+import os
 
 import click
 import firebase_admin
@@ -28,8 +29,8 @@ from flask_restplus import Api
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
-from . import settings
 from .models import Organization, Project, User
+from .settings import Development, Production, Testing
 
 
 app = Flask(__name__)
@@ -43,7 +44,12 @@ api = Api(
 def init_app(application, interface, db):
     from . import resources
 
-    application.config.from_object(settings.Settings)
+    if os.environ['ENVIRONMENT'] == 'production':
+        application.config.from_object(Production())
+    elif os.environ['ENVIRONMENT'] == 'testing':
+        application.config.from_object(Testing())
+    else:
+        application.config.from_object(Development())
 
     Migrate(application, db)
     db.init_app(application)

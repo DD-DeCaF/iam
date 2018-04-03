@@ -64,11 +64,3 @@ class Production(Default):
         super().__init__()
         self.DEBUG = False
         self.SECRET_KEY = os.environ['SECRET_KEY']
-
-
-if os.environ['ENVIRONMENT'] == 'production':
-    Settings = Production()
-elif os.environ['ENVIRONMENT'] == 'testing':
-    Settings = Testing()
-else:
-    Settings = Development()
