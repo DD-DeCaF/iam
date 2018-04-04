@@ -12,18 +12,17 @@ services:
       - "./:/app"
     depends_on:
       - postgres
-    env_file: .env
     environment:
       - FLASK_APP=${FLASK_APP:-iam/wsgi.py}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - SERVICE_URL=${SERVICE_URL:-}
+      - SERVICE_URL=${SERVICE_URL}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
-      - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_DSN=${SENTRY_DSN}
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME:-admin}
-      - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD:-}
+      - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD}
       - FEAT_TOGGLE_LOCAL_AUTH=${FEAT_TOGGLE_LOCAL_AUTH:-1}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI:-postgres://postgres:@postgres:5432/iam}
-      - FEAT_TOGGLE_FIREBASE=${FEAT_TOGGLE_FIREBASE:-}
+      - FEAT_TOGGLE_FIREBASE=${FEAT_TOGGLE_FIREBASE}
     command: gunicorn -c gunicorn.py iam.wsgi:app
 
   postgres:
