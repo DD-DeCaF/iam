@@ -27,7 +27,7 @@ before_script:
 
 script:
   - docker pull ${DEV_IMAGE}
-  - make ${TARGET}
+  - make setup ${TARGET}
 
 stages:
   - build

@@ -8,7 +8,7 @@ SHELL:=/bin/bash
 #################################################################################
 
 ## Run all initialization targets. You must only run this once.
-setup: build databases keypair
+setup: databases keypair
 
 ## Create the docker bridge network if necessary.
 network:
