@@ -1,19 +1,28 @@
-.PHONY: network start setup databases keypair qa test unittest flake8 isort isort-save license pipenv-check stop clean logs
+.PHONY: setup network databases keypair build start qa style test test-travis \
+		flake8 isort isort-save license stop clean logs
+SHELL:=/bin/bash
+
 
 #################################################################################
 # COMMANDS                                                                      #
 #################################################################################
 
-## Create the external iloop network
+## Run all initialization targets. You must only run this once.
+setup: build databases keypair
+
+## Create the docker bridge network if necessary.
 network:
-	docker network inspect iloop >/dev/null || docker network create iloop
+	docker network inspect DD-DeCaF >/dev/null 2>&1 || \
+		docker network create DD-DeCaF
 
-## Install and start the service.
-start: network
-	docker-compose up -d --build
+## Build local docker images.
+build: network
+	docker-compose build
+	./scripts/copy_pipenv_lockfile.sh
 
-## Create initial databases and RSA keys. You must only run this once.
-setup: network databases keypair
+## Start all services in the background.
+start:
+	docker-compose up -d
 
 ## Create initial databases. You must only run this once.
 databases:
@@ -28,46 +37,57 @@ databases:
 keypair:
 	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
 
-## Run all QA targets
-qa: test flake8 isort license pipenv-check
+## Run all QA targets.
+qa: test pipenv-check style
 
-## Run the tests
+## Run all style related targets.
+style: flake8 isort license
+
+## Run the tests.
 test:
-	-docker-compose run --rm -e ENVIRONMENT=testing -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests
+	-docker-compose run --rm -e ENVIRONMENT=testing \
+		-e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web \
+		/bin/sh -c "pytest -s --cov=src/iam tests"
 
-## Run only unit tests
-unittest:
-	-docker-compose run --rm -e ENVIRONMENT=testing -e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web py.test --cov=iam tests/unit
+## Run the tests and report coverage (see https://docs.codecov.io/docs/testing-with-docker).
+test-travis:
+	$(eval ci_env=$(shell bash <(curl -s https://codecov.io/env)))
+	docker-compose run --rm -e ENVIRONMENT=testing $(ci_env) \
+		-e SQLALCHEMY_DATABASE_URI=postgres://postgres:@postgres:5432/iam_test web \
+		/bin/sh -c "pytest -s --cov=src/iam tests && codecov"
 
-## Run flake8
-flake8:
-	-docker-compose run --rm web flake8 iam tests
-
-## Check import sorting
-isort:
-	-docker-compose run --rm web isort --check-only --recursive iam tests
-
-## Sort imports and write changes to files
-isort-save:
-	docker-compose run --rm web isort --recursive iam tests
-
-## Verify source code license headers
-license:
-	-./scripts/verify_license_headers.sh iam
-
-## Check for known vulnerabilities in python dependencies
+## Check for known vulnerabilities in python dependencies.
 pipenv-check:
-	pipenv check
+	-docker-compose run --rm web pipenv check --system
 
-## Shut down the Docker containers.
+## Run flake8.
+flake8:
+	-docker-compose run --rm web \
+		flake8 src/iam tests
+
+## Check Python package import order.
+isort:
+	-docker-compose run --rm web \
+		isort --check-only --recursive src/iam tests
+
+## Sort imports and write changes to files.
+isort-save:
+	docker-compose run --rm web \
+		isort --recursive src/iam tests
+
+## Verify source code license headers.
+license:
+	-./scripts/verify_license_headers.sh src/iam tests
+
+## Stop all services.
 stop:
 	docker-compose stop
 
-## Remove all containers.
+## Stop all services and remove containers.
 clean:
 	docker-compose down
 
-## Read the logs.
+## Follow the logs.
 logs:
 	docker-compose logs --tail="all" -f
 

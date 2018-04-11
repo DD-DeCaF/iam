@@ -2,15 +2,15 @@
 
 Identity and access management
 
-![Branch](https://img.shields.io/badge/branch-master-blue.svg)
-[![Build Status](https://travis-ci.org/DD-DeCaF/iam.svg?branch=master)](https://travis-ci.org/DD-DeCaF/iam)
-[![Codecov](https://codecov.io/gh/DD-DeCaF/iam/branch/master/graph/badge.svg)](https://codecov.io/gh/DD-DeCaF/iam/branch/master)
-[![Requirements Status](https://requires.io/github/DD-DeCaF/iam/requirements.svg?branch=master)](https://requires.io/github/DD-DeCaF/iam/requirements/?branch=master)
+![master Branch](https://img.shields.io/badge/branch-master-blue.svg)
+[![master Build Status](https://travis-ci.org/DD-DeCaF/iam.svg?branch=master)](https://travis-ci.org/DD-DeCaF/iam)
+[![master Codecov](https://codecov.io/gh/DD-DeCaF/iam/branch/master/graph/badge.svg)](https://codecov.io/gh/DD-DeCaF/iam/branch/master)
+[![master Requirements Status](https://requires.io/github/DD-DeCaF/iam/requirements.svg?branch=master)](https://requires.io/github/DD-DeCaF/iam/requirements/?branch=master)
 
-![Branch](https://img.shields.io/badge/branch-devel-blue.svg)
-[![Build Status](https://travis-ci.org/DD-DeCaF/iam.svg?branch=devel)](https://travis-ci.org/DD-DeCaF/iam)
-[![Codecov](https://codecov.io/gh/DD-DeCaF/iam/branch/devel/graph/badge.svg)](https://codecov.io/gh/DD-DeCaF/iam/branch/devel)
-[![Requirements Status](https://requires.io/github/DD-DeCaF/iam/requirements.svg?branch=devel)](https://requires.io/github/DD-DeCaF/iam/requirements/?branch=devel)
+![devel Branch](https://img.shields.io/badge/branch-devel-blue.svg)
+[![devel Build Status](https://travis-ci.org/DD-DeCaF/iam.svg?branch=devel)](https://travis-ci.org/DD-DeCaF/iam)
+[![devel Codecov](https://codecov.io/gh/DD-DeCaF/iam/branch/devel/graph/badge.svg)](https://codecov.io/gh/DD-DeCaF/iam/branch/devel)
+[![devel Requirements Status](https://requires.io/github/DD-DeCaF/iam/requirements.svg?branch=devel)](https://requires.io/github/DD-DeCaF/iam/requirements/?branch=devel)
 
 ## Endpoints
 
@@ -20,17 +20,23 @@ Identity and access management
 
 ## Development
 
-Prerequisites: Docker, make and pipenv. Run `make setup` once to create the database, run migrations and create a local RSA keypair. Type `make` to see all make targets.
+Run `make setup` first when initializing the project for the first time. Type
+`make` to see all commands.
 
 ### Environment
 
-Specify environment variables in `.env`. See `docker-compose.yml` for default development values.
+Specify environment variables in a `.env` file. See `docker-compose.yml` for the
+possible variables and their default values.
 
-* `ENVIRONMENT`: Set to `development`, `testing` or `production`
-* `SECRET_KEY`: Flask secret key. Will be randomly generated in dev/testing envs
+* Set `ENVIRONMENT` to either
+  * `development`,
+  * `testing`, or
+  * `production`.
+* `SECRET_KEY` Flask secret key. Will be randomly generated in development and testing environments.
+* `SENTRY_DSN` DSN for reporting exceptions to
+  [Sentry](https://docs.sentry.io/clients/python/integrations/flask/).
+* `ALLOWED_ORIGINS`: Comma-seperated list of CORS allowed origins.
 * `SERVICE_URL`: URL prefix to the API service, defaults to empty
-* `SENTRY_DSN`: DSN for reporting exceptions to [Sentry](https://docs.sentry.io/clients/python/integrations/flask/)
-* `ALLOWED_ORIGINS`: Comma-seperated list of CORS allowed origins
 * `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
 * `FEAT_TOGGLE_LOCAL_AUTH`: Feature toggle: local user database authentication

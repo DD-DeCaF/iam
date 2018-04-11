@@ -1,37 +1,60 @@
 sudo: required
-language: python
-python:
-  - "3.6"
+language: minimal
 
 git:
-  depth: 3
+  depth: 2
 
 services:
   - docker
-  - postgresql
 
-addons:
-  postgresql: "9.6"  # note: travis does not yet support 10.x
+env:
+  global:
+    - IMAGE_TAG=travis-ci-test
+    - DEV_IMAGE=dddecaf/iam:${IMAGE_TAG}
+    - PROD_IMAGE=dddecaf/iam:travis-ci-prod
+  matrix:
+    - TARGET=test-travis
+    - TARGET=flake8
+    - TARGET=isort
+    - TARGET=license
 
-install:
-  - pip install pipenv
-  - pipenv install --dev --system --deploy
-  - psql -U postgres -c "create database iam_test;"
-  - ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
+matrix:
+  fast_finish: true
+
+before_script:
+  - docker login -u=decaftravis -p=${DOCKER_PASSWORD}
+  - make network
 
 script:
-  - py.test -vxs --cov=iam tests
-  - flake8 iam tests
-  - isort --check-only --recursive iam tests
-  - ./scripts/verify_license_headers.sh iam
-  - pipenv check
+  - docker pull ${DEV_IMAGE}
+  - make ${TARGET}
 
-after_success:
-  - codecov
-  - docker login -u=$DOCKER_USERNAME -p=$DOCKER_PASSWORD
+stages:
+  - build
+  - test
+  - name: deploy
+    if: branch = master
 
-deploy:
-  provider: script
-  script: ./scripts/push_to_hub_travis.sh
-  on:
-    all_branches: true
+jobs:
+  include:
+    - stage: build
+      script:
+        - docker build --build-arg PIPENV_FLAGS="--dev --deploy" -t ${DEV_IMAGE} .
+        - docker build --build-arg PIPENV_FLAGS="--deploy" -t ${PROD_IMAGE} .
+        - docker push ${DEV_IMAGE}
+        - docker push ${PROD_IMAGE}
+    - stage: deploy
+      script:
+        - docker pull ${PROD_IMAGE}
+      deploy:
+        provider: script
+        script: ./scripts/push_to_hub.sh
+
+notifications:
+  email: false
+  slack:
+    rooms:
+      - ${SLACK_ACCOUNT}:${SLACK_TOKEN}#${SLACK_CHANNEL}
+    on_success: never
+    on_failure: always
+    on_pull_requests: false

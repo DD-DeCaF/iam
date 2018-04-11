@@ -1,23 +1,27 @@
-version: "3.1" # note: pycharm does not support newer versions than this
+version: "3.1"
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    image: dddecaf/iam:${IMAGE_TAG:-latest}
     networks:
-      - iloop
+      default:
+      DD-DeCaF:
+        aliases:
+          - iam
+    ports:
+      - "${API_PORT:-8000}:8000"
     volumes:
-      - "./:/app"
+      - ".:/app"
     depends_on:
       - postgres
     environment:
-      - FLASK_APP=${FLASK_APP:-iam/wsgi.py}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - SERVICE_URL=${SERVICE_URL}
+      - FLASK_APP=src/iam/wsgi.py
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
       - SENTRY_DSN=${SENTRY_DSN}
+      - SERVICE_URL=${SERVICE_URL}
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME:-admin}
       - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD}
       - FEAT_TOGGLE_LOCAL_AUTH=${FEAT_TOGGLE_LOCAL_AUTH:-1}
@@ -30,8 +34,8 @@ services:
     volumes:
       - /var/lib/postgresql/data
     networks:
-      - iloop
+      - default
 
 networks:
-  iloop:
+  DD-DeCaF:
     external: true

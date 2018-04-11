@@ -1,8 +1,8 @@
 *
-!iam
-!tests
-!migrations
+!src/
+!migrations/
+!scripts/
+!tests/
 !gunicorn.py
-!setup.py
 !setup.cfg
 !Pipfile*
