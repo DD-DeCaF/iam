@@ -1,4 +1,5 @@
-# Copyright 2018 Novo Nordisk Foundation Center for Biosustainability, DTU.
+# Copyright (c) 2018, Novo Nordisk Foundation Center for Biosustainability,
+# Technical University of Denmark.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Provide session level fixtures."""
+
 import pytest
 
 from iam.app import api
@@ -21,11 +24,19 @@ from iam.models import Organization, User
 from iam.models import db as db_
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def app():
+    """Provide an initialized Flask for use in certain test cases."""
     init_app(app_, api, db_)
-    app_.app_context().push()
-    return app_
+    with app_.app_context():
+        yield app_
+
+
+@pytest.fixture(scope="session")
+def client(app):
+    """Provide a Flask test client to be used by almost all test cases."""
+    with app.test_client() as client:
+        yield client
 
 
 @pytest.fixture(scope='function')
@@ -34,11 +45,6 @@ def db():
     yield db_
     db_.session.remove()
     db_.drop_all()
-
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
 
 
 @pytest.fixture
