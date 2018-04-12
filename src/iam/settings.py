@@ -87,6 +87,7 @@ class Testing(Default):
         super().__init__()
         self.DEBUG = True
         self.SECRET_KEY = os.urandom(24)
+        self.TESTING = True
 
 
 class Production(Default):
