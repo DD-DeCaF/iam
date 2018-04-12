@@ -8,7 +8,7 @@ SHELL:=/bin/bash
 #################################################################################
 
 ## Run all initialization targets. You must only run this once.
-setup: keypair databases
+setup: network keypair databases
 
 ## Create the docker bridge network if necessary.
 network:
@@ -16,7 +16,7 @@ network:
 		docker network create DD-DeCaF
 
 ## Build local docker images.
-build: network
+build:
 	docker-compose build
 	./scripts/copy_pipenv_lockfile.sh
 
