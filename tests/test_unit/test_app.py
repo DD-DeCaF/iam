@@ -17,3 +17,8 @@ from flask import Flask
 
 def test_app(app):
     assert isinstance(app, Flask)
+
+
+def test_mode(app):
+    """Ensure that the app is in testing mode."""
+    assert app.testing
