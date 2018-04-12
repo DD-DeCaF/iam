@@ -1,4 +1,4 @@
-.PHONY: setup network databases keypair build start qa style test test-travis \
+.PHONY: setup network keypair databases build start qa style test test-travis \
 		flake8 isort isort-save license stop clean logs
 SHELL:=/bin/bash
 
@@ -8,7 +8,7 @@ SHELL:=/bin/bash
 #################################################################################
 
 ## Run all initialization targets. You must only run this once.
-setup: databases keypair
+setup: keypair databases
 
 ## Create the docker bridge network if necessary.
 network:
@@ -24,6 +24,10 @@ build: network
 start:
 	docker-compose up -d
 
+## Create RSA keypair used for signing JWTs.
+keypair:
+	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
+
 ## Create initial databases. You must only run this once.
 databases:
 	docker-compose up -d
@@ -33,10 +37,6 @@ databases:
 	docker-compose exec web flask db upgrade
 	docker-compose stop
 	# note: not migrating iam_test db; tests will create and tear down tables
-
-## Create RSA keypair used for signing JWTs.
-keypair:
-	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
 
 ## Run all QA targets.
 qa: test pipenv-check style
