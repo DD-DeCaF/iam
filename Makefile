@@ -27,11 +27,12 @@ start:
 ## Create initial databases. You must only run this once.
 databases:
 	docker-compose up -d
+	./scripts/wait_for_postgres.sh
 	docker-compose exec postgres psql -U postgres -c "create database iam;"
 	docker-compose exec postgres psql -U postgres -c "create database iam_test;"
 	docker-compose exec web flask db upgrade
-	# note: not migrating iam_test db; tests will create and tear down tables
 	docker-compose stop
+	# note: not migrating iam_test db; tests will create and tear down tables
 
 ## Create RSA keypair used for signing JWTs.
 keypair:
