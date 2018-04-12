@@ -28,6 +28,7 @@ flask-restplus = "*"
 [dev-packages]
 
 "flake8" = "*"
+"flake8-docstrings" = "*"
 pytest = "*"
 pytest-cov = "*"
 codecov = "*"
