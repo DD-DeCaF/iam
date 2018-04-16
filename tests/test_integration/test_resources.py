@@ -78,7 +78,8 @@ def test_authenticate_success(app, client, user):
     keys = json.loads(client.get('/keys').data)
     key = keys['keys'][0]
     returned_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
-    assert user.organization_id == returned_claims['org']
+    del returned_claims['exp']
+    assert user.claims == returned_claims
 
     # Check the refresh token
     assert len(user.refresh_token) == 64
@@ -95,8 +96,7 @@ def test_authenticate_success(app, client, user):
     refresh_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
     # Assert that the claims are equal, but not the expiry, which will have
     # refreshed
-    returned_claims.pop('exp')
-    refresh_claims.pop('exp')
+    del refresh_claims ['exp']
     assert refresh_claims == returned_claims
 
     user.refresh_token_expiry = datetime.now() - timedelta(seconds=1)

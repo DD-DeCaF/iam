@@ -38,4 +38,4 @@ def test_create_firebase_user(db):
         'email': 'foo@bar.dk',
     })
     assert isinstance(user, User)
-    assert user.claims['org'] is None
+    assert len(user.claims['prj'].keys()) == 0

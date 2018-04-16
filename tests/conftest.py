@@ -20,7 +20,7 @@ import pytest
 from iam.app import api
 from iam.app import app as app_
 from iam.app import init_app
-from iam.models import Organization, User
+from iam.models import User
 from iam.models import db as db_
 
 
@@ -51,8 +51,7 @@ def db(app):
 @pytest.fixture
 def user(db):
     """Provide a test user added to the database session."""
-    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
-                organization=Organization(name='FooOrg'))
+    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk')
     password = 'hunter2'
     user.set_password(password)
     db.session.add(user)
