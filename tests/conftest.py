@@ -40,7 +40,7 @@ def client(app):
 
 
 @pytest.fixture(scope='function')
-def db():
+def db(app):
     """Provide a database session with tables created."""
     db_.create_all()
     yield db_
