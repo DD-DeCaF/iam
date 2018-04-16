@@ -20,7 +20,8 @@ import pytest
 from iam.app import api
 from iam.app import app as app_
 from iam.app import init_app
-from iam.models import User
+from iam.models import (
+    Organization, OrganizationUser, Project, Team, TeamUser, User)
 from iam.models import db as db_
 
 
@@ -49,10 +50,24 @@ def db(app):
 
 
 @pytest.fixture(scope='function')
-def user(db):
-    """Provide a test user added to the database session."""
-    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk')
-    password = 'hunter2'
-    user.set_password(password)
-    db.session.add(user)
-    return (user, password)
+def models(db):
+    """Returns a fixture with test data for all data models."""
+    organization = Organization(name='OrgName')
+    team = Team(name='TeamName', organization=organization)
+    user = User(first_name='User', last_name='Name', email='user@name.test')
+    user.set_password('hunter2')
+    project = Project(name='ProjectName')
+    organization_user = OrganizationUser(organization=organization, user=user,
+                                         role='member')
+    team_user = TeamUser(team=team, user=user, role='member')
+    models = {
+        'organization': organization,
+        'team': team,
+        'user': user,
+        'project': project,
+        'organization_user': organization_user,
+        'team_user': team_user,
+    }
+    for model in models.values():
+        db.session.add(model)
+    return models

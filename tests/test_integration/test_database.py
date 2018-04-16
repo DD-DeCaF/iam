@@ -15,12 +15,5 @@
 from iam.models import Organization, Project, User
 
 
-def test_db(db):
-    organization = Organization(name='FooOrg')
-    project = Project(name='FooProject', organization=organization)
-    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk')
-    user.set_password('hunter2')
-    db.session.add(organization)
-    db.session.add(project)
-    db.session.add(user)
+def test_commit(db, models):
     db.session.commit()

@@ -49,25 +49,23 @@ def test_get_admin_authorized(client, app):
     assert rv.status_code == 200
 
 
-def test_authenticate_failure(app, client, db, user):
+def test_authenticate_failure(app, client, models):
     """Test invalid local authentication."""
-    user, password = user
     response = client.post('/authenticate/local')
     assert response.status_code == 400
 
     response = client.post('/authenticate/local', data={
-        'email': user.email,
+        'email': models['user'].email,
         'password': 'invalid',
     })
     assert response.status_code == 401
 
 
-def test_authenticate_success(app, client, user):
+def test_authenticate_success(app, client, db, models):
     """Test valid local authentication."""
-    user, password = user
     response = client.post('/authenticate/local', data={
-        'email': user.email,
-        'password': password,
+        'email': models['user'].email,
+        'password': 'hunter2',
     })
     assert response.status_code == 200
     data_decoded = json.loads(response.data)
@@ -79,13 +77,13 @@ def test_authenticate_success(app, client, user):
     key = keys['keys'][0]
     returned_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
     del returned_claims['exp']
-    assert user.claims == returned_claims
+    assert models['user'].claims == returned_claims
 
     # Check the refresh token
-    assert len(user.refresh_token) == 64
-    assert user.refresh_token == refresh_token['val']
-    assert user.refresh_token_expiry > datetime.now()
-    assert user.refresh_token_expiry < (datetime.now() +
+    assert len(models['user'].refresh_token) == 64
+    assert models['user'].refresh_token == refresh_token['val']
+    assert models['user'].refresh_token_expiry > datetime.now()
+    assert models['user'].refresh_token_expiry < (datetime.now() +
                                         app.config['REFRESH_TOKEN_VALIDITY'])
 
     # Attempt to refresh token
@@ -99,9 +97,9 @@ def test_authenticate_success(app, client, user):
     del refresh_claims ['exp']
     assert refresh_claims == returned_claims
 
-    user.refresh_token_expiry = datetime.now() - timedelta(seconds=1)
+    models['user'].refresh_token_expiry = datetime.now() - timedelta(seconds=1)
     response = client.post('/refresh',
-                           data={'refresh_token': user.refresh_token})
+                           data={'refresh_token': models['user'].refresh_token})
     assert response.status_code == 401
 
 

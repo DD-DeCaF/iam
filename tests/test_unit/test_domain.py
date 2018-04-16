@@ -20,10 +20,9 @@ from iam.domain import create_firebase_user, sign_claims
 from iam.models import User
 
 
-def test_sign_claims(app, user):
+def test_sign_claims(app, models):
     """Test the sign_claims function."""
-    user, password = user
-    claims = sign_claims(user)
+    claims = sign_claims(models['user'])
     assert len(claims['jwt']) > 0
     assert len(claims['refresh_token']['val']) > 0
     expiry = datetime.fromtimestamp(claims['refresh_token']['exp'])
