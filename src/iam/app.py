@@ -34,7 +34,8 @@ from flask_restplus import Api
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
-from .models import Organization, Project, User
+from .models import (
+    Organization, OrganizationUser, Project, Team, TeamUser, User)
 from .settings import current_config
 
 
@@ -120,8 +121,11 @@ def init_app(application, interface, db):
     admin = Admin(application, template_mode='bootstrap3',
                   url=f"{application.config['SERVICE_URL']}/admin")
     admin.add_view(ModelView(Organization, db.session))
-    admin.add_view(ModelView(Project, db.session))
+    admin.add_view(ModelView(Team, db.session))
     admin.add_view(ModelView(User, db.session))
+    admin.add_view(ModelView(Project, db.session))
+    admin.add_view(ModelView(OrganizationUser, db.session))
+    admin.add_view(ModelView(TeamUser, db.session))
 
     # Require basic authentication for admin views
     basic_auth = BasicAuth(application)

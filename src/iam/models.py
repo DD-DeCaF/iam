@@ -22,36 +22,61 @@ from . import hasher
 
 db = SQLAlchemy()
 
-
 class Organization(db.Model):
     """An Organization."""
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
+    teams = db.relationship('Team', back_populates='organization')
+    users = db.relationship('OrganizationUser', back_populates='organization')
+    projects = db.relationship('Project', back_populates='organization')
 
     def __repr__(self):
         """Return a printable representation."""
-        return f'<{self.__class__.__name__} {self.id}: {self.name}>'
+        return f"<{self.__class__.__name__} {self.id}: {self.name}>"
 
 
-class Project(db.Model):
-    """A Project."""
+class OrganizationUser(db.Model):
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
+                                primary_key=True)
+    organization = db.relationship('Organization', back_populates='users')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    user = db.relationship('User', back_populates='organizations')
+    role = db.Column(db.Enum('owner', 'member', name='organization_user_roles'),
+                     nullable=False)
 
+    def __repr__(self):
+        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
+                f"{self.organization}>")
+
+
+class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
-    # note: a project should belong to an organization or user, but not both
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
-    organization = db.relationship('Organization',
-                                   backref=db.backref('projects'))
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
+                                nullable=False)
+    organization = db.relationship('Organization', back_populates='teams')
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship('User', backref=db.backref('projects'))
+    users = db.relationship('TeamUser', back_populates='team', lazy='joined')
+
+    projects = db.relationship('Project', back_populates='team')
 
     def __repr__(self):
-        """Return a printable representation."""
-        return f'<{self.__class__.__name__} {self.id}: {self.name}>'
+        return f"<{self.__class__.__name__} {self.id}: {self.name}>"
 
+
+class TeamUser(db.Model):
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
+    team = db.relationship('Team', back_populates='users')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    user = db.relationship('User', back_populates='teams')
+    role = db.Column(db.Enum('maintainer', 'member', name='team_user_roles'),
+                     nullable=False)
+
+    def __repr__(self):
+        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
+                f"{self.team}>")
 
 class User(db.Model):
     """A User."""
@@ -68,18 +93,21 @@ class User(db.Model):
     last_name = db.Column(db.String(256))
     email = db.Column(db.String(256), unique=True, nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
-    organization = db.relationship('Organization', backref=db.backref('users'))
+    organizations = db.relationship('OrganizationUser', back_populates='user',
+                                   lazy='joined')
+    teams = db.relationship('TeamUser', back_populates='user', lazy='joined')
+
+    projects = db.relationship('Project', back_populates='user')
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f'<{self.__class__.__name__} {self.id}: {self.full_name} '
-                f'({self.email})>')
+        return (f"<{self.__class__.__name__} {self.id}: {self.full_name} "
+                f"({self.email})>")
 
     @property
     def full_name(self):
         """Return the full name of the user."""
-        return f'{self.first_name} {self.last_name}'
+        return f"{self.first_name} {self.last_name}"
 
     def set_password(self, password):
         """Encode and set the given password."""
@@ -94,11 +122,65 @@ class User(db.Model):
     @property
     def claims(self):
         """Return this users' claims for use in a JWT."""
-        projects = {p.id for p in self.projects}
-        if self.organization_id is not None:
-            projects = projects.union({
-                p.id for p in self.organization.projects})
-        return {
-            'org': self.organization_id,
-            'prj': list(projects),
-        }
+        def add_claim(id, role):
+            """Add claims, if there are no existing higher claim"""
+            if id in project_claims:
+                if role == 'read' and project_claims[id] in ('admin', 'write'):
+                    return
+                if role == 'write' and project_claims[id] == 'admin':
+                    return
+
+            project_claims[id] = role
+
+        project_claims = {}
+
+        for org_role in self.organizations:
+            if org_role.role == 'owner':
+                # Add admin role for all projects in the organization
+                for project in org_role.organization.projects:
+                    add_claim(project.id, 'admin')
+
+                # Add admin role for all projects in organization teams
+                for team in org_role.organization.teams:
+                    for project in team.projects:
+                        add_claim(project.id, 'admin')
+            else:
+                # Add the assigned role for all projects in the organization
+                for project in org_role.organization.projects:
+                    add_claim(project.id, project.organization_role)
+
+        # Add the assigned role for all projects in the users' team
+        for team_role in self.teams:
+            for project in team_role.team.projects:
+                add_claim(project.id, project.team_role)
+
+        # Add projects owned by user
+        for project in self.projects:
+            add_claim(project.id, project.user_role)
+
+        return {'prj': project_claims}
+
+
+class Project(db.Model):
+    """A Project."""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), nullable=False)
+
+    # note: a project must belong to *either* an organization, a team or a
+    # user
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    organization = db.relationship('Organization',
+                                   back_populates='projects')
+    organization_role = db.Column(db.Enum('admin', 'write', 'read',
+                                          name='project_roles'))
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team = db.relationship('Team', back_populates='projects')
+    team_role = db.Column(db.Enum('admin', 'write', 'read',
+                                          name='project_roles'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', back_populates='projects')
+    user_role = db.Column(db.Enum('admin', 'write', 'read',
+                                          name='project_roles'))
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.id}: {self.name}>"
