@@ -20,8 +20,6 @@ from datetime import datetime, timedelta
 
 from jose import jwt
 
-from iam.models import Organization, Project, User
-
 
 def test_healthz(client):
     """Test the readiness endpoint."""
@@ -49,19 +47,6 @@ def test_get_admin_authorized(client, app):
     rv = client.get('/admin/',
                     headers={'Authorization': f'Basic {credentials}'})
     assert rv.status_code == 200
-
-
-def test_db(db):
-    """Test committing data models to the database."""
-    organization = Organization(name='FooOrg')
-    project = Project(name='FooProject', organization=organization)
-    user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
-                organization=organization)
-    user.set_password('hunter2')
-    db.session.add(organization)
-    db.session.add(project)
-    db.session.add(user)
-    db.session.commit()
 
 
 def test_authenticate_failure(app, client, db, user):
