@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from iam.models import Organization, Project, User
-
 
 def test_commit(db, models):
     db.session.commit()

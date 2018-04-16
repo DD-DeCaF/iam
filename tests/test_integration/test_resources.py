@@ -83,8 +83,8 @@ def test_authenticate_success(app, client, db, models):
     assert len(models['user'].refresh_token) == 64
     assert models['user'].refresh_token == refresh_token['val']
     assert models['user'].refresh_token_expiry > datetime.now()
-    assert models['user'].refresh_token_expiry < (datetime.now() +
-                                        app.config['REFRESH_TOKEN_VALIDITY'])
+    assert models['user'].refresh_token_expiry < (
+        datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
 
     # Attempt to refresh token
     response = client.post('/refresh',
@@ -94,7 +94,7 @@ def test_authenticate_success(app, client, db, models):
     refresh_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
     # Assert that the claims are equal, but not the expiry, which will have
     # refreshed
-    del refresh_claims ['exp']
+    del refresh_claims['exp']
     assert refresh_claims == returned_claims
 
     models['user'].refresh_token_expiry = datetime.now() - timedelta(seconds=1)

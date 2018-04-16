@@ -22,6 +22,7 @@ from . import hasher
 
 db = SQLAlchemy()
 
+
 class Organization(db.Model):
     """An Organization."""
 
@@ -78,6 +79,7 @@ class TeamUser(db.Model):
         return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
                 f"{self.team}>")
 
+
 class User(db.Model):
     """A User."""
 
@@ -94,7 +96,7 @@ class User(db.Model):
     email = db.Column(db.String(256), unique=True, nullable=False)
 
     organizations = db.relationship('OrganizationUser', back_populates='user',
-                                   lazy='joined')
+                                    lazy='joined')
     teams = db.relationship('TeamUser', back_populates='user', lazy='joined')
 
     projects = db.relationship('Project', back_populates='user')
@@ -176,11 +178,11 @@ class Project(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team', back_populates='projects')
     team_role = db.Column(db.Enum('admin', 'write', 'read',
-                                          name='project_roles'))
+                                  name='project_roles'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', back_populates='projects')
     user_role = db.Column(db.Enum('admin', 'write', 'read',
-                                          name='project_roles'))
+                                  name='project_roles'))
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
