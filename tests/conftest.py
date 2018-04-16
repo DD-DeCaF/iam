@@ -48,7 +48,7 @@ def db(app):
     db_.drop_all()
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def user(db):
     """Provide a test user added to the database session."""
     user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk')
