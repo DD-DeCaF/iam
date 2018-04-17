@@ -98,7 +98,7 @@ class User(db.Model):
     def claims(self):
         """Return this users' claims for use in a JWT."""
         def add_claim(id, role):
-            """Add claims, if there are no existing higher claim"""
+            """Add claims, if there is no existing higher claim"""
             if id in project_claims:
                 if role == 'read' and project_claims[id] in ('admin', 'write'):
                     return
