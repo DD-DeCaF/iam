@@ -20,8 +20,14 @@ Identity and access management
 
 ## Development
 
-Run `make setup` first when initializing the project for the first time. Type
-`make` to see all commands.
+Some useful `make` targets:
+
+* `make setup`: Run this when initializing the project for the first time
+* `make build`: Run this instead of `docker-compose build` - the make target has
+  logic to update your local `Pipfile.lock` after generation
+* `make qa`: Run this before pushing, to verify that tests and style checks pass
+
+Type `make` to see all available commands.
 
 ### Environment
 
