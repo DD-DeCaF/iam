@@ -30,7 +30,7 @@ class Organization(db.Model):
     name = db.Column(db.String(256), nullable=False)
     teams = db.relationship('Team', back_populates='organization')
     users = db.relationship('OrganizationUser', back_populates='organization')
-    projects = db.relationship('Project', back_populates='organization')
+    projects = db.relationship('OrganizationProject', back_populates='organization')
 
     def __repr__(self):
         """Return a printable representation."""
@@ -47,7 +47,7 @@ class Team(db.Model):
 
     users = db.relationship('TeamUser', back_populates='team', lazy='joined')
 
-    projects = db.relationship('Project', back_populates='team')
+    projects = db.relationship('TeamProject', back_populates='team')
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
@@ -72,7 +72,7 @@ class User(db.Model):
                                     lazy='joined')
     teams = db.relationship('TeamUser', back_populates='user', lazy='joined')
 
-    projects = db.relationship('Project', back_populates='user')
+    projects = db.relationship('UserProject', back_populates='user')
 
     def __repr__(self):
         """Return a printable representation."""
@@ -109,29 +109,29 @@ class User(db.Model):
 
         project_claims = {}
 
-        for org_role in self.organizations:
-            if org_role.role == 'owner':
+        for user_role in self.organizations:
+            if user_role.role == 'owner':
                 # Add admin role for all projects in the organization
-                for project in org_role.organization.projects:
-                    add_claim(project.id, 'admin')
+                for project_role in user_role.organization.projects:
+                    add_claim(project_role.project.id, 'admin')
 
                 # Add admin role for all projects in organization teams
-                for team in org_role.organization.teams:
-                    for project in team.projects:
-                        add_claim(project.id, 'admin')
+                for team in user_role.organization.teams:
+                    for team_role in team.projects:
+                        add_claim(team_role.project.id, 'admin')
             else:
                 # Add the assigned role for all projects in the organization
-                for project in org_role.organization.projects:
-                    add_claim(project.id, project.organization_role)
+                for org_role in user_role.organization.projects:
+                    add_claim(org_role.project.id, org_role.role)
 
         # Add the assigned role for all projects in the users' team
-        for team_role in self.teams:
-            for project in team_role.team.projects:
-                add_claim(project.id, project.team_role)
+        for user_role in self.teams:
+            for team_role in user_role.team.projects:
+                add_claim(team_role.project.id, team_role.role)
 
         # Add projects owned by user
-        for project in self.projects:
-            add_claim(project.id, project.user_role)
+        for user_role in self.projects:
+            add_claim(user_role.project.id, user_role.role)
 
         return {'prj': project_claims}
 
@@ -141,21 +141,10 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
-    # note: a project must belong to *either* an organization, a team or a
-    # user
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
-    organization = db.relationship('Organization',
-                                   back_populates='projects')
-    organization_role = db.Column(db.Enum('admin', 'write', 'read',
-                                          name='project_roles'))
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team', back_populates='projects')
-    team_role = db.Column(db.Enum('admin', 'write', 'read',
-                                  name='project_roles'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship('User', back_populates='projects')
-    user_role = db.Column(db.Enum('admin', 'write', 'read',
-                                  name='project_roles'))
+    organizations = db.relationship('OrganizationProject',
+                                    back_populates='project')
+    teams = db.relationship('TeamProject', back_populates='project')
+    users = db.relationship('UserProject', back_populates='project')
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
@@ -190,3 +179,49 @@ class TeamUser(db.Model):
     def __repr__(self):
         return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
                 f"{self.team}>")
+
+
+class OrganizationProject(db.Model):
+    """Access rule for an organization to a project."""
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
+                                primary_key=True)
+    organization = db.relationship('Organization', back_populates='projects')
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
+                           primary_key=True)
+    project = db.relationship('Project', back_populates='organizations')
+    role = db.Column(db.Enum('admin', 'write', 'read', name='project_roles'),
+                     nullable=False)
+
+    def __repr__(self):
+        return (f"<{self.__class__.__name__} {self.organization} has role "
+                f"{self.role} in {self.project}>")
+
+
+class TeamProject(db.Model):
+    """Access rule for a team to a project."""
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
+    team = db.relationship('Team', back_populates='projects')
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
+                           primary_key=True)
+    project = db.relationship('Project', back_populates='teams')
+    role = db.Column(db.Enum('admin', 'write', 'read', name='project_roles'),
+                     nullable=False)
+
+    def __repr__(self):
+        return (f"<{self.__class__.__name__} {self.team} has role "
+                f"{self.role} in {self.project}>")
+
+
+class UserProject(db.Model):
+    """Access role for a user to a project."""
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    user = db.relationship('User', back_populates='projects')
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
+                           primary_key=True)
+    project = db.relationship('Project', back_populates='users')
+    role = db.Column(db.Enum('admin', 'write', 'read', name='project_roles'),
+                     nullable=False)
+
+    def __repr__(self):
+        return (f"<{self.__class__.__name__} {self.user} has role "
+                f"{self.role} in {self.project}>")
