@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tests for the database integration."""
+
 from iam.models import (
     OrganizationProject, OrganizationUser, TeamProject, TeamUser, UserProject)
 
 
 def test_commit(db, models):
+    """Test actually committing all models from the models fixture."""
     db.session.commit()
 
 
 def test_owner_role(db, models):
+    """Test a users admin access to a project through the organization."""
     # Give user owner role, and assign the project to the organization
     ou = OrganizationUser(organization=models['organization'],
                           user=models['user'], role='owner')
@@ -32,6 +36,7 @@ def test_owner_role(db, models):
 
 
 def test_team_role(db, models):
+    """Test a users access to a project through a team."""
     # Assign the user to the team, and give the team write access to the project
     tu = TeamUser(team=models['team'], user=models['user'], role='member')
     tp = TeamProject(team=models['team'], project=models['project'],
@@ -42,6 +47,7 @@ def test_team_role(db, models):
 
 
 def test_user_role(db, models):
+    """Test a users direct access to a project."""
     # Assign the user to the project with read access
     up = UserProject(user=models['user'], project=models['project'],
                      role='read')

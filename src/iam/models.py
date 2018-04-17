@@ -30,7 +30,8 @@ class Organization(db.Model):
     name = db.Column(db.String(256), nullable=False)
     teams = db.relationship('Team', back_populates='organization')
     users = db.relationship('OrganizationUser', back_populates='organization')
-    projects = db.relationship('OrganizationProject', back_populates='organization')
+    projects = db.relationship('OrganizationProject',
+                               back_populates='organization')
 
     def __repr__(self):
         """Return a printable representation."""
@@ -38,6 +39,8 @@ class Organization(db.Model):
 
 
 class Team(db.Model):
+    """A grouping of members within an organization."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
@@ -50,6 +53,7 @@ class Team(db.Model):
     projects = db.relationship('TeamProject', back_populates='team')
 
     def __repr__(self):
+        """Return a printable representation."""
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
 
 
@@ -98,7 +102,7 @@ class User(db.Model):
     def claims(self):
         """Return this users' claims for use in a JWT."""
         def add_claim(id, role):
-            """Add claims, if there is no existing higher claim"""
+            """Add claims, if there is no existing higher claim."""
             if id in project_claims:
                 if role == 'read' and project_claims[id] in ('admin', 'write'):
                     return
@@ -138,6 +142,7 @@ class User(db.Model):
 
 class Project(db.Model):
     """A Project."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
@@ -147,6 +152,7 @@ class Project(db.Model):
     users = db.relationship('UserProject', back_populates='project')
 
     def __repr__(self):
+        """Return a printable representation."""
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
 
 
@@ -155,6 +161,8 @@ class Project(db.Model):
 #
 
 class OrganizationUser(db.Model):
+    """Role for a user belonging to an organization."""
+
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
                                 primary_key=True)
     organization = db.relationship('Organization', back_populates='users')
@@ -164,11 +172,14 @@ class OrganizationUser(db.Model):
                      nullable=False)
 
     def __repr__(self):
+        """Return a printable representation."""
         return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
                 f"{self.organization}>")
 
 
 class TeamUser(db.Model):
+    """Role for a user belonging to a team."""
+
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
     team = db.relationship('Team', back_populates='users')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
@@ -177,12 +188,14 @@ class TeamUser(db.Model):
                      nullable=False)
 
     def __repr__(self):
+        """Return a printable representation."""
         return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
                 f"{self.team}>")
 
 
 class OrganizationProject(db.Model):
     """Access rule for an organization to a project."""
+
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
                                 primary_key=True)
     organization = db.relationship('Organization', back_populates='projects')
@@ -193,12 +206,14 @@ class OrganizationProject(db.Model):
                      nullable=False)
 
     def __repr__(self):
+        """Return a printable representation."""
         return (f"<{self.__class__.__name__} {self.organization} has role "
                 f"{self.role} in {self.project}>")
 
 
 class TeamProject(db.Model):
     """Access rule for a team to a project."""
+
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
     team = db.relationship('Team', back_populates='projects')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
@@ -208,12 +223,14 @@ class TeamProject(db.Model):
                      nullable=False)
 
     def __repr__(self):
+        """Return a printable representation."""
         return (f"<{self.__class__.__name__} {self.team} has role "
                 f"{self.role} in {self.project}>")
 
 
 class UserProject(db.Model):
     """Access role for a user to a project."""
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     user = db.relationship('User', back_populates='projects')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
@@ -223,5 +240,6 @@ class UserProject(db.Model):
                      nullable=False)
 
     def __repr__(self):
+        """Return a printable representation."""
         return (f"<{self.__class__.__name__} {self.user} has role "
                 f"{self.role} in {self.project}>")

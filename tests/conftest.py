@@ -20,9 +20,7 @@ import pytest
 from iam.app import api
 from iam.app import app as app_
 from iam.app import init_app
-from iam.models import (
-    Organization, OrganizationProject, Project, Team, TeamProject, User,
-    UserProject)
+from iam.models import Organization, Project, Team, User
 from iam.models import db as db_
 
 
@@ -52,7 +50,7 @@ def db(app):
 
 @pytest.fixture(scope='function')
 def models(db):
-    """Returns a fixture with test data for all data models."""
+    """Return a fixture with test data for all data models."""
     organization = Organization(name='OrgName')
     team = Team(name='TeamName', organization=organization)
     user = User(first_name='User', last_name='Name', email='user@name.test')
