@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Test integrations like API resources and the database layer."""
+
 import base64
 import json
 from datetime import datetime, timedelta
@@ -22,11 +24,13 @@ from iam.models import Organization, Project, User
 
 
 def test_get_admin_unauthorized(client):
+    """Test unauthorized access to the admin view."""
     rv = client.get('/admin/')
     assert rv.status_code == 401
 
 
 def test_get_admin_authorized(client, app):
+    """Test authorized access to the admin view."""
     credentials = base64.b64encode(f'{app.config["BASIC_AUTH_USERNAME"]}:'
                                    f'{app.config["BASIC_AUTH_PASSWORD"]}'
                                    .encode()).decode()
@@ -36,6 +40,7 @@ def test_get_admin_authorized(client, app):
 
 
 def test_db(db):
+    """Test committing data models to the database."""
     organization = Organization(name='FooOrg')
     project = Project(name='FooProject', organization=organization)
     user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
@@ -48,6 +53,7 @@ def test_db(db):
 
 
 def test_authenticate_failure(app, client, db, user):
+    """Test invalid local authentication."""
     user, password = user
     response = client.post('/authenticate/local')
     assert response.status_code == 400
@@ -60,6 +66,7 @@ def test_authenticate_failure(app, client, db, user):
 
 
 def test_authenticate_success(app, client, user):
+    """Test valid local authentication."""
     user, password = user
     response = client.post('/authenticate/local', data={
         'email': user.email,
@@ -102,6 +109,7 @@ def test_authenticate_success(app, client, user):
 
 
 def test_openapi_schema(app, client):
+    """Test OpenAPI schema resource."""
     response = client.get('/openapi.json')
     assert response.status_code == 200
     assert len(json.loads(response.data)['definitions'].keys()) > 0

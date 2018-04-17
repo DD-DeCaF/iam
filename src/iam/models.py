@@ -24,14 +24,19 @@ db = SQLAlchemy()
 
 
 class Organization(db.Model):
+    """An Organization."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
     def __repr__(self):
+        """Return a printable representation."""
         return f'<{self.__class__.__name__} {self.id}: {self.name}>'
 
 
 class Project(db.Model):
+    """A Project."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
@@ -44,10 +49,13 @@ class Project(db.Model):
     user = db.relationship('User', backref=db.backref('projects'))
 
     def __repr__(self):
+        """Return a printable representation."""
         return f'<{self.__class__.__name__} {self.id}: {self.name}>'
 
 
 class User(db.Model):
+    """A User."""
+
     id = db.Column(db.Integer, primary_key=True)
 
     password = db.Column(db.String(128))
@@ -64,23 +72,28 @@ class User(db.Model):
     organization = db.relationship('Organization', backref=db.backref('users'))
 
     def __repr__(self):
+        """Return a printable representation."""
         return (f'<{self.__class__.__name__} {self.id}: {self.full_name} '
                 f'({self.email})>')
 
     @property
     def full_name(self):
+        """Return the full name of the user."""
         return f'{self.first_name} {self.last_name}'
 
     def set_password(self, password):
+        """Encode and set the given password."""
         if not password:
             raise ValueError("Password cannot be empty")
         self.password = hasher.encode(password)
 
     def check_password(self, password):
+        """Return true if the given password matches the users' password."""
         return hasher.verify(password, self.password)
 
     @property
     def claims(self):
+        """Return this users' claims for use in a JWT."""
         projects = {p.id for p in self.projects}
         if self.organization_id is not None:
             projects = projects.union({

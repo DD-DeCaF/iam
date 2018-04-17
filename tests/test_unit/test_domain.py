@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Unit tests for the domain module."""
+
 from datetime import datetime
 
 from iam.domain import create_firebase_user, sign_claims
@@ -19,6 +21,7 @@ from iam.models import User
 
 
 def test_sign_claims(app, user):
+    """Test the sign_claims function."""
     user, password = user
     claims = sign_claims(user)
     assert len(claims['jwt']) > 0
@@ -29,6 +32,7 @@ def test_sign_claims(app, user):
 
 
 def test_create_firebase_user(db):
+    """Test creating a Firebase user."""
     user = create_firebase_user('foo_token', {
         'name': 'Foo Bar',
         'email': 'foo@bar.dk',

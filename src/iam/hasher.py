@@ -23,12 +23,14 @@ import string
 
 
 def new_salt(n=12):
+    """Generate a new salt."""
     salt_chars = string.ascii_letters + string.digits
     salt = [secrets.choice(salt_chars) for _ in range(n)]
     return ''.join(salt)
 
 
 def encode(password, salt=None, iterations=100000):
+    """Encode the given password."""
     if salt is None:
         salt = new_salt()
     if not isinstance(password, bytes):
@@ -40,6 +42,7 @@ def encode(password, salt=None, iterations=100000):
 
 
 def verify(password, encoded):
+    """Return True if the given password matches the given encoded password."""
     if not isinstance(password, bytes):
         password = password.encode()
     iterations, salt, hash = encoded.split('$', 2)

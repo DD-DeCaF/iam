@@ -41,6 +41,7 @@ def client(app):
 
 @pytest.fixture(scope='function')
 def db():
+    """Provide a database session with tables created."""
     db_.create_all()
     yield db_
     db_.session.remove()
@@ -49,6 +50,7 @@ def db():
 
 @pytest.fixture
 def user(db):
+    """Provide a test user added to the database session."""
     user = User(first_name='Foo', last_name='Bar', email='foo@bar.dk',
                 organization=Organization(name='FooOrg'))
     password = 'hunter2'

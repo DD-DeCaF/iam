@@ -46,8 +46,7 @@ api = Api(
 
 
 def init_app(application, interface, db):
-    from . import resources
-
+    """Initialize the main app with config information and routes."""
     if os.environ['ENVIRONMENT'] == 'production':
         application.config.from_object(Production())
     elif os.environ['ENVIRONMENT'] == 'testing':
@@ -109,6 +108,8 @@ def init_app(application, interface, db):
     # API RESOURCES
     ############################################################################
 
+    from . import resources
+
     interface.add_resource(resources.AuthenticateLocal,
                            f"{application.config['SERVICE_URL']}"
                            f"/authenticate/local")
@@ -130,14 +131,14 @@ def init_app(application, interface, db):
 
     @application.cli.command()
     def users():
-        """List all users"""
+        """List all users."""
         for user in User.query.all():
             print(user)
 
     @application.cli.command()
     @click.argument('id')
     def set_password(id):
-        """Set a users password. (Run 'users' to see all user ids)"""
+        """Set a users password. (Run 'users' to see all user ids)."""
         try:
             user = User.query.filter_by(id=id).one()
             print(f"Updating password for: {user}")

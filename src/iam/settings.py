@@ -21,7 +21,10 @@ from datetime import timedelta
 
 
 class Default:
+    """Default configuration settings."""
+
     def __init__(self):
+        """Initialize the default configuration."""
         self.SERVICE_URL = os.environ['SERVICE_URL']
         self.CORS_ORIGINS = os.environ['ALLOWED_ORIGINS'].split(',')
         self.RESTPLUS_MASK_SWAGGER = False
@@ -76,14 +79,20 @@ class Default:
 
 
 class Development(Default):
+    """Development settings."""
+
     def __init__(self):
+        """Initialize the development configuration."""
         super().__init__()
         self.DEBUG = True
         self.SECRET_KEY = os.urandom(24)
 
 
 class Testing(Default):
+    """Testing settings."""
+
     def __init__(self):
+        """Initialize the testing configuration."""
         super().__init__()
         self.DEBUG = True
         self.SECRET_KEY = os.urandom(24)
@@ -91,7 +100,10 @@ class Testing(Default):
 
 
 class Production(Default):
+    """Production settings."""
+
     def __init__(self):
+        """Initialize the production configuration."""
         super().__init__()
         self.DEBUG = False
         self.SECRET_KEY = os.environ['SECRET_KEY']

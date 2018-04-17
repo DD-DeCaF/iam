@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Unit tests for the hasher module."""
+
 from iam import hasher
 
 
 def test_encode():
+    """Test encoding password with various parameters."""
     assert hasher.verify('foo', hasher.encode('foo'))
     assert hasher.verify('foo', hasher.encode('foo', iterations=50))
     assert hasher.verify('foo', hasher.encode('foo', salt='bar', iterations=50))
@@ -26,6 +29,7 @@ def test_encode():
 
 
 def test_str_bytes():
+    """Test that verification is str/bytes agnostic."""
     password_str = 'æøå'
     password_bytes = password_str.encode()
     iterations = 50  # for faster tests

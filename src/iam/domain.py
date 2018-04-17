@@ -25,7 +25,7 @@ from .models import User, db
 
 
 def sign_claims(user):
-    """return signed jwt and refresh token for the given authenticated user"""
+    """Return signed jwt and refresh token for the given authenticated user."""
     user.refresh_token = secrets.token_hex(32)
     user.refresh_token_expiry = (
         datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
@@ -47,6 +47,7 @@ def sign_claims(user):
 
 
 def create_firebase_user(uid, decoded_token):
+    """Create a Firebase user from the provided uid and decoded token."""
     if ' ' in decoded_token['name']:
         first_name, last_name = decoded_token['name'].split(None, 1)
     else:
