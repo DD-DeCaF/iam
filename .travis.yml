@@ -14,6 +14,7 @@ env:
     - PROD_IMAGE=dddecaf/iam:travis-ci-prod
   matrix:
     - TARGET=test-travis
+    - TARGET=pipenv-check
     - TARGET=flake8
     - TARGET=isort
     - TARGET=license
