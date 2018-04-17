@@ -26,10 +26,10 @@ def test_commit(db, models):
 def test_owner_role(db, models):
     """Test a users admin access to a project through the organization."""
     # Give user owner role, and assign the project to the organization
-    ou = OrganizationUser(organization=models['organization'],
-                          user=models['user'], role='owner')
-    op = OrganizationProject(organization=models['organization'],
-                             project=models['project'], role='read')
+    OrganizationUser(organization=models['organization'], user=models['user'],
+                     role='owner')
+    OrganizationProject(organization=models['organization'],
+                        project=models['project'], role='read')
 
     # Verify that the user has admin role for the project
     assert models['user'].claims['prj'][models['project'].id] == 'admin'
@@ -38,9 +38,8 @@ def test_owner_role(db, models):
 def test_team_role(db, models):
     """Test a users access to a project through a team."""
     # Assign the user to the team, and give the team write access to the project
-    tu = TeamUser(team=models['team'], user=models['user'], role='member')
-    tp = TeamProject(team=models['team'], project=models['project'],
-                     role='write')
+    TeamUser(team=models['team'], user=models['user'], role='member')
+    TeamProject(team=models['team'], project=models['project'], role='write')
 
     # Verify that the user has write role for the project
     assert models['user'].claims['prj'][models['project'].id] == 'write'
@@ -49,8 +48,7 @@ def test_team_role(db, models):
 def test_user_role(db, models):
     """Test a users direct access to a project."""
     # Assign the user to the project with read access
-    up = UserProject(user=models['user'], project=models['project'],
-                     role='read')
+    UserProject(user=models['user'], project=models['project'], role='read')
 
     # Verify that the user has write role for the project
     assert models['user'].claims['prj'][models['project'].id] == 'read'
