@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from iam.models import (
+    OrganizationProject, OrganizationUser, TeamProject, TeamUser, UserProject)
+
 
 def test_commit(db, models):
     db.session.commit()
@@ -19,27 +22,29 @@ def test_commit(db, models):
 
 def test_owner_role(db, models):
     # Give user owner role, and assign the project to the organization
-    models['organization_user'].role = 'owner'
-    models['project'].organization = models['organization']
-    models['project'].organization_role = 'read'
+    ou = OrganizationUser(organization=models['organization'],
+                          user=models['user'], role='owner')
+    op = OrganizationProject(organization=models['organization'],
+                             project=models['project'], role='read')
 
     # Verify that the user has admin role for the project
     assert models['user'].claims['prj'][models['project'].id] == 'admin'
 
 
 def test_team_role(db, models):
-    # Assign the project to the team with write access
-    models['project'].team = models['team']
-    models['project'].team_role = 'write'
+    # Assign the user to the team, and give the team write access to the project
+    tu = TeamUser(team=models['team'], user=models['user'], role='member')
+    tp = TeamProject(team=models['team'], project=models['project'],
+                     role='write')
 
     # Verify that the user has write role for the project
     assert models['user'].claims['prj'][models['project'].id] == 'write'
 
 
 def test_user_role(db, models):
-    # Assign the project to the user with read access
-    models['project'].user = models['user']
-    models['project'].user_role = 'read'
+    # Assign the user to the project with read access
+    up = UserProject(user=models['user'], project=models['project'],
+                     role='read')
 
     # Verify that the user has write role for the project
     assert models['user'].claims['prj'][models['project'].id] == 'read'
