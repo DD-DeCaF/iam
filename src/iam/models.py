@@ -37,20 +37,6 @@ class Organization(db.Model):
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
 
 
-class OrganizationUser(db.Model):
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
-                                primary_key=True)
-    organization = db.relationship('Organization', back_populates='users')
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    user = db.relationship('User', back_populates='organizations')
-    role = db.Column(db.Enum('owner', 'member', name='organization_user_roles'),
-                     nullable=False)
-
-    def __repr__(self):
-        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
-                f"{self.organization}>")
-
-
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
@@ -65,19 +51,6 @@ class Team(db.Model):
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
-
-
-class TeamUser(db.Model):
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
-    team = db.relationship('Team', back_populates='users')
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    user = db.relationship('User', back_populates='teams')
-    role = db.Column(db.Enum('maintainer', 'member', name='team_user_roles'),
-                     nullable=False)
-
-    def __repr__(self):
-        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
-                f"{self.team}>")
 
 
 class User(db.Model):
@@ -186,3 +159,34 @@ class Project(db.Model):
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
+
+
+#
+# Association tables
+#
+
+class OrganizationUser(db.Model):
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
+                                primary_key=True)
+    organization = db.relationship('Organization', back_populates='users')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    user = db.relationship('User', back_populates='organizations')
+    role = db.Column(db.Enum('owner', 'member', name='organization_user_roles'),
+                     nullable=False)
+
+    def __repr__(self):
+        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
+                f"{self.organization}>")
+
+
+class TeamUser(db.Model):
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
+    team = db.relationship('Team', back_populates='users')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    user = db.relationship('User', back_populates='teams')
+    role = db.Column(db.Enum('maintainer', 'member', name='team_user_roles'),
+                     nullable=False)
+
+    def __repr__(self):
+        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
+                f"{self.team}>")
