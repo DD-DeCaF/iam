@@ -23,6 +23,7 @@ raven = {extras = ["flask"], version = "*"}
 firebase-admin = "*"
 requests = "*"
 flask-restplus = "*"
+futures = "==3.1.1"
 
 
 [dev-packages]
