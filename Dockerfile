@@ -20,24 +20,26 @@ RUN addgroup -g "${GID}" -S "${APP_USER}" && \
 # openssh is required to generate rsa keys
 RUN apk add --update --no-cache openssl ca-certificates postgresql-dev openssh
 
+# Install build dependencies. This could be combined wih the build in a single
+# build step to reduce layer size, but is kept here to increase chances of
+# cache hit and decrease build time at the cost of image size.
+# `g++` is required for building `gevent`
+# git is required for github references in Pipenv (hopefully temporary)
+RUN set -x && apk add --no-cache --virtual .build-deps g++ git
+
 WORKDIR "${CWD}"
 
 COPY Pipfile* "${CWD}/"
 
-# `g++` is required for building `gevent` but all build dependencies are
-# later removed again to reduce the layer size.
 # The symlink is a temporary workaround for a bug in pipenv.
 # Still present as of pipenv==11.9.0.
-# git is required for github references in Pipenv (hopefully temporary)
 # pip version is pinned to <10 due to this pipenv bug:
 # https://github.com/pypa/pipenv/issues/2007
 RUN set -x \
     && ln -sf /usr/local/bin/python /bin/python \
-    && apk add --no-cache --virtual .build-deps g++ git \
     && pip install --upgrade "pip<10" setuptools wheel pipenv \
     && pipenv install --system ${PIPENV_FLAGS} \
-    && rm -rf /root/.cache/pip \
-    && apk del .build-deps
+    && rm -rf /root/.cache/pip
 
 COPY . "${CWD}/"
 
