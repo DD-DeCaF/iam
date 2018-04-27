@@ -33,11 +33,9 @@ COPY Pipfile* "${CWD}/"
 
 # The symlink is a temporary workaround for a bug in pipenv.
 # Still present as of pipenv==11.9.0.
-# pip version is pinned to <10 due to this pipenv bug:
-# https://github.com/pypa/pipenv/issues/2007
 RUN set -x \
     && ln -sf /usr/local/bin/python /bin/python \
-    && pip install --upgrade "pip<10" setuptools wheel pipenv \
+    && pip install --upgrade pip setuptools wheel pipenv \
     && pipenv install --system ${PIPENV_FLAGS} \
     && rm -rf /root/.cache/pip
 
