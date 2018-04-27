@@ -1,5 +1,5 @@
-.PHONY: setup network keypair databases build start qa style test test-travis \
-		flake8 isort isort-save license stop clean logs
+.PHONY: setup network keypair databases lock build start qa style test \
+		test-travis flake8 isort isort-save license stop clean logs
 SHELL:=/bin/bash
 
 
@@ -15,10 +15,13 @@ network:
 	docker network inspect DD-DeCaF >/dev/null 2>&1 || \
 		docker network create DD-DeCaF
 
+## Generate Pipfile.lock.
+lock:
+	docker-compose run --rm web pipenv lock
+
 ## Build local docker images.
 build:
 	docker-compose build
-	./scripts/copy_pipenv_lockfile.sh
 
 ## Start all services in the background.
 start:
