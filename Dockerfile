@@ -22,7 +22,7 @@ RUN apk add --update --no-cache openssl ca-certificates postgresql-dev openssh
 
 WORKDIR "${CWD}"
 
-COPY . "${CWD}/"
+COPY Pipfile* "${CWD}/"
 
 # `g++` is required for building `gevent` but all build dependencies are
 # later removed again to reduce the layer size.
@@ -38,5 +38,7 @@ RUN set -x \
     && pipenv install --system ${PIPENV_FLAGS} \
     && rm -rf /root/.cache/pip \
     && apk del .build-deps
+
+COPY . "${CWD}/"
 
 RUN chown -R "${APP_USER}:${APP_USER}" "${CWD}"
