@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: dddecaf/iam:${IMAGE_TAG:-latest}
+    image: gcr.io/dd-decaf-cfbf6/iam:${IMAGE_TAG:-latest}
     networks:
       default:
       DD-DeCaF:
