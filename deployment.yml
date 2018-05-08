@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-production
+spec:
+  selector:
+    matchLabels:
+      app: iam
+      env: production
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: iam
+        env: production
+    spec:
+      containers:
+      - name: web
+        image: gcr.io/dd-decaf-cfbf6/iam:master
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ENVIRONMENT
+          value: production
+        - name: FEAT_TOGGLE_FIREBASE
+          value:
+        - name: FEAT_TOGGLE_LOCAL_AUTH
+          value: "1"
+        - name: FLASK_APP
+          value: iam/wsgi.py
+        - name: SERVICE_URL
+          value: /iam
+        - name: SQLALCHEMY_DATABASE_URI
+          value: postgres://postgres:@localhost:5432/iam
+        - name: ALLOWED_ORIGINS
+          valueFrom:
+            secretKeyRef:
+              name: iam-production
+              key: ALLOWED_ORIGINS
+        - name: BASIC_AUTH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: iam-production
+              key: BASIC_AUTH_USERNAME
+        - name: BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: iam-production
+              key: BASIC_AUTH_PASSWORD
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: iam-production
+              key: SECRET_KEY
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: iam-production
+              key: SENTRY_DSN
+        command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
+      - name: postgres
+        image: postgres:10-alpine
+        ports:
+        - containerPort: 5432
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-staging
+spec:
+  selector:
+    matchLabels:
+      app: iam
+      env: staging
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: iam
+        env: staging
+    spec:
+      containers:
+      - name: web
+        image: gcr.io/dd-decaf-cfbf6/iam:devel
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ENVIRONMENT
+          value: staging
+        - name: FEAT_TOGGLE_FIREBASE
+          value:
+        - name: FEAT_TOGGLE_LOCAL_AUTH
+          value: "1"
+        - name: FLASK_APP
+          value: iam/wsgi.py
+        - name: SERVICE_URL
+          value: /iam
+        - name: SQLALCHEMY_DATABASE_URI
+          value: postgres://postgres:@localhost:5432/iam
+        - name: ALLOWED_ORIGINS
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: ALLOWED_ORIGINS
+        - name: BASIC_AUTH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: BASIC_AUTH_USERNAME
+        - name: BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: BASIC_AUTH_PASSWORD
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: SECRET_KEY
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: SENTRY_DSN
+        command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
+      - name: postgres
+        image: postgres:10-alpine
+        ports:
+        - containerPort: 5432

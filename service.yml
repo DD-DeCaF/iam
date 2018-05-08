@@ -1,0 +1,41 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: iam-production
+  annotations:
+    prometheus.io/probe: "true"
+spec:
+  selector:
+    app: iam
+    env: production
+  ports:
+  - name: web
+    protocol: TCP
+    port: 80
+    targetPort: 8000
+  - name: postgres
+    protocol: TCP
+    port: 5432
+    targetPort: 5432
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: iam-staging
+  annotations:
+    prometheus.io/probe: "true"
+spec:
+  selector:
+    app: iam
+    env: staging
+  ports:
+  - name: web
+    protocol: TCP
+    port: 80
+    targetPort: 8000
+  - name: postgres
+    protocol: TCP
+    port: 5432
+    targetPort: 5432

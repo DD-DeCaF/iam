@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: iam-production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+  - hosts:
+    - api.dd-decaf.eu
+    - api-staging.dd-decaf.eu
+    secretName: decaf-tls
+  rules:
+  - host: api.dd-decaf.eu
+    http:
+      paths:
+      - path: /iam
+        backend:
+          serviceName: iam-production
+          servicePort: 80
+  - host: api-staging.dd-decaf.eu
+    http:
+      paths:
+      - path: /iam
+        backend:
+          serviceName: iam-staging
+          servicePort: 80
