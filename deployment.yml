@@ -57,11 +57,19 @@ spec:
             secretKeyRef:
               name: iam-production
               key: SENTRY_DSN
+        volumeMounts:
+        - name: rsa
+          mountPath: "/app/keys"
+          readOnly: true
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
       - name: postgres
         image: postgres:10-alpine
         ports:
         - containerPort: 5432
+      volumes:
+      - name: rsa
+        secret:
+          secretName: iam-rsa-production
 
 ---
 
@@ -124,8 +132,16 @@ spec:
             secretKeyRef:
               name: iam-staging
               key: SENTRY_DSN
+        volumeMounts:
+        - name: rsa
+          mountPath: "/app/keys"
+          readOnly: true
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
       - name: postgres
         image: postgres:10-alpine
         ports:
         - containerPort: 5432
+      volumes:
+      - name: rsa
+        secret:
+          secretName: iam-rsa-staging
