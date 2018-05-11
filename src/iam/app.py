@@ -84,6 +84,12 @@ def init_app(application, interface, db):
         })
         firebase_admin.initialize_app(cred)
 
+    # READINESS CHECK ENDPOINT
+    ############################################################################
+
+    from . import healthz
+    healthz.init_app(application)
+
     # ADMIN VIEWS
     ############################################################################
 
