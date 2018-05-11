@@ -13,10 +13,6 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8000
-  - name: postgres
-    protocol: TCP
-    port: 5432
-    targetPort: 5432
 
 ---
 
@@ -35,7 +31,3 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8000
-  - name: postgres
-    protocol: TCP
-    port: 5432
-    targetPort: 5432

@@ -38,7 +38,10 @@ class Default:
         self.BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
 
         self.FEAT_TOGGLE_LOCAL_AUTH = bool(os.environ['FEAT_TOGGLE_LOCAL_AUTH'])
-        self.SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
+        self.SQLALCHEMY_DATABASE_URI = (
+            f"postgres://{os.environ['DB_USERNAME']}:"
+            f"{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:"
+            f"{os.environ['DB_PORT']}/{os.environ['DB_NAME']}")
         self.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
         self.FEAT_TOGGLE_FIREBASE = bool(os.environ['FEAT_TOGGLE_FIREBASE'])

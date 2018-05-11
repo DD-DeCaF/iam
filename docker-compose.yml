@@ -25,7 +25,11 @@ services:
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME:-admin}
       - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD}
       - FEAT_TOGGLE_LOCAL_AUTH=${FEAT_TOGGLE_LOCAL_AUTH:-1}
-      - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI:-postgres://postgres:@postgres:5432/iam}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-iam}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
       - FEAT_TOGGLE_FIREBASE=${FEAT_TOGGLE_FIREBASE}
     command: gunicorn -c gunicorn.py iam.wsgi:app
 

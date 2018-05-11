@@ -22,21 +22,25 @@ spec:
         env:
         - name: ENVIRONMENT
           value: production
-        - name: FEAT_TOGGLE_FIREBASE
-          value:
-        - name: FEAT_TOGGLE_LOCAL_AUTH
-          value: "1"
         - name: FLASK_APP
-          value: iam/wsgi.py
-        - name: SERVICE_URL
-          value: /iam
-        - name: SQLALCHEMY_DATABASE_URI
-          value: postgres://postgres:@localhost:5432/iam
+          value: src/iam/wsgi.py
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: iam-production
+              key: SECRET_KEY
         - name: ALLOWED_ORIGINS
           valueFrom:
             secretKeyRef:
               name: iam-production
               key: ALLOWED_ORIGINS
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: iam-production
+              key: SENTRY_DSN
+        - name: SERVICE_URL
+          value: /iam
         - name: BASIC_AUTH_USERNAME
           valueFrom:
             secretKeyRef:
@@ -47,29 +51,45 @@ spec:
             secretKeyRef:
               name: iam-production
               key: BASIC_AUTH_PASSWORD
-        - name: SECRET_KEY
+        - name: FEAT_TOGGLE_LOCAL_AUTH
+          value: "1"
+        - name: DB_HOST
+          value: localhost
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: iam
+        - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               name: iam-production
-              key: SECRET_KEY
-        - name: SENTRY_DSN
+              key: DB_USERNAME
+        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: iam-production
-              key: SENTRY_DSN
+              key: DB_PASSWORD
+        - name: FEAT_TOGGLE_FIREBASE
+          value:
         volumeMounts:
         - name: rsa
           mountPath: "/app/keys"
           readOnly: true
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
-      - name: postgres
-        image: postgres:10-alpine
-        ports:
-        - containerPort: 5432
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
+        volumeMounts:
+          - name: cloudsql-instance-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
       volumes:
       - name: rsa
         secret:
           secretName: iam-rsa-production
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials
 
 ---
 
@@ -97,21 +117,25 @@ spec:
         env:
         - name: ENVIRONMENT
           value: staging
-        - name: FEAT_TOGGLE_FIREBASE
-          value:
-        - name: FEAT_TOGGLE_LOCAL_AUTH
-          value: "1"
         - name: FLASK_APP
-          value: iam/wsgi.py
-        - name: SERVICE_URL
-          value: /iam
-        - name: SQLALCHEMY_DATABASE_URI
-          value: postgres://postgres:@localhost:5432/iam
+          value: src/iam/wsgi.py
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: SECRET_KEY
         - name: ALLOWED_ORIGINS
           valueFrom:
             secretKeyRef:
               name: iam-staging
               key: ALLOWED_ORIGINS
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: SENTRY_DSN
+        - name: SERVICE_URL
+          value: /iam
         - name: BASIC_AUTH_USERNAME
           valueFrom:
             secretKeyRef:
@@ -122,26 +146,42 @@ spec:
             secretKeyRef:
               name: iam-staging
               key: BASIC_AUTH_PASSWORD
-        - name: SECRET_KEY
+        - name: FEAT_TOGGLE_LOCAL_AUTH
+          value: "1"
+        - name: DB_HOST
+          value: localhost
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: iam_staging
+        - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               name: iam-staging
-              key: SECRET_KEY
-        - name: SENTRY_DSN
+              key: DB_USERNAME
+        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: iam-staging
-              key: SENTRY_DSN
+              key: DB_PASSWORD
+        - name: FEAT_TOGGLE_FIREBASE
+          value:
         volumeMounts:
         - name: rsa
           mountPath: "/app/keys"
           readOnly: true
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
-      - name: postgres
-        image: postgres:10-alpine
-        ports:
-        - containerPort: 5432
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
+        volumeMounts:
+          - name: cloudsql-instance-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
       volumes:
       - name: rsa
         secret:
           secretName: iam-rsa-staging
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials
