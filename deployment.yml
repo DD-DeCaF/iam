@@ -19,6 +19,11 @@ spec:
         image: gcr.io/dd-decaf-cfbf6/iam:master
         ports:
         - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
         env:
         - name: ENVIRONMENT
           value: production
@@ -114,6 +119,11 @@ spec:
         image: gcr.io/dd-decaf-cfbf6/iam:devel
         ports:
         - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
         env:
         - name: ENVIRONMENT
           value: staging
