@@ -149,6 +149,3 @@ def init_app(application, interface, db):
             db.session.commit()
         except NoResultFound:
             print(f"No user has id {id} (try `flask users`)")
-
-    from logging.config import dictConfig
-    dictConfig(application.config['LOGGING'])
