@@ -37,6 +37,7 @@ from .models import Organization, Project, User
 from .settings import Development, Production, Testing
 
 
+logger = logging.getLogger(__name__)
 app = Flask(__name__)
 api = Api(
     title="IAM",
@@ -57,17 +58,23 @@ def init_app(application, interface, db):
     # Configure logging
     logging.config.dictConfig(application.config['LOGGING'])
 
+    logger.info("Logging configured")
+
+    logger.debug("Initializing database")
     Migrate(application, db)
     db.init_app(application)
 
+    logger.debug("Initializing sentry")
     if application.config['SENTRY_DSN']:
         sentry = Sentry(dsn=application.config['SENTRY_DSN'], logging=True,
                         level=logging.WARNING)
         sentry.init_app(application)
 
+    logger.debug("Initializing CORS")
     CORS(application)
 
     if application.config['FEAT_TOGGLE_FIREBASE']:
+        logger.info("Initializing Firebase")
         cred = credentials.Certificate({
             'type': 'service_account',
             'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
@@ -83,16 +90,20 @@ def init_app(application, interface, db):
                 application.config['FIREBASE_CLIENT_CERT_URL'],
         })
         firebase_admin.initialize_app(cred)
+    else:
+        logger.info("Firebase feature toggle is off")
 
     # READINESS CHECK ENDPOINT
     ############################################################################
 
+    logger.debug("Registering readiness check endpoint")
     from . import healthz
     healthz.init_app(application)
 
     # ADMIN VIEWS
     ############################################################################
 
+    logger.debug("Registering admin views")
     admin = Admin(application, template_mode='bootstrap3',
                   url=f"{application.config['SERVICE_URL']}/admin")
     admin.add_view(ModelView(Organization, db.session))
@@ -109,6 +120,8 @@ def init_app(application, interface, db):
 
     # API RESOURCES
     ############################################################################
+
+    logger.debug("Registering API resources")
 
     from . import resources
 
@@ -131,6 +144,8 @@ def init_app(application, interface, db):
     # CLI COMMANDS
     ############################################################################
 
+    logger.debug("Registering CLI commands")
+
     @application.cli.command()
     def users():
         """List all users."""
@@ -149,3 +164,5 @@ def init_app(application, interface, db):
             db.session.commit()
         except NoResultFound:
             print(f"No user has id {id} (try `flask users`)")
+
+    logger.info("App initialization complete")
