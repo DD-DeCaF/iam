@@ -41,7 +41,8 @@ class Default:
         self.SQLALCHEMY_DATABASE_URI = (
             f"postgres://{os.environ['DB_USERNAME']}:"
             f"{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:"
-            f"{os.environ['DB_PORT']}/{os.environ['DB_NAME']}")
+            f"{os.environ['DB_PORT']}/{os.environ['DB_NAME']}"
+            f"?connect_timeout=10")
         self.SQLALCHEMY_TRACK_MODIFICATIONS = False
 
         self.FEAT_TOGGLE_FIREBASE = bool(os.environ['FEAT_TOGGLE_FIREBASE'])
