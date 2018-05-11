@@ -126,7 +126,7 @@ spec:
           initialDelaySeconds: 5
         env:
         - name: ENVIRONMENT
-          value: staging
+          value: production
         - name: FLASK_APP
           value: src/iam/wsgi.py
         - name: SECRET_KEY
