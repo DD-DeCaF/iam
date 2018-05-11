@@ -65,18 +65,15 @@ pipenv-check:
 
 ## Run flake8.
 flake8:
-	-docker-compose run --rm web \
-		flake8 src/iam tests
+	-docker-compose run --rm web flake8 src/iam tests
 
 ## Check Python package import order.
 isort:
-	-docker-compose run --rm web \
-		isort --check-only --recursive src/iam tests
+	-docker-compose run --rm web isort --check-only --recursive src/iam tests
 
 ## Sort imports and write changes to files.
 isort-save:
-	docker-compose run --rm web \
-		isort --recursive src/iam tests
+	docker-compose run --rm web isort --recursive src/iam tests
 
 ## Verify source code license headers.
 license:
