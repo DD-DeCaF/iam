@@ -40,7 +40,7 @@ before_deploy:
 
 deploy:
   provider: script
-  script: ./scripts/travis_deploy.sh
+  script: ./scripts/deploy.sh
   on:
     all_branches: true
 
