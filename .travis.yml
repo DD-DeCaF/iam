@@ -12,69 +12,34 @@ env:
     - IMAGE_REPO=gcr.io/dd-decaf-cfbf6/iam
     - IMAGE_TAG=travis-ci-test
     - IMAGE=${IMAGE_REPO}:${IMAGE_TAG}
-  matrix:
-    - TARGET=test-travis
-    - TARGET=pipenv-check
-    - TARGET=flake8
-    - TARGET=isort
-    - TARGET=license
 
-matrix:
-  fast_finish: true
-
-install:
-  - ./scripts/install_gcloud.sh
-
-before_script:
+before_install:
   - echo ${DOCKER_PASSWORD} | docker login -u=decaftravis --password-stdin
 
+install:
+  - docker build -t ${IMAGE} .
+  - make setup
+
 script:
-  - docker pull ${IMAGE}
-  - make setup ${TARGET}
+  - make test-travis
+  - make pipenv-check
+  - make flake8
+  - make isort
+  - make license
 
-stages:
-  - build
-  - test
-  - push-tags
-  - name: deploy-staging
-    if: branch = devel
-  - name: deploy-production
-    if: branch = master
+before_deploy:
+  - ./scripts/install_gcloud.sh
+  - ./scripts/install_kubectl.sh
+  - docker tag ${IMAGE} ${IMAGE_REPO}:${TRAVIS_COMMIT::12}
+  - docker tag ${IMAGE} ${IMAGE_REPO}:${TRAVIS_BRANCH}
+  - docker push ${IMAGE_REPO}:${TRAVIS_COMMIT::12}
+  - docker push ${IMAGE_REPO}:${TRAVIS_BRANCH}
 
-jobs:
-  include:
-    - stage: build
-      install:
-        - ./scripts/install_gcloud.sh
-        - echo ${DOCKER_PASSWORD} | docker login -u=decaftravis --password-stdin
-      before_script:
-        - docker build -t ${IMAGE} .
-        - docker push ${IMAGE}
-      script: skip
-    - stage: push-tags
-      install:
-        - ./scripts/install_gcloud.sh
-      before_script:
-        - docker pull ${IMAGE}
-        - docker tag ${IMAGE} ${IMAGE_REPO}:${TRAVIS_COMMIT::12}
-        - docker tag ${IMAGE} ${IMAGE_REPO}:${TRAVIS_BRANCH}
-        - docker push ${IMAGE_REPO}:${TRAVIS_COMMIT::12}
-        - docker push ${IMAGE_REPO}:${TRAVIS_BRANCH}
-      script: skip
-    - stage: deploy-staging
-      install:
-        - ./scripts/install_kubectl.sh
-      script: skip
-      deploy:
-        provider: script
-        script: ./scripts/travis_deploy.sh iam-staging
-    - stage: deploy-production
-      install:
-        - ./scripts/install_kubectl.sh
-      script: skip
-      deploy:
-        provider: script
-        script: ./scripts/travis_deploy.sh iam-production
+deploy:
+  provider: script
+  script: ./scripts/travis_deploy.sh
+  on:
+    all_branches: true
 
 notifications:
   email: false
