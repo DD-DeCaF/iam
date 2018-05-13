@@ -24,7 +24,7 @@ RUN apk add --update --no-cache openssl ca-certificates postgresql-dev openssh
 # build step to reduce layer size, but is kept here to increase chances of
 # cache hit and decrease build time at the cost of image size.
 # `g++` is required for building `gevent`
-# git is required for github references in Pipenv (hopefully temporary)
+# git is required for github references in Pipfile (hopefully temporary)
 RUN set -x && apk add --no-cache --virtual .build-deps g++ git
 
 WORKDIR "${CWD}"
