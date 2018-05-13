@@ -33,7 +33,7 @@ keypair:
 
 ## Create initial databases. You must only run this once.
 databases:
-	docker-compose start postgres
+	docker-compose up -d postgres
 	./scripts/wait_for_postgres.sh
 	docker-compose exec postgres psql -U postgres -c "create database iam;"
 	docker-compose exec postgres psql -U postgres -c "create database iam_test;"
