@@ -35,9 +35,10 @@ COPY Pipfile* "${CWD}/"
 # Still present as of pipenv==11.9.0.
 # Pin pipenv to 11.10.0 to avoid the following issue:
 # https://github.com/pypa/pipenv/issues/2078
+# Pin pip to 9.0.3 to avoid issues with `pipenv check` using deprecated pip APIs
 RUN set -x \
     && ln -sf /usr/local/bin/python /bin/python \
-    && pip install --upgrade pip setuptools wheel pipenv==11.10.0 \
+    && pip install --upgrade pip==9.0.3 setuptools wheel pipenv==11.10.0 \
     && pipenv install --system ${PIPENV_FLAGS} \
     && rm -rf /root/.cache/pip
 
