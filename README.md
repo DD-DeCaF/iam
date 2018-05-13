@@ -20,34 +20,30 @@ Identity and access management
 
 ## Development
 
-Some useful `make` targets:
+Type `make` to see frequently used workflow commands.
 
-* `make setup`: Run this when initializing the project for the first time
-* `make build`: Run this instead of `docker-compose build` - the make target has
-  logic to update your local `Pipfile.lock` after generation
-* `make qa`: Run this before pushing, to verify that tests and style checks pass
+### Setup
 
-Type `make` to see all available commands.
+A local keypair for token signing must be generated, and the databases must be created and migrated. This can be done by running `make setup`.
+
+### Testing
+
+To run all tests and QA checks, run `make qa`.
 
 ### Environment
 
-Specify environment variables in a `.env` file. See `docker-compose.yml` for the
-possible variables and their default values.
+Specify environment variables in a `.env` file. See `docker-compose.yml` for the possible variables and their default values.
 
-* Set `ENVIRONMENT` to either
-  * `development`,
-  * `testing`, or
-  * `production`.
+* `ENVIRONMENT` Set to either `development`, `testing`, or `production`.
 * `SECRET_KEY` Flask secret key. Will be randomly generated in development and testing environments.
-* `SENTRY_DSN` DSN for reporting exceptions to
-  [Sentry](https://docs.sentry.io/clients/python/integrations/flask/).
-* `ALLOWED_ORIGINS`: Comma-seperated list of CORS allowed origins.
-* `SERVICE_URL`: URL prefix to the API service, defaults to empty
-* `BASIC_AUTH_USERNAME`: Username to authenticate with admin interface
-* `BASIC_AUTH_PASSWORD`: Password to authenticate with admin interface
-* `FEAT_TOGGLE_LOCAL_AUTH`: Feature toggle: local user database authentication
-* `SQLALCHEMY_DATABASE_URI`: [Database configuration](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls)
-* `FEAT_TOGGLE_FIREBASE`: Feature toggle: firebase authentication
+* `SENTRY_DSN` DSN for reporting exceptions to [Sentry](https://docs.sentry.io/clients/python/integrations/flask/).
+* `ALLOWED_ORIGINS` Comma-seperated list of CORS allowed origins.
+* `SERVICE_URL` URL prefix to the API service, defaults to empty.
+* `BASIC_AUTH_USERNAME` Username to authenticate with admin interface.
+* `BASIC_AUTH_PASSWORD` Password to authenticate with admin interface.
+* `FEAT_TOGGLE_LOCAL_AUTH` Feature toggle local user database authentication.
+* `SQLALCHEMY_DATABASE_URI` [Database configuration](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls)
+* `FEAT_TOGGLE_FIREBASE` Feature toggle: firebase authentication
 * `FIREBASE_CLIENT_CERT_URL`
 * `FIREBASE_CLIENT_EMAIL`
 * `FIREBASE_CLIENT_ID`
