@@ -17,7 +17,16 @@
 
 set -eu
 
+# Note: postgres will sporadically accept connections while the
+# docker-entrypoint script is still running, so an explicit check for init to
+# have finished is required in addition to the connection check.
+
+echo "Waiting for postgres docker-entrypoint script to finish..."
+while [[ ! "$(docker-compose logs --no-color postgres)" = *"PostgreSQL init process complete; ready for start up."* ]]; do
+  sleep 1
+done
+
+echo "Waiting for postgres to accept connections..."
 until docker-compose exec postgres psql -U postgres -l > /dev/null; do
-  echo "Waiting for postgres to accept connections..."
   sleep 1
 done
