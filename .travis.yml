@@ -47,5 +47,5 @@ notifications:
     rooms:
       secure: "e1aHT3GiKfdCNgOaPeFBEuQGm1MP4BvSvzIqe4nxpZvr/oQ1JkVrVFDeeTvDo0yO69k8ORmQT2B86hXuQwKt9sCx9AN4e/bUCPf7DfWqAn8M4DrmBc4cGUUctXKzNgBGbwLk14UHfjbsfr0knmv9nNGggFoPsL9C2hcQDTF91UQmAqmq/tLwkV+J/f6IPLJCz7NahKA5GXVOap3SIuB3gHFg2EtUULrhghN/k/GOox3cinJPvWqlD0d6ISRsOVvYPOODhygMpi1E+nqj0tHUGweG61WTYsyG4bu84cZW9ELWHlUkK8Lfn96StZGcm8x7fOwadJRBCYi4eGYxXs08LIwDZYKb/jsA5WUKsjjn2seUtxJrgFCzlXvl3e0yeleNpVex+o8xRUb1RhwQDo0DBhEXt3a46q7Icc/46Gn2R7dBmBeGPHuWvk/+vUHGLk8edlIU+4mEBrfAI529vC9fu1vDzsvYMb+uwULhqxAV1099o7yH0wEtrWDnZkNYt2SaseQOKqG+KGne8eLiXzQrNeODldQPcQCHoeQNQl+cRoWyIfDWAPn5lIBJsxireEIN52nT/JicghgLKX8714HSipRSX4ZxlhJRTN77qScm3NA/amzzDThDblYCEw3TwsSdX2C+PnQKTSz2qYOVjisCPA/ifNCpSoImbclKDCp40Rw="
     on_success: change
-    on_failure: always
+    on_failure: change
     on_pull_requests: false
