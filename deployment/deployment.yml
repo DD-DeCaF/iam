@@ -19,11 +19,6 @@ spec:
         image: gcr.io/dd-decaf-cfbf6/iam:master
         ports:
         - containerPort: 8000
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 8000
-          initialDelaySeconds: 5
         env:
         - name: ENVIRONMENT
           value: production
@@ -81,6 +76,17 @@ spec:
           mountPath: "/app/keys"
           readOnly: true
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+        resources:
+          requests:
+            cpu: "10m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
       - name: cloudsql-proxy
         image: gcr.io/cloudsql-docker/gce-proxy:1.11
         command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
@@ -88,6 +94,11 @@ spec:
           - name: cloudsql-instance-credentials
             mountPath: /secrets/cloudsql
             readOnly: true
+        resources:
+          requests:
+            cpu: "10m"
+          limits:
+            cpu: "100m"
       volumes:
       - name: rsa
         secret:
@@ -119,11 +130,6 @@ spec:
         image: gcr.io/dd-decaf-cfbf6/iam:devel
         ports:
         - containerPort: 8000
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 8000
-          initialDelaySeconds: 5
         env:
         - name: ENVIRONMENT
           value: production
@@ -181,9 +187,24 @@ spec:
           mountPath: "/app/keys"
           readOnly: true
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+        resources:
+          requests:
+            cpu: "5m"
+          limits:
+            cpu: "100m"
       - name: cloudsql-proxy
         image: gcr.io/cloudsql-docker/gce-proxy:1.11
         command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
+        resources:
+          requests:
+            cpu: "5m"
+          limits:
+            cpu: "100m"
         volumeMounts:
           - name: cloudsql-instance-credentials
             mountPath: /secrets/cloudsql
