@@ -11,6 +11,7 @@ gunicorn = "*"
 "psycopg2-binary" = "*"
 flask-admin = {git = "https://github.com/flask-admin/flask-admin"}
 gevent = "*"
+greenlet = {version = "*", platform_python_implementation="=='CPython'"}
 flask = "*"
 flask-cors = "*"
 sqlalchemy = "*"
