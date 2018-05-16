@@ -27,9 +27,6 @@ script:
   - make isort
   - make license
 
-after_success:
-  - sudo chown -R ${USER} .
-
 before_deploy:
   - ./scripts/install_gcloud.sh
   - ./scripts/install_kubectl.sh
