@@ -42,26 +42,10 @@ databases:
 	# note: not migrating iam_test db; tests will create and tear down tables
 
 ## Run all QA targets.
-qa: test pipenv-check style
+qa: style pipenv-check test
 
 ## Run all style related targets.
 style: flake8 isort license
-
-## Run the tests.
-test:
-	-docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test web \
-		/bin/sh -c "pytest -s --cov=src/iam tests"
-
-## Run the tests and report coverage (see https://docs.codecov.io/docs/testing-with-docker).
-test-travis:
-	$(eval ci_env=$(shell bash <(curl -s https://codecov.io/env)))
-	docker-compose run --rm -e ENVIRONMENT=testing $(ci_env) \
-		-e DB_NAME=iam_test web \
-		/bin/sh -c "pytest -s --cov=src/iam tests && codecov"
-
-## Check for known vulnerabilities in python dependencies.
-pipenv-check:
-	-docker-compose run --rm web pipenv check --system
 
 ## Run flake8.
 flake8:
@@ -78,6 +62,22 @@ isort-save:
 ## Verify source code license headers.
 license:
 	-./scripts/verify_license_headers.sh src/iam tests
+
+## Check for known vulnerabilities in python dependencies.
+pipenv-check:
+	-docker-compose run --rm web pipenv check --system
+
+## Run the tests.
+test:
+	-docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test web \
+		/bin/sh -c "pytest -s --cov=src/iam tests"
+
+## Run the tests and report coverage (see https://docs.codecov.io/docs/testing-with-docker).
+test-travis:
+	$(eval ci_env=$(shell bash <(curl -s https://codecov.io/env)))
+	docker-compose run --rm -e ENVIRONMENT=testing $(ci_env) \
+		-e DB_NAME=iam_test web \
+		/bin/sh -c "pytest -s --cov=src/iam tests && codecov"
 
 ## Stop all services.
 stop:

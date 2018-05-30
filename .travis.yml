@@ -21,11 +21,11 @@ install:
   - make setup
 
 script:
-  - make test-travis
-  - make pipenv-check
   - make flake8
   - make isort
   - make license
+  - make pipenv-check
+  - make test-travis
 
 before_deploy:
   - ./scripts/install_gcloud.sh
