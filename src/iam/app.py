@@ -22,6 +22,7 @@ import os
 
 import click
 import firebase_admin
+import prometheus_client
 from firebase_admin import credentials
 from flask import Flask, Response, jsonify, request
 from flask_admin import Admin
@@ -30,7 +31,6 @@ from flask_basicauth import BasicAuth
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restplus import Api
-import prometheus_client
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -45,6 +45,7 @@ api = Api(
     version="0.0.1",
     description="Identity and access management",
 )
+
 
 def init_app(application, interface, db):
     """Initialize the main app with config information and routes."""
@@ -110,7 +111,8 @@ def init_app(application, interface, db):
         # Update persistent metrics like database counts
         labels = ('iam', os.environ['ENVIRONMENT'])
         metrics.USER_COUNT.labels(*labels).set(User.query.count())
-        metrics.ORGANIZATION_COUNT.labels(*labels).set(Organization.query.count())
+        metrics.ORGANIZATION_COUNT.labels(*labels).set(
+            Organization.query.count())
         metrics.PROJECT_COUNT.labels(*labels).set(Project.query.count())
 
         return Response(prometheus_client.generate_latest(),
