@@ -71,10 +71,14 @@ spec:
               key: DB_PASSWORD
         - name: FEAT_TOGGLE_FIREBASE
           value:
+        - name: prometheus_multiproc_dir
+          value: /prometheus-client
         volumeMounts:
         - name: rsa
           mountPath: "/app/keys"
           readOnly: true
+        - name: prometheus-client
+          mountPath: /prometheus-client
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
         readinessProbe:
           httpGet:
@@ -106,6 +110,8 @@ spec:
       - name: cloudsql-instance-credentials
         secret:
           secretName: cloudsql-instance-credentials
+      - name: prometheus-client
+        emptyDir: {}
 
 ---
 
@@ -182,10 +188,14 @@ spec:
               key: DB_PASSWORD
         - name: FEAT_TOGGLE_FIREBASE
           value:
+        - name: prometheus_multiproc_dir
+          value: /prometheus-client
         volumeMounts:
         - name: rsa
           mountPath: "/app/keys"
           readOnly: true
+        - name: prometheus-client
+          mountPath: /prometheus-client
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
         readinessProbe:
           httpGet:
@@ -216,3 +226,5 @@ spec:
       - name: cloudsql-instance-credentials
         secret:
           secretName: cloudsql-instance-credentials
+      - name: prometheus-client
+        emptyDir: {}

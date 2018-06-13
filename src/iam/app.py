@@ -23,13 +23,14 @@ import os
 import click
 import firebase_admin
 from firebase_admin import credentials
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restplus import Api
+import prometheus_client
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -44,7 +45,6 @@ api = Api(
     version="0.0.1",
     description="Identity and access management",
 )
-
 
 def init_app(application, interface, db):
     """Initialize the main app with config information and routes."""
@@ -99,6 +99,14 @@ def init_app(application, interface, db):
     logger.debug("Registering readiness check endpoint")
     from . import healthz
     healthz.init_app(application)
+
+    # EXPOSE METRICS
+    ############################################################################
+
+    @app.route('/metrics')
+    def metrics():
+        return Response(prometheus_client.generate_latest(),
+                        mimetype=prometheus_client.CONTENT_TYPE_LATEST)
 
     # ADMIN VIEWS
     ############################################################################
