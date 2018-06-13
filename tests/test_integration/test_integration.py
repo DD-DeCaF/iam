@@ -29,6 +29,12 @@ def test_healthz(client):
     assert response.status_code == 200
 
 
+def test_metrics(client, db):
+    """Test the metrics endpoint."""
+    response = client.get('/metrics')
+    assert response.status_code == 200
+
+
 def test_get_admin_unauthorized(client):
     """Test unauthorized access to the admin view."""
     rv = client.get('/admin/')
