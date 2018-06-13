@@ -48,7 +48,7 @@ api = Api(
 
 def init_app(application, interface, db):
     """Initialize the main app with config information and routes."""
-    if os.environ['ENVIRONMENT'] == 'production':
+    if os.environ['ENVIRONMENT'] in ['production', 'staging']:
         application.config.from_object(Production())
     elif os.environ['ENVIRONMENT'] == 'testing':
         application.config.from_object(Testing())

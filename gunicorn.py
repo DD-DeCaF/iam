@@ -32,7 +32,7 @@ def child_exit(server, worker):
     multiprocess.mark_process_dead(worker.pid)
 
 
-if _config == "production":
+if _config in ["production", "staging"]:
     workers = os.cpu_count() * 2 + 1
     preload_app = True
     loglevel = "INFO"

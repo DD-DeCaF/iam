@@ -138,7 +138,7 @@ spec:
         - containerPort: 8000
         env:
         - name: ENVIRONMENT
-          value: production
+          value: staging
         - name: FLASK_APP
           value: src/iam/wsgi.py
         - name: SECRET_KEY
