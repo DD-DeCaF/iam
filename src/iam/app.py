@@ -105,6 +105,14 @@ def init_app(application, interface, db):
 
     @app.route('/metrics')
     def metrics():
+        from . import metrics
+
+        # Update persistent metrics like database counts
+        labels = ('iam', os.environ['ENVIRONMENT'])
+        metrics.USER_COUNT.labels(*labels).set(User.query.count())
+        metrics.ORGANIZATION_COUNT.labels(*labels).set(Organization.query.count())
+        metrics.PROJECT_COUNT.labels(*labels).set(Project.query.count())
+
         return Response(prometheus_client.generate_latest(),
                         mimetype=prometheus_client.CONTENT_TYPE_LATEST)
 
