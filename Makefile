@@ -49,11 +49,11 @@ style: flake8 isort license
 
 ## Run flake8.
 flake8:
-	-docker-compose run --rm web flake8 src/iam tests
+	docker-compose run --rm web flake8 src/iam tests
 
 ## Check Python package import order.
 isort:
-	-docker-compose run --rm web isort --check-only --recursive src/iam tests
+	docker-compose run --rm web isort --check-only --recursive src/iam tests
 
 ## Sort imports and write changes to files.
 isort-save:
@@ -61,15 +61,15 @@ isort-save:
 
 ## Verify source code license headers.
 license:
-	-./scripts/verify_license_headers.sh src/iam tests
+	./scripts/verify_license_headers.sh src/iam tests
 
 ## Check for known vulnerabilities in python dependencies.
 pipenv-check:
-	-docker-compose run --rm web pipenv check --system
+	docker-compose run --rm web pipenv check --system
 
 ## Run the tests.
 test:
-	-docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test web \
+	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test web \
 		/bin/sh -c "pytest -s --cov=src/iam tests"
 
 ## Run the tests and report coverage (see https://docs.codecov.io/docs/testing-with-docker).
