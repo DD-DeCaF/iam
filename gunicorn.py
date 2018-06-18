@@ -26,6 +26,7 @@ bind = "0.0.0.0:8000"
 worker_class = "gevent"
 timeout = 20
 accesslog = "-"
+access_log_format = '''%(t)s "%(r)s" %(s)s %(b)s %(L)s "%(f)s"'''
 
 
 def child_exit(server, worker):
@@ -35,10 +36,6 @@ def child_exit(server, worker):
 if _config in ["production", "staging"]:
     workers = os.cpu_count() * 2 + 1
     preload_app = True
-    loglevel = "INFO"
-    access_log_format = '''"%(r)s" %(s)s %(b)s %(L)s "%(f)s"'''
 else:
     workers = 1
     reload = True
-    loglevel = "DEBUG"
-    access_log_format = '''%(t)s "%(r)s" %(s)s %(b)s %(L)s "%(f)s"'''
