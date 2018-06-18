@@ -26,7 +26,6 @@ RUN apk add --update --no-cache openssl ca-certificates postgresql-dev openssh
 # `g++` is required for building `gevent`
 # git is required for:
 #   - github references in Pipfile (hopefully temporary)
-#   - executing codecov in CI
 RUN set -x && apk add --no-cache --virtual .build-deps g++ git
 
 WORKDIR "${CWD}"

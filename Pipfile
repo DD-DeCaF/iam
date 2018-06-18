@@ -34,7 +34,6 @@ prometheus-client = "*"
 "flake8-docstrings" = "*"
 pytest = "*"
 pytest-cov = "*"
-codecov = "*"
 isort = "*"
 ipython = "*"
 
