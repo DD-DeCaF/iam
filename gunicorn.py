@@ -38,8 +38,6 @@ if _config in ["production", "staging"]:
     loglevel = "INFO"
     access_log_format = '''"%(r)s" %(s)s %(b)s %(L)s "%(f)s"'''
 else:
-    # FIXME: The number of workers is up for debate. At least for testing more
-    # than one worker could make sense.
     workers = 1
     reload = True
     loglevel = "DEBUG"
