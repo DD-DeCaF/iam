@@ -20,6 +20,18 @@ import pathlib
 from datetime import timedelta
 
 
+def current_config():
+    """Return the appropriate configuration object based on the environment."""
+    if os.environ['ENVIRONMENT'] in ['production', 'staging']:
+        return Production()
+    elif os.environ['ENVIRONMENT'] == 'testing':
+        return Testing()
+    elif os.environ['ENVIRONMENT'] == 'development':
+        return Development()
+    else:
+        raise KeyError(f"Unknown environment '{os.environ['ENVIRONMENT']}'")
+
+
 class Default:
     """Default configuration settings."""
 

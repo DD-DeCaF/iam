@@ -35,7 +35,7 @@ from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 
 from .models import Organization, Project, User
-from .settings import Development, Production, Testing
+from .settings import current_config
 
 
 logger = logging.getLogger(__name__)
@@ -49,12 +49,7 @@ api = Api(
 
 def init_app(application, interface, db):
     """Initialize the main app with config information and routes."""
-    if os.environ['ENVIRONMENT'] in ['production', 'staging']:
-        application.config.from_object(Production())
-    elif os.environ['ENVIRONMENT'] == 'testing':
-        application.config.from_object(Testing())
-    else:
-        application.config.from_object(Development())
+    application.config.from_object(current_config())
 
     # Configure logging
     logging.config.dictConfig(application.config['LOGGING'])
