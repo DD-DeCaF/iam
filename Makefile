@@ -69,13 +69,13 @@ pipenv-check:
 
 ## Run the tests.
 test:
-	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test web pytest -s --cov=src/iam tests
+	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test web pytest --cov=src/iam tests
 
 ## Run the tests and report coverage (see https://docs.codecov.io/docs/testing-with-docker).
 shared := /tmp/coverage
 test-travis:
 	mkdir "$(shared)"
-	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test -v "$(shared):$(shared)" web pytest -s --cov-config=.travis-covrc --cov
+	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test -v "$(shared):$(shared)" web pytest --cov-config=.travis-covrc --cov
 	bash <(curl -s https://codecov.io/bash) -f "$(shared)/.coverage"
 
 ## Stop all services.
