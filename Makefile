@@ -75,8 +75,8 @@ test:
 shared := /tmp/coverage
 test-travis:
 	mkdir "$(shared)"
-	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test -v "$(shared):$(shared)" web pytest --cov-config=.travis-covrc --cov
-	bash <(curl -s https://codecov.io/bash) -f "$(shared)/.coverage"
+	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test -v "$(shared):$(shared)" web pytest --cov-report xml:$(shared)/coverage.xml --cov=src/iam
+	bash <(curl -s https://codecov.io/bash) -f "$(shared)/coverage.xml"
 
 ## Stop all services.
 stop:
