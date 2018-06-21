@@ -17,6 +17,7 @@ spec:
       containers:
       - name: web
         image: gcr.io/dd-decaf-cfbf6/iam:master
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         env:
@@ -158,6 +159,7 @@ spec:
       containers:
       - name: web
         image: gcr.io/dd-decaf-cfbf6/iam:devel
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         env:
