@@ -30,7 +30,7 @@ spec:
               name: iam-production
               key: SECRET_KEY
         - name: ALLOWED_ORIGINS
-          value: https://app.dd-decaf.eu,http://localhost:8080
+          value: https://app.dd-decaf.eu,http://localhost:4200
         - name: SENTRY_DSN
           valueFrom:
             secretKeyRef:
@@ -171,7 +171,7 @@ spec:
               name: iam-staging
               key: SECRET_KEY
         - name: ALLOWED_ORIGINS
-          value: https://staging.dd-decaf.eu,http://localhost:8080
+          value: https://staging.dd-decaf.eu,http://localhost:4200
         - name: SENTRY_DSN
           valueFrom:
             secretKeyRef:
