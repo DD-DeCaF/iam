@@ -67,7 +67,7 @@ def init_app(application, interface, db):
     logger.debug("Initializing sentry")
     if application.config['SENTRY_DSN']:
         sentry = Sentry(dsn=application.config['SENTRY_DSN'], logging=True,
-                        level=logging.WARNING)
+                        level=logging.ERROR)
         sentry.init_app(application)
 
     logger.debug("Initializing CORS")
