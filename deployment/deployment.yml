@@ -23,6 +23,8 @@ spec:
         env:
         - name: ENVIRONMENT
           value: production
+        - name: SCRIPT_NAME
+          value: /iam
         - name: FLASK_APP
           value: src/iam/wsgi.py
         - name: SECRET_KEY
@@ -107,7 +109,7 @@ spec:
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
         readinessProbe:
           httpGet:
-            path: /healthz
+            path: /iam/healthz
             port: 8000
           initialDelaySeconds: 5
         resources:
@@ -165,6 +167,8 @@ spec:
         env:
         - name: ENVIRONMENT
           value: staging
+        - name: SCRIPT_NAME
+          value: /iam
         - name: FLASK_APP
           value: src/iam/wsgi.py
         - name: SECRET_KEY
@@ -249,7 +253,7 @@ spec:
         command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
         readinessProbe:
           httpGet:
-            path: /healthz
+            path: /iam/healthz
             port: 8000
           initialDelaySeconds: 5
         resources:

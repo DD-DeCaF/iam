@@ -20,6 +20,7 @@ services:
       - postgres
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-development}
+      - SCRIPT_NAME=${SCRIPT_NAME}
       - FLASK_APP=src/iam/wsgi.py
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
       - SENTRY_DSN=${SENTRY_DSN}

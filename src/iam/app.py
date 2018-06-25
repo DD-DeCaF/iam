@@ -33,6 +33,7 @@ from flask_migrate import Migrate
 from flask_restplus import Api
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
+from werkzeug.contrib.fixers import ProxyFix
 
 from .models import (
     Organization, OrganizationProject, OrganizationUser, Project, Team,
@@ -52,6 +53,7 @@ api = Api(
 def init_app(application, interface, db):
     """Initialize the main app with config information and routes."""
     application.config.from_object(current_config())
+    application.wsgi_app = ProxyFix(application.wsgi_app)
 
     # Configure logging
     logging.config.dictConfig(application.config['LOGGING'])
@@ -120,7 +122,7 @@ def init_app(application, interface, db):
 
     logger.debug("Registering admin views")
     admin = Admin(application, template_mode='bootstrap3',
-                  url=f"{application.config['SERVICE_URL']}/admin")
+                  url=f"/admin")
     admin.add_view(ModelView(Organization, db.session))
     admin.add_view(ModelView(Team, db.session))
     admin.add_view(ModelView(User, db.session))
@@ -146,19 +148,14 @@ def init_app(application, interface, db):
 
     from . import resources
 
-    interface.add_resource(resources.AuthenticateLocal,
-                           f"{application.config['SERVICE_URL']}"
-                           f"/authenticate/local")
+    interface.add_resource(resources.AuthenticateLocal, "/authenticate/local")
     interface.add_resource(resources.AuthenticateFirebase,
-                           f"{application.config['SERVICE_URL']}"
-                           f"/authenticate/firebase")
-    interface.add_resource(resources.Refresh,
-                           f"{application.config['SERVICE_URL']}/refresh")
-    interface.add_resource(resources.PublicKeys,
-                           f"{application.config['SERVICE_URL']}/keys")
+                           "/authenticate/firebase")
+    interface.add_resource(resources.Refresh, "/refresh")
+    interface.add_resource(resources.PublicKeys, "/keys")
     interface.init_app(application)
 
-    @application.route(f"{application.config['SERVICE_URL']}/openapi.json")
+    @application.route("/openapi.json")
     def openapi_schema():
         return jsonify(api.__schema__)
 
