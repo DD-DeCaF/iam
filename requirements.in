@@ -1,8 +1,9 @@
-# WSGI
+# Flask and related libs
 flask
+flask-admin
+flask-basicauth
 flask-cors
-gevent
-gunicorn
+flask-restplus
 
 # Database & orm
 alembic
@@ -13,9 +14,6 @@ sqlalchemy
 
 # Other third party libs
 firebase-admin
-flask-admin
-flask-basicauth
-flask-restplus
 prometheus-client
 python-jose
 raven[flask]
