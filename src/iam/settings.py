@@ -51,7 +51,7 @@ class Default:
 
         self.FEAT_TOGGLE_LOCAL_AUTH = bool(os.environ['FEAT_TOGGLE_LOCAL_AUTH'])
         self.SQLALCHEMY_DATABASE_URI = (
-            f"postgres://{os.environ['DB_USERNAME']}:"
+            f"postgresql://{os.environ['DB_USERNAME']}:"
             f"{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:"
             f"{os.environ['DB_PORT']}/{os.environ['DB_NAME']}"
             f"?connect_timeout=10")
