@@ -4,3 +4,4 @@ ipython
 isort
 pytest
 pytest-cov
+safety

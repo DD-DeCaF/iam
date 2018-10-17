@@ -1,5 +1,5 @@
 .PHONY: setup network keypair databases lock build start qa style test \
-		test-travis flake8 isort isort-save license stop clean logs
+		test-travis flake8 isort isort-save license stop clean logs safety
 SHELL:=/bin/bash
 
 
@@ -42,7 +42,7 @@ databases:
 	# note: not migrating iam_test db; tests will create and tear down tables
 
 ## Run all QA targets.
-qa: style pipenv-check test
+qa: style safety test
 
 ## Run all style related targets.
 style: flake8 isort license
@@ -64,8 +64,8 @@ license:
 	./scripts/verify_license_headers.sh src/iam tests
 
 ## Check for known vulnerabilities in python dependencies.
-pipenv-check:
-	docker-compose run --rm web pipenv check --system
+safety:
+	docker-compose run --rm web safety check
 
 ## Run the tests.
 test:
