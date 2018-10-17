@@ -1,0 +1,6 @@
+flake8
+flake8-docstrings
+ipython
+isort
+pytest
+pytest-cov

@@ -1,0 +1,22 @@
+# WSGI
+flask
+flask-cors
+gevent
+gunicorn
+
+# Database & orm
+alembic
+flask-migrate
+flask-sqlalchemy
+psycopg2-binary
+sqlalchemy
+
+# Other third party libs
+firebase-admin
+flask-basicauth
+flask-restplus
+git+https://github.com/flask-admin/flask-admin#egg=flask-admin
+prometheus-client
+python-jose
+raven[flask]
+requests
