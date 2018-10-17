@@ -13,9 +13,9 @@ sqlalchemy
 
 # Other third party libs
 firebase-admin
+flask-admin
 flask-basicauth
 flask-restplus
-git+https://github.com/flask-admin/flask-admin#egg=flask-admin
 prometheus-client
 python-jose
 raven[flask]
