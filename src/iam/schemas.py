@@ -1,4 +1,4 @@
-# Copyright (c) {{cookiecutter.year}}, Novo Nordisk Foundation Center for Biosustainability,
+# Copyright (c) 2018, Novo Nordisk Foundation Center for Biosustainability,
 # Technical University of Denmark.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,8 @@ class StrictSchema(Schema):
         strict = True
 
 
-### Request schemas ###
-
+# Request schemas
+################################################################################
 
 class LocalCredentialsSchema(StrictSchema):
     email = fields.String(required=True, description="Email address")
@@ -44,7 +44,8 @@ class JWTSchema(StrictSchema):
     jwt = fields.String(required=True, description="Signed JWT")
 
 
-### Response schemas ###
+# Response schemas
+################################################################################
 
 
 class RefreshTokenSchema(StrictSchema):

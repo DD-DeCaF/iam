@@ -114,7 +114,7 @@ class RefreshResource(MethodResource):
 @doc(description="""List of public keys used for JWT signing.
 See [RFC 7517](https://tools.ietf.org/html/rfc7517) or [the OpenID Connect
 implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys)"""
-)
+     )
 class PublicKeysResource(MethodResource):
     @marshal_with(JWKKeysSchema, code=200)
     def get(self):
