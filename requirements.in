@@ -3,7 +3,7 @@ flask
 flask-admin
 flask-basicauth
 flask-cors
-flask-restplus
+flask-apispec
 
 # Database & orm
 alembic

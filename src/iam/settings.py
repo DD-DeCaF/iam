@@ -46,6 +46,9 @@ class Default:
         self.REFRESH_TOKEN_VALIDITY = timedelta(days=30)
         self.SENTRY_DSN = os.environ.get('SENTRY_DSN')
 
+        self.APISPEC_TITLE = "iam"
+        self.APISPEC_SWAGGER_UI_URL = "/"
+
         self.BASIC_AUTH_USERNAME = os.environ['BASIC_AUTH_USERNAME']
         self.BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
 

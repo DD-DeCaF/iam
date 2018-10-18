@@ -30,7 +30,6 @@ from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_restplus import Api
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.contrib.fixers import ProxyFix
@@ -43,14 +42,9 @@ from .settings import current_config
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
-api = Api(
-    title="IAM",
-    version="0.0.1",
-    description="Identity and access management",
-)
 
 
-def init_app(application, interface, db):
+def init_app(application, db):
     """Initialize the main app with config information and routes."""
     application.config.from_object(current_config())
     application.wsgi_app = ProxyFix(application.wsgi_app)
@@ -147,17 +141,18 @@ def init_app(application, interface, db):
     logger.debug("Registering API resources")
 
     from . import resources
+    resources.init_app(application)
 
-    interface.add_resource(resources.AuthenticateLocal, "/authenticate/local")
-    interface.add_resource(resources.AuthenticateFirebase,
-                           "/authenticate/firebase")
-    interface.add_resource(resources.Refresh, "/refresh")
-    interface.add_resource(resources.PublicKeys, "/keys")
-    interface.init_app(application)
+    # ERROR HANDLERS
+    ############################################################################
 
-    @application.route("/openapi.json")
-    def openapi_schema():
-        return jsonify(api.__schema__)
+    # Add an error handler for webargs parser error, ensuring a JSON response
+    # including all error messages produced from the parser.
+    @application.errorhandler(422)
+    def handle_webargs_error(error):
+        response = jsonify(error.data['messages'])
+        response.status_code = error.code
+        return response
 
     # CLI COMMANDS
     ############################################################################

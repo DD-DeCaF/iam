@@ -17,7 +17,6 @@
 
 import pytest
 
-from iam.app import api
 from iam.app import app as app_
 from iam.app import init_app
 from iam.models import Organization, Project, Team, User
@@ -27,7 +26,7 @@ from iam.models import db as db_
 @pytest.fixture(scope="session")
 def app():
     """Provide an initialized Flask for use in certain test cases."""
-    init_app(app_, api, db_)
+    init_app(app_, db_)
     with app_.app_context():
         yield app_
 

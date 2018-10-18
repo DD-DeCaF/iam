@@ -52,7 +52,7 @@ def test_get_admin_authorized(client, app):
 def test_authenticate_failure(app, client, models):
     """Test invalid local authentication."""
     response = client.post('/authenticate/local')
-    assert response.status_code == 400
+    assert response.status_code == 422
 
     response = client.post('/authenticate/local', data={
         'email': models['user'].email,
@@ -105,6 +105,6 @@ def test_authenticate_success(app, client, db, models):
 
 def test_openapi_schema(app, client):
     """Test OpenAPI schema resource."""
-    response = client.get('/openapi.json')
+    response = client.get('/swagger/')
     assert response.status_code == 200
-    assert len(json.loads(response.data)['definitions'].keys()) > 0
+    assert len(json.loads(response.data)['paths']) > 0

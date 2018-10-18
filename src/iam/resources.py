@@ -18,82 +18,55 @@
 from datetime import datetime
 
 from firebase_admin import auth
-from flask import abort, request
-from flask_restplus import Resource, fields
+from flask_apispec import MethodResource, doc, marshal_with, use_kwargs
+from flask_apispec.extension import FlaskApiSpec
 from jose import jwk, jwt
 from sqlalchemy.orm.exc import NoResultFound
 
-from .app import api, app
+from .app import app
 from .domain import create_firebase_user, sign_claims
 from .models import User
+from .schemas import (
+    FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
+    RefreshRequestSchema, TokenSchema)
 
 
-json_web_token = api.model("JSON Web Token", {
-    'jwt': fields.String(required=True, description="Signed JWT"),
-})
-
-token_set = api.model("JWT and refresh token", {
-    'jwt': fields.String(required=True, description="Signed JWT"),
-    'refresh_token': fields.Nested(api.model("Refresh Token", {
-        'val': fields.String(required=True,
-                             description="Refresh token. Use this to request a "
-                                         "new JWT when it expires"),
-        'exp': fields.Integer(required=True,
-                              description="Refresh token expiry (unix time)"),
-    })),
-})
-
-json_web_keys = api.model("JSON Web Keys", {
-    'keys': fields.List(fields.Nested(api.model("JSON Web Key", {
-        'alg': fields.String,
-        'e': fields.String,
-        'n': fields.String,
-        'kty': fields.String,
-    })), description="List of public keys used for signing. See [RFC 7517](http"
-                     "s://tools.ietf.org/html/rfc7517) or [the OpenID Connect i"
-                     "mplementation](https://connect2id.com/products/server/doc"
-                     "s/api/jwk-set#keys)")
-})
-
-
-class AuthenticateLocal(Resource):
+@doc(description="Authenticate with email credentials")
+class LocalAuthResource(MethodResource):
     """Authenticate with credentials in the local database."""
 
-    @api.doc(params={'email': "Email address", 'password': "Password"})
-    @api.marshal_with(token_set)
-    def post(self):
+    @use_kwargs(LocalCredentialsSchema)
+    @marshal_with(TokenSchema, code=200)
+    def post(self, email, password):
         """Authenticate with credentials in the local database."""
         if not app.config['FEAT_TOGGLE_LOCAL_AUTH']:
-            return abort(501, "Local user authentication is disabled")
+            return "Local user authentication is disabled", 501
 
         try:
-            email = request.form['email'].strip()
-            password = request.form['password'].strip()
             user = User.query.filter_by(email=email).one()
             if user.check_password(password):
                 return sign_claims(user)
             else:
-                return abort(401, "Invalid credentials")
+                return "Invalid credentials", 401
         except NoResultFound:
-            return abort(401, "Invalid credentials")
+            return "Invalid credentials", 401
 
 
-class AuthenticateFirebase(Resource):
+@doc(description="Authenticate with firebase credentials")
+class FirebaseAuthResource(MethodResource):
     """Authenticate with Firebase uid and token."""
 
-    @api.doc(params={'uid': "Firebase UID", 'token': "Firebase token"})
-    @api.marshal_with(token_set)
-    def post(self):
+    @use_kwargs(FirebaseCredentialsSchema)
+    @marshal_with(TokenSchema, code=200)
+    def post(self, uid, token):
         """Authenticate with Firebase uid and token."""
         if not app.config['FEAT_TOGGLE_FIREBASE']:
-            return abort(501, "Firebase authentication is disabled")
+            return "Firebase authentication is disabled", 501
 
         try:
-            uid = request.form['uid'].strip()
-            token = request.form['token'].strip()
             decoded_token = auth.verify_id_token(token)
         except ValueError:
-            return abort(401, "Invalid firebase credentials")
+            return "Invalid firebase credentials", 401
 
         if 'email' not in decoded_token:
             decoded_token['email'] = (
@@ -112,20 +85,19 @@ class AuthenticateFirebase(Resource):
         return sign_claims(user)
 
 
-class Refresh(Resource):
+@doc(description="Refresh an expired JWT with a refresh token")
+class RefreshResource(MethodResource):
     """Receive a fresh JWT by providing a valid refresh token."""
 
-    @api.doc(params={'refresh_token': "Refresh token"})
-    @api.marshal_with(json_web_token)
-    def post(self):
+    @use_kwargs(RefreshRequestSchema)
+    @marshal_with(JWTSchema, code=200)
+    def post(self, refresh_token):
         """Receive a fresh JWT by providing a valid refresh token."""
         try:
-            user = User.query.filter_by(
-                refresh_token=request.form['refresh_token']).one()
+            user = User.query.filter_by(refresh_token=refresh_token).one()
             if datetime.now() >= user.refresh_token_expiry:
-                return abort(401,
-                             "The refresh token has expired, please"
-                             "re-authenticate")
+                return ("The refresh token has expired, please re-authenticate",
+                        401)
 
             claims = {
                 'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
@@ -136,20 +108,16 @@ class Refresh(Resource):
                                       app.config['RSA_PRIVATE_KEY'],
                                       app.config['ALGORITHM'])}
         except NoResultFound:
-            return abort(401, "Invalid refresh token")
+            return "Invalid refresh token", 401
 
 
-class PublicKeys(Resource):
-    """List of public keys used for JWT signing."""
-
-    @api.marshal_with(json_web_keys)
+@doc(description="""List of public keys used for JWT signing.
+See [RFC 7517](https://tools.ietf.org/html/rfc7517) or [the OpenID Connect
+implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys)"""
+)
+class PublicKeysResource(MethodResource):
+    @marshal_with(JWKKeysSchema, code=200)
     def get(self):
-        """
-        List of public keys used for JWT signing.
-
-        See [RFC 7517](https://tools.ietf.org/html/rfc7517) or [the OpenID
-        Connect implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys)
-        """ # noqa
         key = jwk.get_key(app.config['ALGORITHM'])(
             app.config['RSA_PRIVATE_KEY'],
             app.config['ALGORITHM'])
@@ -158,3 +126,16 @@ class PublicKeys(Resource):
         public_key['e'] = public_key['e'].decode()
         public_key['n'] = public_key['n'].decode()
         return {'keys': [public_key]}
+
+
+def init_app(app):
+    """Register API resources on the provided Flask application."""
+    def register(path, resource):
+        app.add_url_rule(path, view_func=resource.as_view(resource.__name__))
+        docs.register(resource, endpoint=resource.__name__)
+
+    docs = FlaskApiSpec(app)
+    register("/authenticate/local", LocalAuthResource)
+    register("/authenticate/firebase", FirebaseAuthResource)
+    register("/refresh", RefreshResource)
+    register("/keys", PublicKeysResource)
