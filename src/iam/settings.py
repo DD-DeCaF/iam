@@ -122,6 +122,9 @@ class Testing(Default):
         self.DEBUG = True
         self.SECRET_KEY = os.urandom(24)
         self.TESTING = True
+        self.SQLALCHEMY_DATABASE_URI = (
+            'postgresql://postgres:@postgres:5432/iam_test'
+        )
 
 
 class Production(Default):

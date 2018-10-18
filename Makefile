@@ -69,13 +69,13 @@ safety:
 
 ## Run the tests.
 test:
-	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test web pytest --cov=src/iam
+	docker-compose run --rm -e ENVIRONMENT=testing web pytest --cov=src/iam
 
 ## Run the tests and report coverage (see https://docs.codecov.io/docs/testing-with-docker).
 shared := /tmp/coverage
 test-travis:
 	mkdir "$(shared)"
-	docker-compose run --rm -e ENVIRONMENT=testing -e DB_NAME=iam_test \
+	docker-compose run --rm -e ENVIRONMENT=testing \
 	    -v "$(shared):$(shared)" web \
 	    pytest --cov-report xml:$(shared)/coverage.xml --cov-report term \
 	    --cov=src/iam
