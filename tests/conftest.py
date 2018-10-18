@@ -38,16 +38,23 @@ def client(app):
         yield client
 
 
-@pytest.fixture(scope='function')
-def db(app):
+@pytest.fixture(scope="session")
+def db_tables(app):
     """Provide a database session with tables created."""
     db_.create_all()
     yield db_
-    db_.session.remove()
     db_.drop_all()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
+def db(db_tables):
+    """Provide a database session in a transaction rolled back on completion."""
+    db_tables.session.begin_nested()
+    yield db_tables
+    db_tables.session.rollback()
+
+
+@pytest.fixture(scope="function")
 def models(db):
     """Return a fixture with test data for all data models."""
     organization = Organization(name='OrgName')
