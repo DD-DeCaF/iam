@@ -33,7 +33,7 @@ def app():
 
 @pytest.fixture(scope="session")
 def client(app):
-    """Provide a Flask test client to be used by almost all test cases."""
+    """Provide a Flask test client for endpoint integration tests."""
     with app.test_client() as client:
         yield client
 
