@@ -42,8 +42,8 @@ def test_metrics(client, db):
 
 def test_get_admin_unauthorized(client):
     """Test unauthorized access to the admin view."""
-    rv = client.get('/admin/')
-    assert rv.status_code == 401
+    response = client.get('/admin/')
+    assert response.status_code == 401
 
 
 def test_get_admin_authorized(client, app):
@@ -51,9 +51,9 @@ def test_get_admin_authorized(client, app):
     credentials = base64.b64encode(f'{app.config["BASIC_AUTH_USERNAME"]}:'
                                    f'{app.config["BASIC_AUTH_PASSWORD"]}'
                                    .encode()).decode()
-    rv = client.get('/admin/',
+    response = client.get('/admin/',
                     headers={'Authorization': f'Basic {credentials}'})
-    assert rv.status_code == 200
+    assert response.status_code == 200
 
 
 def test_authenticate_failure(app, client, models):
