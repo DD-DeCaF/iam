@@ -30,7 +30,7 @@ def test_sign_claims(app, models):
     assert datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'] >= expiry
 
 
-def test_create_firebase_user(db):
+def test_create_firebase_user(session):
     """Test creating a Firebase user."""
     user = create_firebase_user('foo_token', {
         'name': 'Foo Bar',

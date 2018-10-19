@@ -34,7 +34,7 @@ def test_healthz(client):
     assert response.status_code == 200
 
 
-def test_metrics(client, db):
+def test_metrics(client):
     """Test the metrics endpoint."""
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -46,13 +46,13 @@ def test_get_admin_unauthorized(client):
     assert response.status_code == 401
 
 
-def test_get_admin_authorized(client, app):
+def test_get_admin_authorized(app, client):
     """Test authorized access to the admin view."""
     credentials = base64.b64encode(f'{app.config["BASIC_AUTH_USERNAME"]}:'
                                    f'{app.config["BASIC_AUTH_PASSWORD"]}'
                                    .encode()).decode()
     response = client.get('/admin/',
-                    headers={'Authorization': f'Basic {credentials}'})
+                          headers={'Authorization': f'Basic {credentials}'})
     assert response.status_code == 200
 
 
@@ -68,7 +68,7 @@ def test_authenticate_failure(app, client, models):
     assert response.status_code == 401
 
 
-def test_authenticate_success(app, client, db, models):
+def test_authenticate_success(app, client, session, models):
     """Test valid local authentication."""
     response = client.post('/authenticate/local', data={
         'email': models['user'].email,

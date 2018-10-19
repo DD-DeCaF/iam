@@ -18,12 +18,7 @@ from iam.models import (
     OrganizationProject, OrganizationUser, TeamProject, TeamUser, UserProject)
 
 
-def test_commit(db, models):
-    """Test actually committing all models from the models fixture."""
-    db.session.commit()
-
-
-def test_owner_role(db, models):
+def test_owner_role(session, models):
     """Test a users admin access to a project through the organization."""
     # Give user owner role, and assign the project to the organization
     OrganizationUser(organization=models['organization'], user=models['user'],
@@ -35,7 +30,7 @@ def test_owner_role(db, models):
     assert models['user'].claims['prj'][models['project'].id] == 'admin'
 
 
-def test_team_role(db, models):
+def test_team_role(session, models):
     """Test a users access to a project through a team."""
     # Assign the user to the team, and give the team write access to the project
     TeamUser(team=models['team'], user=models['user'], role='member')
@@ -45,7 +40,7 @@ def test_team_role(db, models):
     assert models['user'].claims['prj'][models['project'].id] == 'write'
 
 
-def test_user_role(db, models):
+def test_user_role(session, models):
     """Test a users direct access to a project."""
     # Assign the user to the project with read access
     UserProject(user=models['user'], project=models['project'], role='read')
