@@ -137,7 +137,7 @@ class User(db.Model):
         for user_role in self.projects:
             add_claim(user_role.project.id, user_role.role)
 
-        return {'prj': project_claims}
+        return {'usr': self.id, 'prj': project_claims}
 
 
 class Project(db.Model):
