@@ -18,6 +18,7 @@
 from datetime import datetime
 
 from firebase_admin import auth
+from flask import g
 from flask_apispec import MethodResource, doc, marshal_with, use_kwargs
 from flask_apispec.extension import FlaskApiSpec
 from jose import jwt
@@ -25,6 +26,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from .app import app
 from .domain import create_firebase_user, sign_claims
+from .jwt import jwt_require_claim, jwt_required
 from .models import Project, User, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
@@ -126,9 +128,10 @@ class PublicKeysResource(MethodResource):
 class ProjectsResource(MethodResource):
     @marshal_with(ProjectResponseSchema(many=True), code=200)
     def get(self):
-        return Project.query.all(), 200
+        return Project.query.filter(Project.id.in_(g.jwt_claims['prj'])), 200
 
     @use_kwargs(ProjectRequestSchema)
+    @jwt_required
     def post(self, name):
         project = Project(name=name)
         db.session.add(project)
@@ -141,27 +144,40 @@ class ProjectResource(MethodResource):
     @marshal_with(ProjectResponseSchema(), code=200)
     def get(self, project_id):
         try:
-            return Project.query.filter(Project.id == project_id).one(), 200
+            return Project.query.filter(
+                Project.id == project_id,
+                Project.id.in_(g.jwt_claims['prj'])
+            ).one(), 200
         except NoResultFound:
             return f"No project with id {project_id}", 404
 
     @use_kwargs(ProjectRequestSchema)
+    @jwt_required
     def put(self, project_id, name):
         try:
-            project = Project.query.filter(Project.id == project_id).one()
+            project = Project.query.filter(
+                Project.id == project_id,
+                Project.id.in_(g.jwt_claims['prj'])
+            ).one()
         except NoResultFound:
             return f"No project with id {project_id}", 404
         else:
+            jwt_require_claim(project.id, 'write')
             project.name = name
             db.session.commit()
             return "", 204
 
+    @jwt_required
     def delete(self, project_id):
         try:
-            project = Project.query.filter(Project.id == project_id).one()
+            project = Project.query.filter(
+                Project.id == project_id,
+                Project.id.in_(g.jwt_claims['prj'])
+            ).one()
         except NoResultFound:
             return f"No project with id {project_id}", 404
         else:
+            jwt_require_claim(project.id, 'admin')
             db.session.delete(project)
             db.session.commit()
             return "", 204
