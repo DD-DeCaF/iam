@@ -122,20 +122,29 @@ def models(db_fixtures, session):
 
 @pytest.fixture(scope="session")
 def tokens(app):
-    """Provide read, write and admin JWT claims to project 1."""
+    """Provide user 1 with read, write and admin JWT claims to project 1."""
     return {
         'read': jwt.encode(
-            {'prj': {1: 'read'}},
+            {
+                'usr': 1,
+                'prj': {1: 'read'}
+            },
             app.config['RSA_PRIVATE_KEY'],
             app.config['ALGORITHM'],
         ),
         'write': jwt.encode(
-            {'prj': {1: 'write'}},
+            {
+                'usr': 1,
+                'prj': {1: 'write'}
+            },
             app.config['RSA_PRIVATE_KEY'],
             app.config['ALGORITHM'],
         ),
         'admin': jwt.encode(
-            {'prj': {1: 'admin'}},
+            {
+                'usr': 1,
+                'prj': {1: 'admin'}
+            },
             app.config['RSA_PRIVATE_KEY'],
             app.config['ALGORITHM'],
         ),
