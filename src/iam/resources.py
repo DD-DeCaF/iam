@@ -27,7 +27,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from .app import app
 from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
-from .models import Project, User, db
+from .models import Project, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
     ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
@@ -133,8 +133,15 @@ class ProjectsResource(MethodResource):
     @use_kwargs(ProjectRequestSchema)
     @jwt_required
     def post(self, name):
+        user = User.query.filter(User.id == g.jwt_claims['usr']).one()
         project = Project(name=name)
+        user_project = UserProject(
+            user=user,
+            project=project,
+            role='admin',
+        )
         db.session.add(project)
+        db.session.add(user_project)
         db.session.commit()
         return {'project_id': project.id}, 201
 
