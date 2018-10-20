@@ -20,6 +20,8 @@ from datetime import datetime, timedelta
 
 from jose import jwt
 
+from iam.models import Project
+
 
 def test_openapi_schema(app, client):
     """Test OpenAPI schema resource."""
@@ -108,3 +110,50 @@ def test_authenticate_success(app, client, session, models):
     response = client.post('/refresh',
                            data={'refresh_token': models['user'].refresh_token})
     assert response.status_code == 401
+
+
+def test_create_project(client, session):
+    """Create a new project."""
+    response = client.post("/projects", json={
+        'name': "New Project",
+        'organizations': [],
+        'teams': [],
+        'users': [],
+    })
+    assert response.status_code == 201
+    project_id = response.json['project_id']
+    assert Project.query.filter(Project.id == project_id).count() == 1
+
+
+def test_get_projects(client, session, models):
+    """Retrieve list of models."""
+    response = client.get("/projects")
+    assert response.status_code == 200
+    assert len(response.json) > 0
+
+
+def test_get_project(client, session, models):
+    """Retrieve single models."""
+    response = client.get(f"/projects/{models['project'].id}")
+    assert response.status_code == 200
+    assert response.json['name'] == "ProjectName"
+
+
+def test_put_project(client, session, models):
+    """Retrieve single models."""
+    response = client.put(f"/projects/{models['project'].id}", json={
+        'name': "Changed",
+        'organizations': [],
+        'teams': [],
+        'users': [],
+    })
+    assert response.status_code == 204
+    project = Project.query.filter(Project.id == models['project'].id).one()
+    assert project.name == "Changed"
+
+
+def test_delete_project(client, session, models):
+    """Delete a project."""
+    response = client.delete(f"/projects/{models['project'].id}")
+    assert response.status_code == 204
+    assert Project.query.filter(Project.id == 1).count() == 0
