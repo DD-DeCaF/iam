@@ -16,6 +16,7 @@
 """Provide session level fixtures."""
 
 import pytest
+from jose import jwt
 
 from iam.app import app as app_
 from iam.app import init_app
@@ -116,4 +117,26 @@ def models(db_fixtures, session):
         'team': Team.query.one(),
         'user': User.query.one(),
         'project': Project.query.one(),
+    }
+
+
+@pytest.fixture(scope="session")
+def tokens(app):
+    """Provide read, write and admin JWT claims to project 1."""
+    return {
+        'read': jwt.encode(
+            {'prj': {1: 'read'}},
+            app.config['RSA_PRIVATE_KEY'],
+            app.config['ALGORITHM'],
+        ),
+        'write': jwt.encode(
+            {'prj': {1: 'write'}},
+            app.config['RSA_PRIVATE_KEY'],
+            app.config['ALGORITHM'],
+        ),
+        'admin': jwt.encode(
+            {'prj': {1: 'admin'}},
+            app.config['RSA_PRIVATE_KEY'],
+            app.config['ALGORITHM'],
+        ),
     }
