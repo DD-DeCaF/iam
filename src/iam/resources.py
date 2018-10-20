@@ -25,10 +25,11 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from .app import app
 from .domain import create_firebase_user, sign_claims
-from .models import User
+from .models import Project, User, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
-    RefreshRequestSchema, TokenSchema)
+    ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
+    TokenSchema)
 
 
 @doc(description="Authenticate with email credentials")
@@ -128,6 +129,51 @@ class PublicKeysResource(MethodResource):
         return {'keys': [public_key]}
 
 
+@doc(description="List projects")
+class ProjectsResource(MethodResource):
+    @marshal_with(ProjectResponseSchema(many=True), code=200)
+    def get(self):
+        return Project.query.all(), 200
+
+    @use_kwargs(ProjectRequestSchema)
+    def post(self, name):
+        project = Project(name=name)
+        db.session.add(project)
+        db.session.commit()
+        return {'project_id': project.id}, 201
+
+
+@doc(description="List projects")
+class ProjectResource(MethodResource):
+    @marshal_with(ProjectResponseSchema(), code=200)
+    def get(self, project_id):
+        try:
+            return Project.query.filter(Project.id == project_id).one(), 200
+        except NoResultFound:
+            return f"No project with id {project_id}", 404
+
+    @use_kwargs(ProjectRequestSchema)
+    def put(self, project_id, name):
+        try:
+            project = Project.query.filter(Project.id == project_id).one()
+        except NoResultFound:
+            return f"No project with id {project_id}", 404
+        else:
+            project.name = name
+            db.session.commit()
+            return "", 204
+
+    def delete(self, project_id):
+        try:
+            project = Project.query.filter(Project.id == project_id).one()
+        except NoResultFound:
+            return f"No project with id {project_id}", 404
+        else:
+            db.session.delete(project)
+            db.session.commit()
+            return "", 204
+
+
 def init_app(app):
     """Register API resources on the provided Flask application."""
     def register(path, resource):
@@ -139,3 +185,5 @@ def init_app(app):
     register("/authenticate/firebase", FirebaseAuthResource)
     register("/refresh", RefreshResource)
     register("/keys", PublicKeysResource)
+    register("/projects", ProjectsResource)
+    register("/projects/<project_id>", ProjectResource)
