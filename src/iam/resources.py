@@ -20,7 +20,7 @@ from datetime import datetime
 from firebase_admin import auth
 from flask_apispec import MethodResource, doc, marshal_with, use_kwargs
 from flask_apispec.extension import FlaskApiSpec
-from jose import jwk, jwt
+from jose import jwt
 from sqlalchemy.orm.exc import NoResultFound
 
 from .app import app
@@ -119,14 +119,7 @@ implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys)"""
 class PublicKeysResource(MethodResource):
     @marshal_with(JWKKeysSchema, code=200)
     def get(self):
-        key = jwk.get_key(app.config['ALGORITHM'])(
-            app.config['RSA_PRIVATE_KEY'],
-            app.config['ALGORITHM'])
-        public_key = key.public_key().to_dict()
-        # python-jose outputs exponent and modulus as bytes
-        public_key['e'] = public_key['e'].decode()
-        public_key['n'] = public_key['n'].decode()
-        return {'keys': [public_key]}
+        return {'keys': [app.config['RSA_PUBLIC_KEY']]}
 
 
 @doc(description="List projects")
