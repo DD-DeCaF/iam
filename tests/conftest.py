@@ -41,6 +41,9 @@ def client(app):
 @pytest.fixture(scope="session")
 def db_tables(app):
     """Drop and recreate all tables in the database."""
+    # Ensure no sessions are left in an open state, which may happen if tests
+    # not using a db session run before setting up tests that do.
+    db_.session.close()
     db_.drop_all()
     db_.create_all()
 
