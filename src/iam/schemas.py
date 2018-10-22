@@ -86,6 +86,7 @@ class JWKKeysSchema(StrictSchema):
 class ProjectResponseSchema(StrictSchema):
     id = fields.Integer()
     name = fields.String()
-    organizations = fields.List(fields.Integer())
-    teams = fields.List(fields.Integer())
-    users = fields.List(fields.Integer())
+    # TODO:
+    # organizations = fields.List(fields.Integer())
+    # teams = fields.List(fields.Integer())
+    # users = fields.List(fields.Integer())
