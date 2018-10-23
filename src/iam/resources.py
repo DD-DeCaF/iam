@@ -43,7 +43,10 @@ class LocalAuthResource(MethodResource):
             return "Local user authentication is disabled", 501
 
         try:
-            user = User.query.filter_by(email=email).one()
+            user = User.query.filter(
+                User.email == email,
+                User.password != None,
+            ).one()
             if user.check_password(password):
                 return sign_claims(user)
             else:
