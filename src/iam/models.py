@@ -62,6 +62,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    # Firebase users will have NULL in the password column.
     password = db.Column(db.String(128))
     refresh_token = db.Column(db.String(64))
     refresh_token_expiry = db.Column(db.DateTime)
