@@ -45,7 +45,7 @@ class LocalAuthResource(MethodResource):
         try:
             user = User.query.filter(
                 User.email == email,
-                User.password != None,
+                User.password.isnot(None),
             ).one()
             if user.check_password(password):
                 return sign_claims(user)
