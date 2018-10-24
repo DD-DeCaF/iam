@@ -33,41 +33,87 @@ def app():
 
 @pytest.fixture(scope="session")
 def client(app):
-    """Provide a Flask test client to be used by almost all test cases."""
+    """Provide a Flask test client for endpoint integration tests."""
     with app.test_client() as client:
         yield client
 
 
 @pytest.fixture(scope="session")
 def db_tables(app):
-    """Provide a database session with tables created."""
-    db_.create_all()
-    yield db_
+    """Drop and recreate all tables in the database."""
+    # Ensure no sessions are left in an open state, which may happen if tests
+    # not using a db session run before setting up tests that do.
+    db_.session.close()
     db_.drop_all()
+    db_.create_all()
 
 
-@pytest.fixture(scope="function")
-def db(db_tables):
-    """Provide a database session in a transaction rolled back on completion."""
-    db_tables.session.begin_nested()
-    yield db_tables
-    db_tables.session.rollback()
+@pytest.fixture(scope="session")
+def db_fixtures(db_tables):
+    """
+    Provide default preinstalled db fixtures.
 
-
-@pytest.fixture(scope="function")
-def models(db):
-    """Return a fixture with test data for all data models."""
+    These are installed session-wide and shared for performance reasons, but
+    tests may of course create their own encapsulated test data if needed.
+    """
     organization = Organization(name='OrgName')
     team = Team(name='TeamName', organization=organization)
     user = User(first_name='User', last_name='Name', email='user@name.test')
     user.set_password('hunter2')
     project = Project(name='ProjectName')
-    models = {
-        'organization': organization,
-        'team': team,
-        'user': user,
-        'project': project,
+    db_.session.add(organization)
+    db_.session.add(team)
+    db_.session.add(user)
+    db_.session.add(project)
+    db_.session.commit()
+
+
+@pytest.fixture(scope="session")
+def connection():
+    """Establish a distinct db connection to be able to use transactions."""
+    with db_.engine.connect() as connection:
+        yield connection
+
+
+@pytest.fixture(scope="function")
+def session(db_tables, connection):
+    """
+    Provide a database test session.
+
+    Wraps the session in a transaction which is rolled back at the end of the
+    test, undoing any operations committed in the session.
+
+    The session is closed upon completion and the original Flask-SQLAlchemy
+    session is reset on the db object.
+
+    See also:
+    https://docs.sqlalchemy.org/en/latest/orm/session_transaction.html#session-external-transaction
+
+    """
+    # Keep a reference to the original session in order to reset it for
+    # subsequent tests that may not require a DB session.
+    flask_sqlalchemy_session = db_.session
+
+    # Create a new scoped session, bound to an external transaction which can be
+    # rolled back independently of the session state.
+    transaction = connection.begin()
+    db_.session = db_.create_scoped_session(
+        options={'bind': connection, 'binds': {}})
+    yield db_.session
+
+    # Roll back anything that occurred in the test session and reset the db
+    # session to the original flask-sqlalchemy session.
+    db_.session.close()
+    transaction.rollback()
+    db_.session = flask_sqlalchemy_session
+
+
+@pytest.fixture(scope="function")
+def models(db_fixtures, session):
+    """Provide preinstalled db fixtures queried from the current db session."""
+    return {
+        'organization': Organization.query.one(),
+        'team': Team.query.one(),
+        'user': User.query.one(),
+        'project': Project.query.one(),
     }
-    for model in models.values():
-        db.session.add(model)
-    return models

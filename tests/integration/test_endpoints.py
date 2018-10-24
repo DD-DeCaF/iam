@@ -21,13 +21,20 @@ from datetime import datetime, timedelta
 from jose import jwt
 
 
+def test_openapi_schema(app, client):
+    """Test OpenAPI schema resource."""
+    response = client.get('/swagger/')
+    assert response.status_code == 200
+    assert len(json.loads(response.data)['paths']) > 0
+
+
 def test_healthz(client):
     """Test the readiness endpoint."""
     response = client.get('/healthz')
     assert response.status_code == 200
 
 
-def test_metrics(client, db):
+def test_metrics(client):
     """Test the metrics endpoint."""
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -35,18 +42,18 @@ def test_metrics(client, db):
 
 def test_get_admin_unauthorized(client):
     """Test unauthorized access to the admin view."""
-    rv = client.get('/admin/')
-    assert rv.status_code == 401
+    response = client.get('/admin/')
+    assert response.status_code == 401
 
 
-def test_get_admin_authorized(client, app):
+def test_get_admin_authorized(app, client):
     """Test authorized access to the admin view."""
     credentials = base64.b64encode(f'{app.config["BASIC_AUTH_USERNAME"]}:'
                                    f'{app.config["BASIC_AUTH_PASSWORD"]}'
                                    .encode()).decode()
-    rv = client.get('/admin/',
-                    headers={'Authorization': f'Basic {credentials}'})
-    assert rv.status_code == 200
+    response = client.get('/admin/',
+                          headers={'Authorization': f'Basic {credentials}'})
+    assert response.status_code == 200
 
 
 def test_authenticate_failure(app, client, models):
@@ -61,7 +68,7 @@ def test_authenticate_failure(app, client, models):
     assert response.status_code == 401
 
 
-def test_authenticate_success(app, client, db, models):
+def test_authenticate_success(app, client, session, models):
     """Test valid local authentication."""
     response = client.post('/authenticate/local', data={
         'email': models['user'].email,
@@ -101,10 +108,3 @@ def test_authenticate_success(app, client, db, models):
     response = client.post('/refresh',
                            data={'refresh_token': models['user'].refresh_token})
     assert response.status_code == 401
-
-
-def test_openapi_schema(app, client):
-    """Test OpenAPI schema resource."""
-    response = client.get('/swagger/')
-    assert response.status_code == 200
-    assert len(json.loads(response.data)['paths']) > 0
