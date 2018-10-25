@@ -44,6 +44,8 @@ def init_app(app):
             return
 
         try:
+            # Note: `auth` is guaranteed to contain a space due to the above
+            # check for `auth.startswith('Bearer ')`.
             token = auth.split(' ', 1)[1]
             g.jwt_claims = jwt.decode(
                 token, app.config['RSA_PUBLIC_KEY'], app.config['ALGORITHM'])
