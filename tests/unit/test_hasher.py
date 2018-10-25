@@ -24,8 +24,8 @@ def test_encode():
     assert hasher.verify('foo', hasher.encode('foo', salt='bar', iterations=50))
     assert not hasher.verify('foo', hasher.encode('bar', iterations=50))
 
-    assert (hasher.encode('foo', iterations=99) !=
-            hasher.encode('foo', iterations=100))
+    assert hasher.encode('foo', iterations=99) != hasher.encode('foo',
+                                                                iterations=100)
 
 
 def test_str_bytes():
