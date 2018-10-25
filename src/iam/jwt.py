@@ -94,7 +94,7 @@ def jwt_require_claim(project_id, required_level):
         'read': 1,
     }
 
-    if required_level not in ACCESS_LEVELS.keys():
+    if required_level not in ACCESS_LEVELS:
         raise ValueError(f"Invalid claim level '{required_level}'")
 
     logger.debug(f"Looking for '{required_level}' access to project "
