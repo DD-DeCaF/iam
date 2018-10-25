@@ -34,6 +34,7 @@ from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.contrib.fixers import ProxyFix
 
+from . import jwt
 from .models import (
     Organization, OrganizationProject, OrganizationUser, Project, Team,
     TeamProject, TeamUser, User, UserProject)
@@ -110,6 +111,10 @@ def init_app(application, db):
 
         return Response(prometheus_client.generate_latest(),
                         mimetype=prometheus_client.CONTENT_TYPE_LATEST)
+
+    # Add JWT middleware
+    ############################################################################
+    jwt.init_app(application)
 
     # ADMIN VIEWS
     ############################################################################

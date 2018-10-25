@@ -44,6 +44,14 @@ class JWTSchema(StrictSchema):
     jwt = fields.String(required=True, description="Signed JWT")
 
 
+class ProjectRequestSchema(StrictSchema):
+    name = fields.String(required=True, description="Project name")
+    # TODO:
+    # organizations = fields.List(fields.Integer())
+    # teams = fields.List(fields.Integer())
+    # users = fields.List(fields.Integer())
+
+
 # Response schemas
 ################################################################################
 
@@ -73,3 +81,12 @@ class JWKKeysSchema(StrictSchema):
         fields.Nested(JWKSchema),
         description=("List of public keys used for signing.")
     )
+
+
+class ProjectResponseSchema(StrictSchema):
+    id = fields.Integer()
+    name = fields.String()
+    # TODO:
+    # organizations = fields.List(fields.Integer())
+    # teams = fields.List(fields.Integer())
+    # users = fields.List(fields.Integer())

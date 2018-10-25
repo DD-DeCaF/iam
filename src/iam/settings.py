@@ -19,6 +19,8 @@ import os
 import pathlib
 from datetime import timedelta
 
+from jose import jwk
+
 
 def current_config():
     """Return the appropriate configuration object based on the environment."""
@@ -42,6 +44,10 @@ class Default:
         self.RESTPLUS_MASK_SWAGGER = False
         self.RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
         self.ALGORITHM = 'RS512'
+        self.RSA_PUBLIC_KEY = jwk.get_key(self.ALGORITHM)(
+            self.RSA_PRIVATE_KEY,
+            self.ALGORITHM,
+        ).public_key().to_dict()
         self.JWT_VALIDITY = timedelta(minutes=10)
         self.REFRESH_TOKEN_VALIDITY = timedelta(days=30)
         self.SENTRY_DSN = os.environ.get('SENTRY_DSN')

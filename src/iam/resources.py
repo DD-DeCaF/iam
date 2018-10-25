@@ -18,17 +18,20 @@
 from datetime import datetime
 
 from firebase_admin import auth
+from flask import g
 from flask_apispec import MethodResource, doc, marshal_with, use_kwargs
 from flask_apispec.extension import FlaskApiSpec
-from jose import jwk, jwt
+from jose import jwt
 from sqlalchemy.orm.exc import NoResultFound
 
 from .app import app
 from .domain import create_firebase_user, sign_claims
-from .models import User
+from .jwt import jwt_require_claim, jwt_required
+from .models import Project, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
-    RefreshRequestSchema, TokenSchema)
+    ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
+    TokenSchema)
 
 
 @doc(description="Authenticate with email credentials")
@@ -121,14 +124,73 @@ implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys)"""
 class PublicKeysResource(MethodResource):
     @marshal_with(JWKKeysSchema, code=200)
     def get(self):
-        key = jwk.get_key(app.config['ALGORITHM'])(
-            app.config['RSA_PRIVATE_KEY'],
-            app.config['ALGORITHM'])
-        public_key = key.public_key().to_dict()
-        # python-jose outputs exponent and modulus as bytes
-        public_key['e'] = public_key['e'].decode()
-        public_key['n'] = public_key['n'].decode()
-        return {'keys': [public_key]}
+        return {'keys': [app.config['RSA_PUBLIC_KEY']]}
+
+
+@doc(description="List projects")
+class ProjectsResource(MethodResource):
+    @marshal_with(ProjectResponseSchema(many=True), code=200)
+    def get(self):
+        return Project.query.filter(Project.id.in_(g.jwt_claims['prj'])), 200
+
+    @use_kwargs(ProjectRequestSchema)
+    @jwt_required
+    def post(self, name):
+        user = User.query.filter(User.id == g.jwt_claims['usr']).one()
+        project = Project(name=name)
+        user_project = UserProject(
+            user=user,
+            project=project,
+            role='admin',
+        )
+        db.session.add(project)
+        db.session.add(user_project)
+        db.session.commit()
+        return {'project_id': project.id}, 201
+
+
+@doc(description="List projects")
+class ProjectResource(MethodResource):
+    @marshal_with(ProjectResponseSchema(), code=200)
+    def get(self, project_id):
+        try:
+            return Project.query.filter(
+                Project.id == project_id,
+                Project.id.in_(g.jwt_claims['prj'])
+            ).one(), 200
+        except NoResultFound:
+            return f"No project with id {project_id}", 404
+
+    @use_kwargs(ProjectRequestSchema)
+    @jwt_required
+    def put(self, project_id, name):
+        try:
+            project = Project.query.filter(
+                Project.id == project_id,
+                Project.id.in_(g.jwt_claims['prj'])
+            ).one()
+        except NoResultFound:
+            return f"No project with id {project_id}", 404
+        else:
+            jwt_require_claim(project.id, 'write')
+            project.name = name
+            db.session.commit()
+            return "", 204
+
+    @jwt_required
+    def delete(self, project_id):
+        try:
+            project = Project.query.filter(
+                Project.id == project_id,
+                Project.id.in_(g.jwt_claims['prj'])
+            ).one()
+        except NoResultFound:
+            return f"No project with id {project_id}", 404
+        else:
+            jwt_require_claim(project.id, 'admin')
+            db.session.delete(project)
+            db.session.commit()
+            return "", 204
 
 
 def init_app(app):
@@ -142,3 +204,5 @@ def init_app(app):
     register("/authenticate/firebase", FirebaseAuthResource)
     register("/refresh", RefreshResource)
     register("/keys", PublicKeysResource)
+    register("/projects", ProjectsResource)
+    register("/projects/<project_id>", ProjectResource)
