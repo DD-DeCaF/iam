@@ -37,6 +37,8 @@ def init_app(app):
 
         auth = request.headers['Authorization']
         if not auth.startswith('Bearer '):
+            logger.debug(
+                f"No JWT provided, unknown Authorization header: {auth}")
             g.jwt_valid = False
             g.jwt_claims = {'prj': {}}
             return
