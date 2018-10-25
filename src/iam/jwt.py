@@ -44,7 +44,7 @@ def init_app(app):
             return
 
         try:
-            _, token = auth.split(' ', 1)
+            token = auth.split(' ', 1)[1]
             g.jwt_claims = jwt.decode(
                 token, app.config['RSA_PUBLIC_KEY'], app.config['ALGORITHM'])
             # JSON object names can only be strings. Map project ids to ints for
