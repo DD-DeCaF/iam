@@ -147,9 +147,12 @@ class Project(db.Model):
     name = db.Column(db.String(256), nullable=False)
 
     organizations = db.relationship('OrganizationProject',
-                                    back_populates='project')
-    teams = db.relationship('TeamProject', back_populates='project')
-    users = db.relationship('UserProject', back_populates='project')
+                                    back_populates='project',
+                                    cascade='all, delete-orphan')
+    teams = db.relationship('TeamProject', back_populates='project',
+                            cascade='all, delete-orphan')
+    users = db.relationship('UserProject', back_populates='project',
+                            cascade='all, delete-orphan')
 
     def __repr__(self):
         """Return a printable representation."""
