@@ -41,7 +41,6 @@ class Default:
         """Initialize the default configuration."""
         self.SERVICE_URL = os.environ['SERVICE_URL']
         self.CORS_ORIGINS = os.environ['ALLOWED_ORIGINS'].split(',')
-        self.RESTPLUS_MASK_SWAGGER = False
         self.RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
         self.ALGORITHM = 'RS512'
         self.RSA_PUBLIC_KEY = jwk.get_key(self.ALGORITHM)(
