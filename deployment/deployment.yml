@@ -115,9 +115,8 @@ spec:
         resources:
           requests:
             cpu: "10m"
-            memory: "256Mi"
           limits:
-            cpu: "500m"
+            cpu: "1000m"
       - name: cloudsql-proxy
         image: gcr.io/cloudsql-docker/gce-proxy:1.11
         command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
@@ -129,7 +128,7 @@ spec:
           requests:
             cpu: "10m"
           limits:
-            cpu: "100m"
+            cpu: "1000m"
       volumes:
       - name: rsa
         secret:
@@ -258,17 +257,17 @@ spec:
           initialDelaySeconds: 5
         resources:
           requests:
-            cpu: "5m"
-          limits:
             cpu: "100m"
+          limits:
+            cpu: "2000m"
       - name: cloudsql-proxy
         image: gcr.io/cloudsql-docker/gce-proxy:1.11
         command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
         resources:
           requests:
-            cpu: "5m"
-          limits:
             cpu: "100m"
+          limits:
+            cpu: "2000m"
         volumeMounts:
           - name: cloudsql-instance-credentials
             mountPath: /secrets/cloudsql
