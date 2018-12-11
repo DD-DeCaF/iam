@@ -39,7 +39,6 @@ class Default:
 
     def __init__(self):
         """Initialize the default configuration."""
-        self.SERVICE_URL = os.environ['SERVICE_URL']
         self.CORS_ORIGINS = os.environ['ALLOWED_ORIGINS'].split(',')
         self.RSA_PRIVATE_KEY = pathlib.Path('keys/rsa').read_text()
         self.ALGORITHM = 'RS512'

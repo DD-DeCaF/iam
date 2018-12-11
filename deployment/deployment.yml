@@ -39,8 +39,6 @@ spec:
             secretKeyRef:
               name: iam-production
               key: SENTRY_DSN
-        - name: SERVICE_URL
-          value: /iam
         - name: BASIC_AUTH_USERNAME
           valueFrom:
             secretKeyRef:
@@ -182,8 +180,6 @@ spec:
             secretKeyRef:
               name: iam-staging
               key: SENTRY_DSN
-        - name: SERVICE_URL
-          value: /iam
         - name: BASIC_AUTH_USERNAME
           valueFrom:
             secretKeyRef:

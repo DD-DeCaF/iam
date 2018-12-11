@@ -37,7 +37,6 @@ Specify environment variables in a `.env` file. See `docker-compose.yml` for the
 * `SENTRY_DSN` DSN for reporting exceptions to
   [Sentry](https://docs.sentry.io/clients/python/integrations/flask/).
 * `ALLOWED_ORIGINS` Comma-seperated list of CORS allowed origins.
-* `SERVICE_URL` URL prefix to the API service, defaults to empty
 * `BASIC_AUTH_USERNAME` Username to authenticate with admin interface
 * `BASIC_AUTH_PASSWORD` Password to authenticate with admin interface
 * `FEAT_TOGGLE_LOCAL_AUTH` Feature toggle: local user database authentication
