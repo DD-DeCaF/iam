@@ -64,8 +64,6 @@ class User(db.Model):
 
     # Firebase users will have NULL in the password column.
     password = db.Column(db.String(128))
-    refresh_token = db.Column(db.String(64))
-    refresh_token_expiry = db.Column(db.DateTime)
 
     firebase_uid = db.Column(db.String(256))
 
@@ -78,6 +76,8 @@ class User(db.Model):
     teams = db.relationship('TeamUser', back_populates='user', lazy='joined')
 
     projects = db.relationship('UserProject', back_populates='user')
+
+    refresh_tokens = db.relationship('RefreshToken', back_populates='user')
 
     def __repr__(self):
         """Return a printable representation."""
@@ -139,6 +139,21 @@ class User(db.Model):
             add_claim(user_role.project.id, user_role.role)
 
         return {'usr': self.id, 'prj': project_claims}
+
+
+class RefreshToken(db.Model):
+    """A grouping of tokens within an user."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    refresh_token = db.Column(db.String(64))
+    refresh_token_expiry = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user = db.relationship(User)
+
+    def __repr__(self):
+        """Return a printable representation."""
+        return f"<{self.__class__.__name__} {self.refresh_token}: " \
+               f"{self.refresh_token_expiry}>"
 
 
 class Project(db.Model):

@@ -27,7 +27,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from .app import app
 from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
-from .models import Project, User, UserProject, db
+from .models import Project, RefreshToken, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
     ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
@@ -79,6 +79,7 @@ class FirebaseAuthResource(MethodResource):
                 auth.get_user(uid).provider_data[0].email)
         try:
             user = User.query.filter_by(firebase_uid=uid).one()
+
         except NoResultFound:
             try:
                 # no firebase user for this provider, but they may have
@@ -100,8 +101,10 @@ class RefreshResource(MethodResource):
     def post(self, refresh_token):
         """Receive a fresh JWT by providing a valid refresh token."""
         try:
-            user = User.query.filter_by(refresh_token=refresh_token).one()
-            if datetime.now() >= user.refresh_token_expiry:
+            token = RefreshToken.query.filter_by(
+                refresh_token=refresh_token).one()
+            user = User.query.filter_by(id=token.user_id).one()
+            if datetime.now() >= token.refresh_token_expiry:
                 return ("The refresh token has expired, please re-authenticate",
                         401)
 

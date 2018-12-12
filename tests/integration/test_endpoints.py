@@ -76,6 +76,7 @@ def test_authenticate_success(app, client, session, models):
         'email': models['user'].email,
         'password': 'hunter2',
     })
+    token = None
     assert response.status_code == 200
     data_decoded = json.loads(response.data)
     raw_jwt_token = data_decoded['jwt']
@@ -87,13 +88,15 @@ def test_authenticate_success(app, client, session, models):
     returned_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
     del returned_claims['exp']
     assert models['user'].claims == returned_claims
-
-    # Check the refresh token
-    assert len(models['user'].refresh_token) == 64
-    assert models['user'].refresh_token == refresh_token['val']
-    assert models['user'].refresh_token_expiry > datetime.now()
-    assert models['user'].refresh_token_expiry < (
-        datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
+    for token in models['user'].refresh_tokens:
+        if token.refresh_token == refresh_token['val']:
+            token = token
+            # Check the refresh token
+            assert len(token.refresh_token) == 64
+            assert token.refresh_token == refresh_token['val']
+            assert token.refresh_token_expiry > datetime.now()
+            assert token.refresh_token_expiry < (
+                datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
 
     # Attempt to refresh token
     response = client.post('/refresh',
@@ -106,9 +109,9 @@ def test_authenticate_success(app, client, session, models):
     del refresh_claims['exp']
     assert refresh_claims == returned_claims
 
-    models['user'].refresh_token_expiry = datetime.now() - timedelta(seconds=1)
+    token.refresh_token_expiry = datetime.now() - timedelta(seconds=1)
     response = client.post('/refresh',
-                           data={'refresh_token': models['user'].refresh_token})
+                           data={'refresh_token': token.refresh_token})
     assert response.status_code == 401
 
 
