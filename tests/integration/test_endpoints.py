@@ -70,7 +70,7 @@ def test_authenticate_failure(app, client, models):
     assert response.status_code == 401
 
 
-def test_authenticate_success(app, client, session, models):
+def test_authenticate_success_refresh(app, client, session, models):
     """Test valid local authentication."""
     response = client.post('/authenticate/local', data={
         'email': models['user'].email,
@@ -79,15 +79,8 @@ def test_authenticate_success(app, client, session, models):
     token = None
     assert response.status_code == 200
     data_decoded = json.loads(response.data)
-    raw_jwt_token = data_decoded['jwt']
     refresh_token = data_decoded['refresh_token']
 
-    # Decode the provided JWT with the public key from the service endpoint
-    keys = json.loads(client.get('/keys').data)
-    key = keys['keys'][0]
-    returned_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
-    del returned_claims['exp']
-    assert models['user'].claims == returned_claims
     for token in models['user'].refresh_tokens:
         if token.refresh_token == refresh_token['val']:
             token = token
@@ -102,6 +95,35 @@ def test_authenticate_success(app, client, session, models):
     response = client.post('/refresh',
                            data={'refresh_token': refresh_token['val']})
     assert response.status_code == 200
+
+    token.refresh_token_expiry = datetime.now() - timedelta(seconds=1)
+    response = client.post('/refresh',
+                           data={'refresh_token': token.refresh_token})
+    assert response.status_code == 401
+
+
+def test_authenticate_success_claims(app, client, session, models):
+    """Test valid local authentication."""
+    response = client.post('/authenticate/local', data={
+        'email': models['user'].email,
+        'password': 'hunter2',
+    })
+    assert response.status_code == 200
+    data_decoded = json.loads(response.data)
+    raw_jwt_token = data_decoded['jwt']
+    refresh_token = data_decoded['refresh_token']
+
+    # Decode the provided JWT with the public key from the service endpoint
+    keys = json.loads(client.get('/keys').data)
+    key = keys['keys'][0]
+    returned_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
+    del returned_claims['exp']
+    assert models['user'].claims == returned_claims
+
+    # Attempt to refresh token
+    response = client.post('/refresh',
+                           data={'refresh_token': refresh_token['val']})
+    assert response.status_code == 200
     raw_jwt_token = json.loads(response.data)['jwt']
     refresh_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
     # Assert that the claims are equal, but not the expiry, which will have
@@ -109,10 +131,6 @@ def test_authenticate_success(app, client, session, models):
     del refresh_claims['exp']
     assert refresh_claims == returned_claims
 
-    token.refresh_token_expiry = datetime.now() - timedelta(seconds=1)
-    response = client.post('/refresh',
-                           data={'refresh_token': token.refresh_token})
-    assert response.status_code == 401
 
 
 def test_create_project(client, session, tokens):
