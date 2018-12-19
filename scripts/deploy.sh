@@ -16,10 +16,8 @@
 
 set -xeu
 
-if [ "${TRAVIS_BRANCH}" = "master" ]; then
-  DEPLOYMENT=iam-production
-elif [ "${TRAVIS_BRANCH}" = "devel" ]; then
-  DEPLOYMENT=iam-staging
+if [ "${TRAVIS_BRANCH}" = "legacy" ]; then
+  DEPLOYMENT=iam-legacy
 else
   echo "Skipping deployment for branch ${TRAVIS_BRANCH}"
   exit 0
