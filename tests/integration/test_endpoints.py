@@ -132,7 +132,6 @@ def test_authenticate_success_claims(app, client, session, models):
     assert refresh_claims == returned_claims
 
 
-
 def test_create_project(client, session, tokens):
     """Create a new project."""
     response = client.post("/projects", json={
