@@ -1,23 +1,15 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: iam
+  name: iam-staging
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
   tls:
   - hosts:
-    - api.dd-decaf.eu
     - api-staging.dd-decaf.eu
     secretName: decaf-tls
   rules:
-  - host: api.dd-decaf.eu
-    http:
-      paths:
-      - path: /iam
-        backend:
-          serviceName: iam-production
-          servicePort: 80
   - host: api-staging.dd-decaf.eu
     http:
       paths:
