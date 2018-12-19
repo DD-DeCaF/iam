@@ -112,7 +112,7 @@ spec:
           initialDelaySeconds: 5
         resources:
           requests:
-            cpu: "100m"
+            cpu: "10m"
           limits:
             cpu: "2000m"
       - name: cloudsql-proxy
@@ -120,7 +120,7 @@ spec:
         command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
         resources:
           requests:
-            cpu: "100m"
+            cpu: "10m"
           limits:
             cpu: "2000m"
         volumeMounts:
