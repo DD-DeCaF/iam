@@ -76,14 +76,12 @@ def test_authenticate_success_refresh(app, client, session, models):
         'email': models['user'].email,
         'password': 'hunter2',
     })
-    token = None
     assert response.status_code == 200
     data_decoded = json.loads(response.data)
     refresh_token = data_decoded['refresh_token']
 
     for token in models['user'].refresh_tokens:
         if token.refresh_token == refresh_token['val']:
-            token = token
             # Check the refresh token
             assert len(token.refresh_token) == 64
             assert token.refresh_token == refresh_token['val']
