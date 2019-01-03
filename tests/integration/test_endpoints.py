@@ -105,7 +105,7 @@ def test_authenticate_refresh(app, client, session, models):
 
     # Check that the returned token is now stored in the database
     assert refresh_token['val'] == \
-        models['user'].refresh_tokens[0].refresh_token
+        models['user'].refresh_tokens[0].token
 
     # Expect refreshing token to succeed
     response = client.post('/refresh',
@@ -125,9 +125,8 @@ def test_authenticate_refresh(app, client, session, models):
 
     # Expect refreshing an expired token to fail
     token = models['user'].refresh_tokens[0]
-    token.refresh_token_expiry = datetime.now() - timedelta(seconds=1)
-    response = client.post('/refresh',
-                           data={'refresh_token': token.refresh_token})
+    token.expiry = datetime.now() - timedelta(seconds=1)
+    response = client.post('/refresh', data={'refresh_token': token.token})
     assert response.status_code == 401
 
 
