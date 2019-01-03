@@ -21,10 +21,7 @@ script:
   - make flake8
   - make isort
   - make license
-# Flask-Admin 1.5.2 (latest) has safety issue 36437, but it is not exposed to
-# the public. Until we find a way to ignore specific issues, safety check is
-# disabled.
-#  - make safety
+  - make safety
   - make test-travis
 
 before_deploy:
