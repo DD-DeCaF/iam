@@ -186,3 +186,10 @@ def test_delete_project(client, session, models, tokens):
     })
     assert response.status_code == 204
     assert Project.query.filter(Project.id == 1).count() == 0
+
+
+def test_keys(app, client):
+    """Retrieve public key from the /keys endpoint"""
+    response = client.get("/keys")
+    assert response.status_code == 200
+    assert len(response.json['keys']) > 0
