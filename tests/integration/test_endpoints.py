@@ -86,42 +86,44 @@ def test_authenticate_success(app, client, session, models):
     del returned_claims['exp']
     assert models['user'].claims == returned_claims
 
-    # Attempt to refresh token
-    response = client.post('/refresh',
-                           data={'refresh_token': refresh_token['val']})
-    assert response.status_code == 200
-    raw_jwt_token = json.loads(response.data)['jwt']
-    refresh_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
-    # Assert that the claims are equal, but not the expiry, which will have
-    # refreshed
-    del refresh_claims['exp']
-    assert refresh_claims == returned_claims
 
-
-def test_authenticate_success_refresh(app, client, session, models):
-    """Test valid local authentication."""
+def test_authenticate_refresh(app, client, session, models):
+    """Test the token refresh endpoint"""
+    # Authenticate to receive a refresh token
     response = client.post('/authenticate/local', data={
         'email': models['user'].email,
         'password': 'hunter2',
     })
-    assert response.status_code == 200
-    data_decoded = json.loads(response.data)
-    refresh_token = data_decoded['refresh_token']
+    refresh_token = json.loads(response.data)['refresh_token']
 
-    for token in models['user'].refresh_tokens:
-        if token.refresh_token == refresh_token['val']:
-            # Check the refresh token
-            assert len(token.refresh_token) == 64
-            assert token.refresh_token == refresh_token['val']
-            assert token.refresh_token_expiry > datetime.now()
-            assert token.refresh_token_expiry < (
-                datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
+    # Check that token values are as expected
+    assert len(refresh_token['val']) == 64
+    assert datetime.fromtimestamp(refresh_token['exp']) > datetime.now()
+    assert datetime.fromtimestamp(refresh_token['exp']) < (
+        datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
 
-    # Attempt to refresh token
+    # Check that the returned token is now stored in the database
+    assert refresh_token['val'] == \
+        models['user'].refresh_tokens[0].refresh_token
+
+    # Expect refreshing token to succeed
     response = client.post('/refresh',
                            data={'refresh_token': refresh_token['val']})
     assert response.status_code == 200
+    raw_jwt_token = json.loads(response.data)['jwt']
 
+    # Expect that the new claims are equal to the user claims, except for the
+    # expiry which will have refreshed
+    refresh_claims = jwt.decode(
+        raw_jwt_token,
+        app.config['RSA_PUBLIC_KEY'],
+        app.config['ALGORITHM'],
+    )
+    del refresh_claims['exp']
+    assert models['user'].claims == refresh_claims
+
+    # Expect refreshing an expired token to fail
+    token = models['user'].refresh_tokens[0]
     token.refresh_token_expiry = datetime.now() - timedelta(seconds=1)
     response = client.post('/refresh',
                            data={'refresh_token': token.refresh_token})
