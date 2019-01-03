@@ -89,7 +89,7 @@ def test_authenticate_success(app, client, session, models):
 
 
 def test_authenticate_refresh(app, client, session, models):
-    """Test the token refresh endpoint"""
+    """Test the token refresh endpoint."""
     # Authenticate to receive a refresh token
     response = client.post('/authenticate/local', data={
         'email': models['user'].email,
@@ -188,7 +188,7 @@ def test_delete_project(client, session, models, tokens):
 
 
 def test_keys(app, client):
-    """Retrieve public key from the /keys endpoint"""
+    """Retrieve public key from the /keys endpoint."""
     response = client.get("/keys")
     assert response.status_code == 200
     assert len(response.json['keys']) > 0
