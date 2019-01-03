@@ -101,10 +101,9 @@ class RefreshResource(MethodResource):
     def post(self, refresh_token):
         """Receive a fresh JWT by providing a valid refresh token."""
         try:
-            token = RefreshToken.query.filter_by(
-                refresh_token=refresh_token).one()
+            token = RefreshToken.query.filter_by(token=refresh_token).one()
             user = User.query.filter_by(id=token.user_id).one()
-            if datetime.now() >= token.refresh_token_expiry:
+            if datetime.now() >= token.expiry:
                 return ("The refresh token has expired, please re-authenticate",
                         401)
 

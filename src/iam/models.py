@@ -145,15 +145,15 @@ class RefreshToken(db.Model):
     """A grouping of tokens within an user."""
 
     id = db.Column(db.Integer, primary_key=True)
-    refresh_token = db.Column(db.String(64))
-    refresh_token_expiry = db.Column(db.DateTime)
+    token = db.Column(db.String(64))
+    expiry = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     user = db.relationship(User)
 
     def __repr__(self):
         """Return a printable representation."""
-        return f"<{self.__class__.__name__} {self.refresh_token}: " \
-               f"{self.refresh_token_expiry}>"
+        return f"<{self.__class__.__name__} {self.token}: " \
+               f"{self.expiry}>"
 
 
 class Project(db.Model):

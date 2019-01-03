@@ -29,9 +29,9 @@ def sign_claims(user):
     refresh_token = RefreshToken(
         user=user,
         user_id=user.id,
-        refresh_token=secrets.token_hex(32),
-        refresh_token_expiry=(
-            datetime.now() + app.config['REFRESH_TOKEN_VALIDITY']))
+        token=secrets.token_hex(32),
+        expiry=(datetime.now() + app.config['REFRESH_TOKEN_VALIDITY']),
+    )
     db.session.add(refresh_token)
     db.session.commit()
     claims = {
@@ -44,8 +44,8 @@ def sign_claims(user):
     return {
         'jwt': signed_token,
         'refresh_token': {
-            'val': refresh_token.refresh_token,
-            'exp': int(refresh_token.refresh_token_expiry.strftime('%s')),
+            'val': refresh_token.token,
+            'exp': int(refresh_token.expiry.strftime('%s')),
         }
     }
 
