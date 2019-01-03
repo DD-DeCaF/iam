@@ -1,6 +1,7 @@
 # Flask and related libs
 flask
-flask-admin
+# safety reports vulnerability issues in flask-admin<=1.5.2
+flask-admin>=1.5.3
 flask-basicauth
 flask-cors
 flask-apispec

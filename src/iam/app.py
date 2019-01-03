@@ -36,8 +36,8 @@ from werkzeug.contrib.fixers import ProxyFix
 
 from . import jwt
 from .models import (
-    Organization, OrganizationProject, OrganizationUser, Project, Team,
-    TeamProject, TeamUser, User, UserProject)
+    Organization, OrganizationProject, OrganizationUser, Project, RefreshToken,
+    Team, TeamProject, TeamUser, User, UserProject)
 from .settings import current_config
 
 
@@ -131,6 +131,7 @@ def init_app(application, db):
     admin.add_view(ModelView(OrganizationProject, db.session))
     admin.add_view(ModelView(TeamProject, db.session))
     admin.add_view(ModelView(UserProject, db.session))
+    admin.add_view(ModelView(RefreshToken, db.session))
 
     # Require basic authentication for admin views
     basic_auth = BasicAuth(application)

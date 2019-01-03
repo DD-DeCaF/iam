@@ -21,14 +21,18 @@ from datetime import datetime
 from jose import jwt
 
 from .app import app
-from .models import User, db
+from .models import RefreshToken, User, db
 
 
 def sign_claims(user):
     """Return signed jwt and refresh token for the given authenticated user."""
-    user.refresh_token = secrets.token_hex(32)
-    user.refresh_token_expiry = (
-        datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'])
+    refresh_token = RefreshToken(
+        user=user,
+        user_id=user.id,
+        token=secrets.token_hex(32),
+        expiry=(datetime.now() + app.config['REFRESH_TOKEN_VALIDITY']),
+    )
+    db.session.add(refresh_token)
     db.session.commit()
     claims = {
         'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
@@ -40,8 +44,8 @@ def sign_claims(user):
     return {
         'jwt': signed_token,
         'refresh_token': {
-            'val': user.refresh_token,
-            'exp': int(user.refresh_token_expiry.strftime('%s')),
+            'val': refresh_token.token,
+            'exp': int(refresh_token.expiry.strftime('%s')),
         }
     }
 
