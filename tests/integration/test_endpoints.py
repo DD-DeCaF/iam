@@ -79,10 +79,11 @@ def test_authenticate_success(app, client, session, models):
     assert response.status_code == 200
     raw_jwt_token = json.loads(response.data)['jwt']
 
-    # Decode the provided JWT with the public key from the service endpoint
-    keys = json.loads(client.get('/keys').data)
-    key = keys['keys'][0]
-    returned_claims = jwt.decode(raw_jwt_token, key, app.config['ALGORITHM'])
+    returned_claims = jwt.decode(
+        raw_jwt_token,
+        app.config['RSA_PUBLIC_KEY'],
+        app.config['ALGORITHM'],
+    )
     del returned_claims['exp']
     assert models['user'].claims == returned_claims
 
