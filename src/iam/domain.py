@@ -52,10 +52,11 @@ def sign_claims(user):
 
 def create_firebase_user(uid, decoded_token):
     """Create a Firebase user from the provided uid and decoded token."""
-    if ' ' in decoded_token['name']:
-        first_name, last_name = decoded_token['name'].split(None, 1)
+    name = decoded_token.get('name', '')
+    if ' ' in name:
+        first_name, last_name = name.split(None, 1)
     else:
-        first_name, last_name = decoded_token['name'], ''
+        first_name, last_name = name, ''
 
     user = User(
         firebase_uid=uid,
