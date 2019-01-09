@@ -18,13 +18,11 @@
 import getpass
 import logging
 import logging.config
-import os
 
 import click
 import firebase_admin
-import prometheus_client
 from firebase_admin import credentials
-from flask import Flask, Response, jsonify, request
+from flask import Flask, jsonify, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
@@ -34,7 +32,7 @@ from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.contrib.fixers import ProxyFix
 
-from . import jwt
+from . import jwt, resources
 from .models import (
     Organization, OrganizationProject, OrganizationUser, Project, RefreshToken,
     Team, TeamProject, TeamUser, User, UserProject)
@@ -88,30 +86,6 @@ def init_app(application, db):
     else:
         logger.info("Firebase feature toggle is off")
 
-    # READINESS CHECK ENDPOINT
-    ############################################################################
-
-    logger.debug("Registering readiness check endpoint")
-    from . import healthz
-    healthz.init_app(application)
-
-    # EXPOSE METRICS
-    ############################################################################
-
-    @app.route('/metrics')
-    def metrics():
-        from . import metrics
-
-        # Update persistent metrics like database counts
-        labels = ('iam', os.environ['ENVIRONMENT'])
-        metrics.USER_COUNT.labels(*labels).set(User.query.count())
-        metrics.ORGANIZATION_COUNT.labels(*labels).set(
-            Organization.query.count())
-        metrics.PROJECT_COUNT.labels(*labels).set(Project.query.count())
-
-        return Response(prometheus_client.generate_latest(),
-                        mimetype=prometheus_client.CONTENT_TYPE_LATEST)
-
     # Add JWT middleware
     ############################################################################
     jwt.init_app(application)
@@ -141,12 +115,7 @@ def init_app(application, db):
         if request.path.startswith(admin.url) and not basic_auth.authenticate():
             return basic_auth.challenge()
 
-    # API RESOURCES
-    ############################################################################
-
-    logger.debug("Registering API resources")
-
-    from . import resources
+    # Add routes and resources.
     resources.init_app(application)
 
     # ERROR HANDLERS

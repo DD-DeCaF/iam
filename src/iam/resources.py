@@ -15,10 +15,12 @@
 
 """Implement RESTful API endpoints using resources."""
 
+import os
 from datetime import datetime
 
+import prometheus_client
 from firebase_admin import auth
-from flask import g
+from flask import Response, g, jsonify
 from flask_apispec import MethodResource, doc, marshal_with, use_kwargs
 from flask_apispec.extension import FlaskApiSpec
 from jose import jwt
@@ -27,7 +29,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from .app import app
 from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
-from .models import Project, RefreshToken, User, UserProject, db
+from .metrics import ORGANIZATION_COUNT, PROJECT_COUNT, USER_COUNT
+from .models import Organization, Project, RefreshToken, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
     ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
@@ -41,12 +44,41 @@ def init_app(app):
         docs.register(resource, endpoint=resource.__name__)
 
     docs = FlaskApiSpec(app)
+    app.add_url_rule('/healthz', healthz.__name__, healthz)
+    app.add_url_rule('/metrics', metrics.__name__, metrics)
     register("/authenticate/local", LocalAuthResource)
     register("/authenticate/firebase", FirebaseAuthResource)
     register("/refresh", RefreshResource)
     register("/keys", PublicKeysResource)
     register("/projects", ProjectsResource)
     register("/projects/<project_id>", ProjectResource)
+
+
+def healthz():
+    """
+    Run readiness checks.
+
+    Failed checks are allowed to raise uncaught exceptions to be logged.
+    """
+    checks = []
+
+    # Database ping
+    db.session.execute('select version()').fetchall()
+    checks.append({'name': "DB Connectivity", 'status': 'pass'})
+
+    return jsonify(checks)
+
+
+def metrics():
+    """Expose metrics to prometheus."""
+    # Update persistent metrics like database counts
+    labels = ('iam', os.environ['ENVIRONMENT'])
+    USER_COUNT.labels(*labels).set(User.query.count())
+    ORGANIZATION_COUNT.labels(*labels).set(Organization.query.count())
+    PROJECT_COUNT.labels(*labels).set(Project.query.count())
+
+    return Response(prometheus_client.generate_latest(),
+                    mimetype=prometheus_client.CONTENT_TYPE_LATEST)
 
 
 @doc(description="Authenticate with email credentials")
