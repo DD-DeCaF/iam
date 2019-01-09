@@ -32,7 +32,7 @@ from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.contrib.fixers import ProxyFix
 
-from . import jwt, resources
+from . import errorhandlers, jwt, resources
 from .models import (
     Organization, OrganizationProject, OrganizationUser, Project, RefreshToken,
     Team, TeamProject, TeamUser, User, UserProject)
@@ -118,16 +118,8 @@ def init_app(application, db):
     # Add routes and resources.
     resources.init_app(application)
 
-    # ERROR HANDLERS
-    ############################################################################
-
-    # Add an error handler for webargs parser error, ensuring a JSON response
-    # including all error messages produced from the parser.
-    @application.errorhandler(422)
-    def handle_webargs_error(error):
-        response = jsonify(error.data['messages'])
-        response.status_code = error.code
-        return response
+    # Register error handlers.
+    errorhandlers.init_app(application)
 
     # CLI COMMANDS
     ############################################################################
