@@ -46,7 +46,6 @@ app = Flask(__name__)
 def init_app(application, db):
     """Initialize the main app with config information and routes."""
     application.config.from_object(current_config())
-    application.wsgi_app = ProxyFix(application.wsgi_app)
 
     # Configure logging
     logging.config.dictConfig(application.config['LOGGING'])
@@ -144,5 +143,12 @@ def init_app(application, db):
             db.session.commit()
         except NoResultFound:
             print(f"No user has id {id} (try `flask users`)")
+
+    # Please keep in mind that it is a security issue to use such a middleware
+    # in a non-proxy setup because it will blindly trust the incoming headers
+    # which might be forged by malicious clients.
+    # We require this in order to serve the HTML version of the OpenAPI docs
+    # via https.
+    application.wsgi_app = ProxyFix(application.wsgi_app)
 
     logger.info("App initialization complete")
