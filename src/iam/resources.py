@@ -34,6 +34,21 @@ from .schemas import (
     TokenSchema)
 
 
+def init_app(app):
+    """Register API resources on the provided Flask application."""
+    def register(path, resource):
+        app.add_url_rule(path, view_func=resource.as_view(resource.__name__))
+        docs.register(resource, endpoint=resource.__name__)
+
+    docs = FlaskApiSpec(app)
+    register("/authenticate/local", LocalAuthResource)
+    register("/authenticate/firebase", FirebaseAuthResource)
+    register("/refresh", RefreshResource)
+    register("/keys", PublicKeysResource)
+    register("/projects", ProjectsResource)
+    register("/projects/<project_id>", ProjectResource)
+
+
 @doc(description="Authenticate with email credentials")
 class LocalAuthResource(MethodResource):
     """Authenticate with credentials in the local database."""
@@ -193,18 +208,3 @@ class ProjectResource(MethodResource):
             db.session.delete(project)
             db.session.commit()
             return "", 204
-
-
-def init_app(app):
-    """Register API resources on the provided Flask application."""
-    def register(path, resource):
-        app.add_url_rule(path, view_func=resource.as_view(resource.__name__))
-        docs.register(resource, endpoint=resource.__name__)
-
-    docs = FlaskApiSpec(app)
-    register("/authenticate/local", LocalAuthResource)
-    register("/authenticate/firebase", FirebaseAuthResource)
-    register("/refresh", RefreshResource)
-    register("/keys", PublicKeysResource)
-    register("/projects", ProjectsResource)
-    register("/projects/<project_id>", ProjectResource)
