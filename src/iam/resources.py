@@ -34,7 +34,7 @@ from .models import Organization, Project, RefreshToken, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
     ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
-    TokenSchema)
+    TokenSchema, UserResponseSchema)
 
 
 def init_app(app):
@@ -52,6 +52,7 @@ def init_app(app):
     register("/keys", PublicKeysResource)
     register("/projects", ProjectsResource)
     register("/projects/<project_id>", ProjectResource)
+    register("/user", UserResource)
 
 
 def healthz():
@@ -240,3 +241,14 @@ class ProjectResource(MethodResource):
             db.session.delete(project)
             db.session.commit()
             return "", 204
+
+
+@doc(description="Retrieve user")
+class UserResource(MethodResource):
+    @marshal_with(UserResponseSchema(), code=200)
+    @jwt_required
+    def get(self):
+        try:
+            return User.query.filter(User.id == g.jwt_claims['usr']).one(), 200
+        except NoResultFound:
+            return f"No user with id {g.jwt_claims['usr']}", 404

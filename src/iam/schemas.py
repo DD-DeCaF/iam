@@ -90,3 +90,10 @@ class ProjectResponseSchema(StrictSchema):
     # organizations = fields.List(fields.Integer())
     # teams = fields.List(fields.Integer())
     # users = fields.List(fields.Integer())
+
+
+class UserResponseSchema(StrictSchema):
+    id = fields.Integer()
+    first_name = fields.String()
+    last_name = fields.String()
+    email = fields.String()
