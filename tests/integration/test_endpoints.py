@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 
 from jose import jwt
 
-from iam.models import Project
+from iam.models import Project, User
 
 
 def test_openapi_schema(app, client):
@@ -192,3 +192,28 @@ def test_keys(app, client):
     response = client.get("/keys")
     assert response.status_code == 200
     assert len(response.json['keys']) > 0
+
+
+def test_user(app, client, session, models, tokens):
+    """Retrieve user data based on given token."""
+    response = client.get("/user", headers={
+        'Authorization': f"Bearer {tokens['read']}",
+    })
+    assert response.status_code == 200
+
+    # Verify returned data against the database
+    user_id = jwt.decode(
+        tokens['read'],
+        app.config['RSA_PUBLIC_KEY'],
+        app.config['ALGORITHM'],
+    )['usr']
+    user = User.query.filter(User.id == user_id).one()
+    assert user.first_name == response.json['first_name']
+    assert user.last_name == response.json['last_name']
+    assert user.email == response.json['email']
+
+
+def test_user_no_jwt(client):
+    """Attempt to get user data with no token."""
+    response = client.get("/user")
+    assert response.status_code == 401
