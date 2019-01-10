@@ -22,7 +22,7 @@ import logging.config
 import click
 import firebase_admin
 from firebase_admin import credentials
-from flask import Flask, jsonify, request
+from flask import Flask, request
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
