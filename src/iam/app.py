@@ -32,12 +32,6 @@ from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.contrib.fixers import ProxyFix
 
-from . import errorhandlers, jwt, resources
-from .models import (
-    Organization, OrganizationProject, OrganizationUser, Project, RefreshToken,
-    Team, TeamProject, TeamUser, User, UserProject)
-from .settings import current_config
-
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
@@ -45,6 +39,14 @@ app = Flask(__name__)
 
 def init_app(application, db):
     """Initialize the main app with config information and routes."""
+    # Import local modules in this method, to allow circular imports for modules
+    # that need to import the flaskk app.
+    from . import errorhandlers, jwt, resources
+    from .models import (
+        Organization, OrganizationProject, OrganizationUser, Project,
+        RefreshToken, Team, TeamProject, TeamUser, User, UserProject)
+    from .settings import current_config
+
     application.config.from_object(current_config())
 
     # Configure logging
