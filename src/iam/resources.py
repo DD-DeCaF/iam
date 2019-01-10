@@ -243,7 +243,7 @@ class ProjectResource(MethodResource):
             return "", 204
 
 
-@doc(description="Retrieve user")
+@doc(description="Retrieve user data for the user claim in the provided JWT")
 class UserResource(MethodResource):
     @marshal_with(UserResponseSchema(), code=200)
     @jwt_required
