@@ -5,6 +5,9 @@ flask-admin>=1.5.3
 flask-basicauth
 flask-cors
 flask-apispec
+# Pin apispec as it's not compatible with the latest flask-apispec.
+# See https://github.com/jmcarp/flask-apispec/issues/130
+apispec == 0.39.0
 
 # Database & orm
 alembic
