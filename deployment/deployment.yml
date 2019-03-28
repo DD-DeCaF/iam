@@ -14,6 +14,93 @@ spec:
         app: iam
         env: staging
     spec:
+      initContainers:
+      - name: migrate
+        image: gcr.io/dd-decaf-cfbf6/iam:devel
+        imagePullPolicy: Always
+        env:
+        - name: ENVIRONMENT
+          value: staging
+        - name: SCRIPT_NAME
+          value: /iam
+        - name: FLASK_APP
+          value: src/iam/wsgi.py
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: SECRET_KEY
+        - name: ALLOWED_ORIGINS
+          value: https://staging.dd-decaf.eu,https://caffeine.dd-decaf.eu,http://localhost:4200
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: SENTRY_DSN
+        - name: BASIC_AUTH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: BASIC_AUTH_USERNAME
+        - name: BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: BASIC_AUTH_PASSWORD
+        - name: FEAT_TOGGLE_LOCAL_AUTH
+          value: "1"
+        - name: DB_HOST
+          value: cloudsql-proxy
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: iam_staging
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: DB_PASSWORD
+        - name: FEAT_TOGGLE_FIREBASE
+          value: "1"
+        - name: FIREBASE_PROJECT_ID
+          value: dd-decaf-cfbf6
+        - name: FIREBASE_CLIENT_CERT_URL
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: FIREBASE_CLIENT_CERT_URL
+        - name: FIREBASE_CLIENT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: FIREBASE_CLIENT_EMAIL
+        - name: FIREBASE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: FIREBASE_CLIENT_ID
+        - name: FIREBASE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: FIREBASE_PRIVATE_KEY
+        - name: FIREBASE_PRIVATE_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: FIREBASE_PRIVATE_KEY_ID
+        - name: prometheus_multiproc_dir
+          value: /prometheus-client
+        volumeMounts:
+        - name: rsa
+          mountPath: "/app/keys"
+          readOnly: true
+        command: ["flask", "db", "upgrade"]
       containers:
       - name: web
         image: gcr.io/dd-decaf-cfbf6/iam:devel
@@ -104,8 +191,7 @@ spec:
           readOnly: true
         - name: prometheus-client
           mountPath: /prometheus-client
-        command: ["/bin/sh", "-c"]
-        args: ["flask db upgrade && gunicorn -c gunicorn.py iam.wsgi:app"]
+        command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
         readinessProbe:
           httpGet:
             path: /iam/healthz
