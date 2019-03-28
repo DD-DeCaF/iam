@@ -52,7 +52,7 @@ spec:
         - name: FEAT_TOGGLE_LOCAL_AUTH
           value: "1"
         - name: DB_HOST
-          value: localhost
+          value: cloudsql-proxy
         - name: DB_PORT
           value: "5432"
         - name: DB_NAME
@@ -116,24 +116,9 @@ spec:
             cpu: "10m"
           limits:
             cpu: "2000m"
-      - name: cloudsql-proxy
-        image: gcr.io/cloudsql-docker/gce-proxy:1.11
-        command: ["/cloud_sql_proxy", "-instances=dd-decaf-cfbf6:europe-west1:dd-decaf=tcp:5432", "-credential_file=/secrets/cloudsql/credentials.json"]
-        resources:
-          requests:
-            cpu: "10m"
-          limits:
-            cpu: "2000m"
-        volumeMounts:
-          - name: cloudsql-instance-credentials
-            mountPath: /secrets/cloudsql
-            readOnly: true
       volumes:
       - name: rsa
         secret:
           secretName: iam-rsa-staging
-      - name: cloudsql-instance-credentials
-        secret:
-          secretName: cloudsql-instance-credentials
       - name: prometheus-client
         emptyDir: {}
