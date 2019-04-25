@@ -196,7 +196,7 @@ class ProjectsResource(MethodResource):
         db.session.add(project)
         db.session.add(user_project)
         db.session.commit()
-        return {'project_id': project.id}, 201
+        return {'id': project.id}, 201
 
 
 @doc(description="List projects")
