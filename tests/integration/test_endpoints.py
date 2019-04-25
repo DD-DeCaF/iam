@@ -141,7 +141,7 @@ def test_create_project(client, session, tokens):
         'Authorization': f"Bearer {tokens['write']}",
     })
     assert response.status_code == 201
-    project_id = response.json['project_id']
+    project_id = response.json['id']
     assert Project.query.filter(Project.id == project_id).count() == 1
 
 
