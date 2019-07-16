@@ -16,7 +16,7 @@ spec:
     spec:
       initContainers:
       - name: migrate
-        image: gcr.io/dd-decaf-cfbf6/iam:devel
+        image: gcr.io/dd-decaf-cfbf6/iam:master
         imagePullPolicy: Always
         env:
         - name: ENVIRONMENT
@@ -103,7 +103,7 @@ spec:
         command: ["flask", "db", "upgrade"]
       containers:
       - name: web
-        image: gcr.io/dd-decaf-cfbf6/iam:devel
+        image: gcr.io/dd-decaf-cfbf6/iam:master
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
