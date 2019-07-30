@@ -48,6 +48,8 @@ services:
       - /var/lib/postgresql/data
     networks:
       - default
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
 
 networks:
   DD-DeCaF:
