@@ -26,7 +26,6 @@ from flask_apispec.extension import FlaskApiSpec
 from jose import jwt
 from sqlalchemy.orm.exc import NoResultFound
 
-from . import hasher
 from .app import app
 from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
@@ -268,9 +267,9 @@ class UserRegisterResource(MethodResource):
         user = User(
             first_name=first_name,
             last_name=last_name,
-            email=email,
-            password=hasher.encode(password)
+            email=email
         )
+        user.set_password(password)
         db.session.add(user)
         db.session.commit()
 
