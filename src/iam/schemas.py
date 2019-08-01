@@ -97,3 +97,10 @@ class UserResponseSchema(StrictSchema):
     first_name = fields.String()
     last_name = fields.String()
     email = fields.String()
+
+
+class UserRegisterSchema(StrictSchema):
+    first_name = fields.String(required=True)
+    last_name = fields.String(required=True)
+    email = fields.String(required=True)
+    password = fields.String(required=True)
