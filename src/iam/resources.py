@@ -34,7 +34,7 @@ from .models import Organization, Project, RefreshToken, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
     ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
-    TokenSchema, UserResponseSchema)
+    TokenSchema, UserRegisterSchema, UserResponseSchema)
 
 
 def init_app(app):
@@ -53,6 +53,7 @@ def init_app(app):
     register("/projects", ProjectsResource)
     register("/projects/<project_id>", ProjectResource)
     register("/user", UserResource)
+    register("/user", UserRegisterResource)
 
 
 def healthz():
@@ -252,3 +253,24 @@ class UserResource(MethodResource):
             return User.query.filter(User.id == g.jwt_claims['usr']).one(), 200
         except NoResultFound:
             return f"No user with id {g.jwt_claims['usr']}", 404
+
+
+@doc(description="Register a user and authenticate in the local database")
+class UserRegisterResource(MethodResource):
+    @use_kwargs(UserRegisterSchema)
+    def post(self, first_name, last_name, email, password):
+        # Check if specified email already exists
+        exists = db.session.query(User.id).filter_by(email=email).scalar()
+        if exists:
+            return f"User with provided email already exists", 400
+
+        user = User(
+            first_name=first_name,
+            last_name=last_name,
+            email=email
+        )
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+
+        return sign_claims(user)
