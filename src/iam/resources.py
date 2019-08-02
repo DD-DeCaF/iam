@@ -260,8 +260,8 @@ class UserRegisterResource(MethodResource):
     @use_kwargs(UserRegisterSchema)
     def post(self, first_name, last_name, email, password):
         # Check if specified email already exists
-        user = User.query.filter_by(email=email).first()
-        if user:
+        exists = db.session.query(User.id).filter_by(email=email).scalar()
+        if exists:
             return f"User with provided email already exists", 400
 
         user = User(
