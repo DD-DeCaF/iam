@@ -19,3 +19,4 @@ prometheus-client
 python-jose
 raven[flask]
 requests
+sendgrid

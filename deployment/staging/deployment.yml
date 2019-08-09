@@ -185,6 +185,11 @@ spec:
               key: FIREBASE_PRIVATE_KEY_ID
         - name: prometheus_multiproc_dir
           value: /prometheus-client
+        - name: SENDGRID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: iam-staging
+              key: SENDGRID_API_KEY
         volumeMounts:
         - name: rsa
           mountPath: "/app/keys"

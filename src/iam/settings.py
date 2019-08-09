@@ -72,6 +72,7 @@ class Default:
         self.FIREBASE_PRIVATE_KEY = os.environ.get('FIREBASE_PRIVATE_KEY')
         self.FIREBASE_PRIVATE_KEY_ID = os.environ.get('FIREBASE_PRIVATE_KEY_ID')
         self.FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID')
+        self.SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 
         self.LOGGING = {
             'version': 1,

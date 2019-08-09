@@ -40,6 +40,7 @@ services:
       - FIREBASE_PRIVATE_KEY_ID=${FIREBASE_PRIVATE_KEY_ID}
       - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
       - prometheus_multiproc_dir=/prometheus-client
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
     command: gunicorn -c gunicorn.py iam.wsgi:app
 
   postgres:
