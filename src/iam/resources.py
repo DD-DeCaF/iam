@@ -33,8 +33,9 @@ from .metrics import ORGANIZATION_COUNT, PROJECT_COUNT, USER_COUNT
 from .models import Organization, Project, RefreshToken, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
-    ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
-    TokenSchema, UserRegisterSchema, UserResponseSchema)
+    PasswordResetSchema, ProjectRequestSchema, ProjectResponseSchema,
+    RefreshRequestSchema, ResetRequestSchema, TokenSchema, UserRegisterSchema,
+    UserResponseSchema)
 
 
 def init_app(app):
@@ -54,6 +55,8 @@ def init_app(app):
     register("/projects/<project_id>", ProjectResource)
     register("/user", UserResource)
     register("/user", UserRegisterResource)
+    register("/reset_request", ResetRequestResource)
+    register("/password_reset/<token>", PasswordResetResource)
 
 
 def healthz():
@@ -69,6 +72,15 @@ def healthz():
     checks.append({'name': "DB Connectivity", 'status': 'pass'})
 
     return jsonify(checks)
+
+
+def verify_reset_token(token):
+    try:
+        return jwt.decode(
+            token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
+        )["usr"]
+    except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
+        return None
 
 
 def metrics():
@@ -274,3 +286,37 @@ class UserRegisterResource(MethodResource):
         db.session.commit()
 
         return sign_claims(user)
+
+
+@doc(description="Request password reset link")
+class ResetRequestResource(MethodResource):
+    @use_kwargs(ResetRequestSchema)
+    def post(self, email):
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return (
+                "There is no account with the provided email. "
+                "You must register first.",
+                404,
+            )
+        user.send_reset_email()
+        return '''An email has been sent with instructions
+                    to reset your password.''', 200
+
+
+@doc(description="Password reset")
+class PasswordResetResource(MethodResource):
+    def get(self, token):
+        if verify_reset_token(token):
+            return "", 200
+        return "The token is invalid or expired.", 400
+
+    @use_kwargs(PasswordResetSchema)
+    def post(self, **kwargs):
+        user_id = verify_reset_token(kwargs["token"])
+        if not user_id:
+            return "The token is invalid or expired.", 400
+        user = User.query.filter_by(id=user_id).first()
+        user.set_password(kwargs["password"])
+        db.session.commit()
+        return "", 200
