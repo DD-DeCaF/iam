@@ -26,6 +26,7 @@ from flask_apispec.extension import FlaskApiSpec
 from jose import jwt
 from sqlalchemy.orm.exc import NoResultFound
 
+from . import hasher
 from .app import app
 from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
@@ -75,10 +76,11 @@ def healthz():
 
 
 def verify_reset_token(token):
+    """Returns decoded token if it is valid, otherwise returns None"""
     try:
         return jwt.decode(
             token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
-        )["usr"]
+        )
     except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
         return None
 
@@ -314,9 +316,16 @@ class PasswordResetResource(MethodResource):
     @use_kwargs(PasswordResetSchema)
     def post(self, **kwargs):
         user_id = verify_reset_token(kwargs["token"])
-        if not user_id:
+        decoded_token = verify_reset_token(kwargs["token"])
+        if not decoded_token:
             return "The token is invalid or expired.", 400
+        user_id = decoded_token["usr"]
         user = User.query.filter_by(id=user_id).first()
+        # If password stored in database doesn't match password
+        # stored inside the token, then it has been changed before
+        # and token should be considered as invalid
+        if not hasher.verify(user.password, decoded_token["single_use"]):
+            return "Password has been already changed using this token.", 400
         user.set_password(kwargs["password"])
         db.session.commit()
         return "", 200

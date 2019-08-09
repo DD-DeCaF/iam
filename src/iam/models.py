@@ -150,7 +150,13 @@ class User(db.Model):
         return {'usr': self.id, 'prj': project_claims}
 
     def get_reset_token(self):
-        claims = {"exp": (int(datetime.timestamp(datetime.now())) + 3600)}
+        # single_use - hash of the password stored in the database
+        # Will be used later to check if password has been already
+        # changed using this token
+        claims = {
+            "exp": (int(datetime.timestamp(datetime.now())) + 3600),
+            "single_use": hasher.encode(self.password)
+        }
         claims.update(self.claims)
         return jwt.encode(
             claims, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
