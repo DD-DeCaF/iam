@@ -30,7 +30,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from raven.contrib.flask import Sentry
 from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 logger = logging.getLogger(__name__)
