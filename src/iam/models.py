@@ -172,14 +172,9 @@ class User(db.Model):
             mail.template_id = "d-f1addc67e51f4d0e8966d340c24551a4"
             personalization = Personalization()
             personalization.add_to(Email(self.email))
-            hosts = {
-                "development": "http://localhost:4200",
-                "staging": "https://staging.dd-decaf.eu",
-                "production": "https://caffeine.dd-decaf.eu"
-            }
             personalization.dynamic_template_data = {
                 "link":
-                    f"{hosts[os.environ['ENVIRONMENT']]}/password-reset/{token}"
+                    f"{app.config['ROOT_URL']}/password-reset/{token}"
             }
             mail.add_personalization(personalization)
             sendgrid.client.mail.send.post(request_body=mail.get())

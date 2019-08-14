@@ -24,8 +24,10 @@ from jose import jwk
 
 def current_config():
     """Return the appropriate configuration object based on the environment."""
-    if os.environ['ENVIRONMENT'] in ['production', 'staging']:
+    if os.environ['ENVIRONMENT'] == 'production':
         return Production()
+    elif os.environ['ENVIRONMENT'] == 'staging':
+        return Staging()
     elif os.environ['ENVIRONMENT'] == 'testing':
         return Testing()
     elif os.environ['ENVIRONMENT'] == 'development':
@@ -116,6 +118,7 @@ class Development(Default):
         super().__init__()
         self.DEBUG = True
         self.SECRET_KEY = os.urandom(24)
+        self.ROOT_URL = "http://localhost:4200"
 
 
 class Testing(Default):
@@ -132,6 +135,18 @@ class Testing(Default):
         )
 
 
+class Staging(Default):
+    """Staging settings."""
+
+    def __init__(self):
+        """Initialize the staging configuration."""
+        super().__init__()
+        self.DEBUG = False
+        self.SECRET_KEY = os.environ['SECRET_KEY']
+        self.LOGGING['root']['level'] = 'INFO'
+        self.ROOT_URL = "https://staging.dd-decaf.eu"
+
+
 class Production(Default):
     """Production settings."""
 
@@ -141,3 +156,4 @@ class Production(Default):
         self.DEBUG = False
         self.SECRET_KEY = os.environ['SECRET_KEY']
         self.LOGGING['root']['level'] = 'INFO'
+        self.ROOT_URL = "https://caffeine.dd-decaf.eu"
