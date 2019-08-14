@@ -26,7 +26,6 @@ from flask_apispec.extension import FlaskApiSpec
 from jose import jwt
 from sqlalchemy.orm.exc import NoResultFound
 
-from . import hasher
 from .app import app
 from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
@@ -321,11 +320,6 @@ class PasswordResetResource(MethodResource):
             return "The token is invalid or expired.", 400
         user_id = decoded_token["usr"]
         user = User.query.filter_by(id=user_id).first()
-        # If password stored in database doesn't match password
-        # stored inside the token, then it has been changed before
-        # and token should be considered as invalid
-        if not hasher.verify(user.password, decoded_token["single_use"]):
-            return "Password has been already changed using this token.", 400
         user.set_password(kwargs["password"])
         db.session.commit()
         return "", 200
