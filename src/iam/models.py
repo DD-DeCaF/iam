@@ -152,9 +152,9 @@ class User(db.Model):
 
     def get_reset_token(self):
         claims = {
-            "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1)))
+            "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1))),
+            "usr": self.id
         }
-        claims.update(self.claims)
         return jwt.encode(
             claims, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
         )

@@ -55,8 +55,8 @@ def init_app(app):
     register("/projects/<project_id>", ProjectResource)
     register("/user", UserResource)
     register("/user", UserRegisterResource)
-    register("/reset_request", ResetRequestResource)
-    register("/password_reset/<token>", PasswordResetResource)
+    register("/password/reset-request", ResetRequestResource)
+    register("/password/reset/<token>", PasswordResetResource)
 
 
 def healthz():
@@ -306,18 +306,25 @@ class ResetRequestResource(MethodResource):
 @doc(description="Password reset")
 class PasswordResetResource(MethodResource):
     def get(self, token):
-        if verify_reset_token(token):
+        try:
+            jwt.decode(
+                token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
+            )
             return "", 200
-        return "The token is invalid or expired.", 400
+        except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
+            return "The token is invalid or expired.", 400
 
     @use_kwargs(PasswordResetSchema)
-    def post(self, **kwargs):
-        user_id = verify_reset_token(kwargs["token"])
-        decoded_token = verify_reset_token(kwargs["token"])
-        if not decoded_token:
+    def post(self, token, password):
+        try:
+            decoded_token = jwt.decode(
+                token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
+            )
+        except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
             return "The token is invalid or expired.", 400
-        user_id = decoded_token["usr"]
-        user = User.query.filter_by(id=user_id).first()
-        user.set_password(kwargs["password"])
-        db.session.commit()
-        return "", 200
+        else:
+            user_id = decoded_token["usr"]
+            user = User.query.filter_by(id=user_id).first()
+            user.set_password(password)
+            db.session.commit()
+            return "", 200
