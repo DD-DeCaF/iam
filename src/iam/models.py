@@ -178,12 +178,13 @@ class User(db.Model):
             }
             mail.add_personalization(personalization)
             sendgrid.client.mail.send.post(request_body=mail.get())
+            return '''An email has been sent with instructions
+                        to reset your password.''', 200
         except Exception as error:
-            # Suppress any problem so it doesn't mark the entire workflow
-            # as failed, but do log a warning for potential follow-up.
             logger.warning(
-                "Unable to send email with password reset lint", exc_info=error
+                "Unable to send email with password reset link", exc_info=error
             )
+            return "Unable to send email with password reset link", 502
 
 
 class RefreshToken(db.Model):

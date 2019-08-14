@@ -300,9 +300,7 @@ class ResetRequestResource(MethodResource):
                 "You must register first.",
                 404,
             )
-        user.send_reset_email()
-        return '''An email has been sent with instructions
-                    to reset your password.''', 200
+        return user.send_reset_email()
 
 
 @doc(description="Password reset")
