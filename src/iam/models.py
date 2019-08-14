@@ -17,7 +17,7 @@
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
 from jose import jwt
@@ -152,7 +152,7 @@ class User(db.Model):
 
     def get_reset_token(self):
         claims = {
-            "exp": (int(datetime.timestamp(datetime.now())) + 3600)
+            "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1)))
         }
         claims.update(self.claims)
         return jwt.encode(
