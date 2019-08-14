@@ -16,7 +16,6 @@
 """Data models."""
 
 import logging
-import os
 from datetime import datetime, timedelta
 
 from flask_sqlalchemy import SQLAlchemy

@@ -18,6 +18,7 @@ import base64
 import json
 from datetime import datetime, timedelta
 
+import pytest
 from jose import jwt
 
 from iam.models import Project, User
@@ -217,3 +218,47 @@ def test_user_no_jwt(client):
     """Attempt to get user data with no token."""
     response = client.get("/user")
     assert response.status_code == 401
+
+def test_password_reset(client, models):
+    """Change password with valid reset token"""
+    user = models["user"]
+    encoded_token = user.get_reset_token()
+    new_password = 'password'
+    response = client.post(f"/password/reset/{encoded_token}", json={
+        'password': new_password
+    })
+    assert response.status_code == 200
+    assert user.check_password(new_password)
+
+def test_password_reset_expired_token(app, client, models):
+    """Attempt to change password with expired token"""
+    user = models["user"]
+    claims = {
+        "exp": int(datetime.timestamp(datetime.now() - timedelta(minutes=1))),
+        "usr": user.id
+    }
+    encoded_token = jwt.encode(
+        claims, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
+    )
+    new_password = 'password'
+    response = client.post(f"/password/reset/{encoded_token}", json={
+        'password': new_password
+    })
+    assert response.status_code == 400
+    assert not user.check_password(new_password)
+
+
+def test_password_reset_wrong_signature(app, client, models):
+    """Attempt to change password using token with wrong signature"""
+    user = models["user"]
+    claims = {
+        "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1))),
+        "usr": user.id
+    }
+    encoded_token = jwt.encode(claims, "secret", "HS256")
+    new_password = 'password'
+    response = client.post(f"/password/reset/{encoded_token}", json={
+        'password': new_password
+    })
+    assert response.status_code == 400
+    assert not user.check_password(new_password)
