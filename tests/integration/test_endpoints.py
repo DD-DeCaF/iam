@@ -18,7 +18,6 @@ import base64
 import json
 from datetime import datetime, timedelta
 
-import pytest
 from jose import jwt
 
 from iam.models import Project, User
@@ -219,8 +218,17 @@ def test_user_no_jwt(client):
     response = client.get("/user")
     assert response.status_code == 401
 
+
+def test_reset_request_non_existing_email(client, models):
+    """Reset request with non-existing email."""
+    response = client.post("/password/reset-request", json={
+        'email': "not-a-real@email.com"
+    })
+    assert response.status_code == 404
+
+
 def test_password_reset(client, models):
-    """Change password with valid reset token"""
+    """Change password with valid reset token."""
     user = models["user"]
     encoded_token = user.get_reset_token()
     new_password = 'password'
@@ -230,8 +238,9 @@ def test_password_reset(client, models):
     assert response.status_code == 200
     assert user.check_password(new_password)
 
+
 def test_password_reset_expired_token(app, client, models):
-    """Attempt to change password with expired token"""
+    """Attempt to change password with expired token."""
     user = models["user"]
     claims = {
         "exp": int(datetime.timestamp(datetime.now() - timedelta(minutes=1))),
@@ -249,7 +258,7 @@ def test_password_reset_expired_token(app, client, models):
 
 
 def test_password_reset_wrong_signature(app, client, models):
-    """Attempt to change password using token with wrong signature"""
+    """Attempt to change password using token with wrong signature."""
     user = models["user"]
     claims = {
         "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1))),

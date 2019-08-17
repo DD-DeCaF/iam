@@ -14,14 +14,11 @@
 
 """Unit tests for the models module."""
 
-import pytest
 from jose import jwt
-
-from iam.models import User
 
 
 def test_reset_token(app, models):
-    """Test the get_reset_token method"""
+    """Test the get_reset_token method."""
     user = models["user"]
     encoded_token = user.get_reset_token()
     decoded_token = jwt.decode(

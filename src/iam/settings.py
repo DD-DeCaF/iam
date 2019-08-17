@@ -133,6 +133,7 @@ class Testing(Default):
         self.SQLALCHEMY_DATABASE_URI = (
             'postgresql://postgres:@postgres:5432/iam_test'
         )
+        self.ROOT_URL = "http://localhost:4200"
 
 
 class Staging(Default):
