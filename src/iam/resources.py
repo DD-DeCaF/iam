@@ -74,16 +74,6 @@ def healthz():
     return jsonify(checks)
 
 
-def verify_reset_token(token):
-    """Return decoded token if it is valid, otherwise return None."""
-    try:
-        return jwt.decode(
-            token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
-        )
-    except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
-        return None
-
-
 def metrics():
     """Expose metrics to prometheus."""
     # Update persistent metrics like database counts
