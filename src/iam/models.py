@@ -15,12 +15,21 @@
 
 """Data models."""
 
+import logging
+from datetime import datetime, timedelta
+
 from flask_sqlalchemy import SQLAlchemy
+from jose import jwt
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Email, Mail, Personalization
 
 from . import hasher
+from .app import app
 
 
 db = SQLAlchemy()
+
+logger = logging.getLogger(__name__)
 
 
 class Organization(db.Model):
@@ -139,6 +148,42 @@ class User(db.Model):
             add_claim(user_role.project.id, user_role.role)
 
         return {'usr': self.id, 'prj': project_claims}
+
+    def get_reset_token(self):
+        claims = {
+            "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1))),
+            "usr": self.id
+        }
+        return jwt.encode(
+            claims, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
+        )
+
+    def send_reset_email(self):
+        token = self.get_reset_token()
+        try:
+            logger.debug(
+                f"Sending email with reset link to "
+                f"{self.full_name} <{self.email}>"
+            )
+            sendgrid = SendGridAPIClient()
+            mail = Mail()
+            mail.from_email = Email("DD-DeCaF <notifications@dd-decaf.eu>")
+            mail.template_id = "d-f1addc67e51f4d0e8966d340c24551a4"
+            personalization = Personalization()
+            personalization.add_to(Email(self.email))
+            personalization.dynamic_template_data = {
+                "link":
+                    f"{app.config['ROOT_URL']}/password-reset/{token}"
+            }
+            mail.add_personalization(personalization)
+            sendgrid.client.mail.send.post(request_body=mail.get())
+            return '''An email has been sent with instructions
+                        to reset your password.''', 200
+        except Exception as error:
+            logger.warning(
+                "Unable to send email with password reset link", exc_info=error
+            )
+            return "Unable to send email with password reset link", 502
 
 
 class RefreshToken(db.Model):

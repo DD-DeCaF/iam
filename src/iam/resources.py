@@ -33,8 +33,9 @@ from .metrics import ORGANIZATION_COUNT, PROJECT_COUNT, USER_COUNT
 from .models import Organization, Project, RefreshToken, User, UserProject, db
 from .schemas import (
     FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
-    ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
-    TokenSchema, UserRegisterSchema, UserResponseSchema)
+    PasswordResetSchema, ProjectRequestSchema, ProjectResponseSchema,
+    RefreshRequestSchema, ResetRequestSchema, TokenSchema, UserRegisterSchema,
+    UserResponseSchema)
 
 
 def init_app(app):
@@ -54,6 +55,8 @@ def init_app(app):
     register("/projects/<project_id>", ProjectResource)
     register("/user", UserResource)
     register("/user", UserRegisterResource)
+    register("/password/reset-request", ResetRequestResource)
+    register("/password/reset/<token>", PasswordResetResource)
 
 
 def healthz():
@@ -274,3 +277,44 @@ class UserRegisterResource(MethodResource):
         db.session.commit()
 
         return sign_claims(user)
+
+
+@doc(description="Request password reset link")
+class ResetRequestResource(MethodResource):
+    @use_kwargs(ResetRequestSchema)
+    def post(self, email):
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return (
+                "There is no account with the provided email. "
+                "You must register first.",
+                404,
+            )
+        return user.send_reset_email()
+
+
+@doc(description="Password reset")
+class PasswordResetResource(MethodResource):
+    def get(self, token):
+        try:
+            jwt.decode(
+                token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
+            )
+            return "", 200
+        except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
+            return "The token is invalid or expired.", 400
+
+    @use_kwargs(PasswordResetSchema)
+    def post(self, token, password):
+        try:
+            decoded_token = jwt.decode(
+                token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
+            )
+        except (jwt.JWTError, jwt.ExpiredSignatureError, jwt.JWTClaimsError):
+            return "The token is invalid or expired.", 400
+        else:
+            user_id = decoded_token["usr"]
+            user = User.query.filter_by(id=user_id).first()
+            user.set_password(password)
+            db.session.commit()
+            return "", 200
