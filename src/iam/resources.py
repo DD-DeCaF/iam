@@ -290,6 +290,11 @@ class ResetRequestResource(MethodResource):
                 "You must register first.",
                 404,
             )
+        if user.firebase_uid:
+            return (
+                "You cannot change password to your social account.",
+                404,
+            )
         return user.send_reset_email()
 
 
