@@ -1,9 +1,0 @@
-flake8
-flake8-docstrings
-# Pin pydocstyle to v3.0.0 until flake8-docstrings fixes compatibility with 4.0.0
-pydocstyle==3.0.0
-ipython
-isort
-pytest
-pytest-cov
-safety

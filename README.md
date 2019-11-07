@@ -52,3 +52,9 @@ Specify environment variables in a `.env` file. See `docker-compose.yml` for the
 * `FIREBASE_PRIVATE_KEY`
 * `FIREBASE_PRIVATE_KEY_ID`
 * `FIREBASE_PROJECT_ID`
+
+### Updating Python dependencies
+
+To compile a new requirements file and then re-build the service with the new requirements, run:
+
+    make pip-compile build
