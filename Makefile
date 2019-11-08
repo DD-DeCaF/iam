@@ -35,7 +35,7 @@ start:
 
 ## Create RSA keypair used for signing JWTs.
 keypair:
-	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N ""
+	docker-compose run --rm web ssh-keygen -t rsa -b 2048 -f keys/rsa -N "" -m PEM
 
 ## Create initial databases. You must only run this once.
 databases:
