@@ -16,6 +16,7 @@
 """Implement RESTful API endpoints using resources."""
 
 import os
+import warnings
 from datetime import datetime
 
 import prometheus_client
@@ -42,7 +43,9 @@ def init_app(app):
     """Register API resources on the provided Flask application."""
     def register(path, resource):
         app.add_url_rule(path, view_func=resource.as_view(resource.__name__))
-        docs.register(resource, endpoint=resource.__name__)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            docs.register(resource, endpoint=resource.__name__)
 
     docs = FlaskApiSpec(app)
     app.add_url_rule('/healthz', healthz.__name__, healthz)
