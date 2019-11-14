@@ -45,12 +45,8 @@ services:
 
   postgres:
     image: postgres:9.6-alpine
-    volumes:
-      - /var/lib/postgresql/data
     networks:
       - default
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
 
 networks:
   DD-DeCaF:
