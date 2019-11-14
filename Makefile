@@ -15,10 +15,6 @@ network:
 	docker network inspect DD-DeCaF >/dev/null 2>&1 || \
 		docker network create DD-DeCaF
 
-## Generate Pipfile.lock.
-lock:
-	docker-compose run --rm web pipenv lock
-
 ## Build local docker images.
 build:
 	docker-compose build
