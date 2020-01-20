@@ -15,7 +15,10 @@
 
 """Marshmallow schemas for marshalling the API endpoints."""
 
-from marshmallow import Schema, fields
+from marshmallow import Schema, ValidationError, fields, validates_schema
+
+from .validators import (
+    validate_consent_category, validate_consent_status, validate_consent_type)
 
 
 class StrictSchema(Schema):
@@ -50,6 +53,25 @@ class ProjectRequestSchema(StrictSchema):
     # organizations = fields.List(fields.Integer())
     # teams = fields.List(fields.Integer())
     # users = fields.List(fields.Integer())
+
+
+class ConsentRegisterSchema(StrictSchema):
+    type = fields.String(
+        required=True,
+        validate=lambda val: validate_consent_type(val, ValidationError))
+    category = fields.String(required=True)
+    status = fields.String(
+        required=True,
+        validate=lambda val: validate_consent_status(val, ValidationError))
+    timestamp = fields.DateTime()
+    valid_until = fields.DateTime()
+    message = fields.String()
+    source = fields.String()
+
+    @validates_schema
+    def validate_category(self, data, **kwargs):
+        return validate_consent_category(data, data['category'],
+                                         errtype=ValidationError)
 
 
 # Response schemas
@@ -113,3 +135,31 @@ class ResetRequestSchema(StrictSchema):
 class PasswordResetSchema(StrictSchema):
     token = fields.String(location="query")
     password = fields.String(location="json")
+
+
+class ConsentResponseSchema(StrictSchema):
+    type = fields.String(
+        required=True,
+        validate=lambda val: validate_consent_type(val, ValidationError),
+        description="Type of the consent, e.g. GDPR or cookie consent")
+    category = fields.String(
+        required=True,
+        description="Category the consent relates to.")
+    status = fields.String(
+        required=True,
+        validate=lambda val: validate_consent_status(val, ValidationError),
+        description="Whether the consent was accepted or rejected.")
+    timestamp = fields.DateTime(
+        required=True,
+        description="Time of when user responded to the consent")
+    valid_until = fields.DateTime(
+        description="Time of when the consent should be revoked. Null implies "
+                    "unlimited validity")
+    message = fields.String(description="Exact wording of what the user "
+                                        "consented to.")
+    source = fields.String(description="Source of the consent.")
+
+    @validates_schema
+    def validate_category(self, data, **kwargs):
+        validate_consent_category(data, data['category'],
+                                  errtype=ValidationError)

@@ -22,9 +22,13 @@ from flask_sqlalchemy import SQLAlchemy
 from jose import jwt
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Email, Mail, Personalization
+from sqlalchemy.orm import validates
 
 from . import hasher
 from .app import app
+from .enums import ConsentStatus, ConsentType
+from .validators import (
+    validate_consent_category, validate_consent_status, validate_consent_type)
 
 
 db = SQLAlchemy()
@@ -87,6 +91,8 @@ class User(db.Model):
     projects = db.relationship('UserProject', back_populates='user')
 
     refresh_tokens = db.relationship('RefreshToken', back_populates='user')
+
+    consents = db.relationship('Consent', back_populates='user')
 
     def __repr__(self):
         """Return a printable representation."""
@@ -218,6 +224,41 @@ class Project(db.Model):
     def __repr__(self):
         """Return a printable representation."""
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
+
+
+class Consent(db.Model):
+    """User's consent."""
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    type = db.Column(db.Enum(ConsentType), nullable=False)
+    category = db.Column(db.Text, nullable=False)
+    status = db.Column(db.Enum(ConsentStatus), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    valid_until = db.Column(db.DateTime)
+    message = db.Column(db.Text)
+    source = db.Column(db.Text)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', back_populates='consents')
+
+    @validates('category')
+    def validate_category(self, key, value):
+        return validate_consent_category(self, value, accessor=getattr,
+                                         errtype=ValueError)
+
+    @validates('status')
+    def validate_status(self, key, value):
+        return validate_consent_status(value, errtype=ValueError)
+
+    @validates('type')
+    def validate_type(self, key, value):
+        return validate_consent_type(value, errtype=ValueError)
+
+    def __repr__(self):
+        """Return a printable representation."""
+        return (f"<{self.__class__.__name__} {self.id}: {self.type} "
+                f"({self.category})>")
 
 
 #

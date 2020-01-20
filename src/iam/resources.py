@@ -25,18 +25,20 @@ from flask import Response, g, jsonify
 from flask_apispec import MethodResource, doc, marshal_with, use_kwargs
 from flask_apispec.extension import FlaskApiSpec
 from jose import jwt
+from sqlalchemy import and_, func
 from sqlalchemy.orm.exc import NoResultFound
 
 from .app import app
 from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
 from .metrics import ORGANIZATION_COUNT, PROJECT_COUNT, USER_COUNT
-from .models import Organization, Project, RefreshToken, User, UserProject, db
+from .models import (
+    Consent, Organization, Project, RefreshToken, User, UserProject, db)
 from .schemas import (
-    FirebaseCredentialsSchema, JWKKeysSchema, JWTSchema, LocalCredentialsSchema,
-    PasswordResetSchema, ProjectRequestSchema, ProjectResponseSchema,
-    RefreshRequestSchema, ResetRequestSchema, TokenSchema, UserRegisterSchema,
-    UserResponseSchema)
+    ConsentRegisterSchema, ConsentResponseSchema, FirebaseCredentialsSchema,
+    JWKKeysSchema, JWTSchema, LocalCredentialsSchema, PasswordResetSchema,
+    ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
+    ResetRequestSchema, TokenSchema, UserRegisterSchema, UserResponseSchema)
 
 
 def init_app(app):
@@ -58,6 +60,7 @@ def init_app(app):
     register("/projects/<project_id>", ProjectResource)
     register("/user", UserResource)
     register("/user", UserRegisterResource)
+    register("/consent", ConsentResource)
     register("/password/reset-request", ResetRequestResource)
     register("/password/reset/<token>", PasswordResetResource)
 
@@ -280,6 +283,61 @@ class UserRegisterResource(MethodResource):
         db.session.commit()
 
         return sign_claims(user)
+
+
+@doc(description="Retrieve and submit user consents for the user claim in the "
+                 "provided JWT")
+class ConsentResource(MethodResource):
+    @marshal_with(ConsentResponseSchema(many=True), code=200)
+    @jwt_required
+    def get(self):
+        try:
+            # Select the latest user's consents for all unique combinations
+            # of consent.type and consent.category
+            # Query adapted from https://stackoverflow.com/questions/40537934
+            subquery = db.session.query(
+                Consent.user_id.label("user_id"),
+                Consent.type.label("type"),
+                Consent.category.label("category"),
+                func.max(Consent.timestamp).label("latest_timestamp")
+            ).group_by(
+                Consent.user_id,
+                Consent.type,
+                Consent.category,
+            ).subquery()
+            query = db.session.query(Consent).join(
+                subquery,
+                and_(
+                    Consent.user_id == g.jwt_claims['usr'],
+                    Consent.type == subquery.c.type,
+                    Consent.category == subquery.c.category,
+                    Consent.timestamp == subquery.c.latest_timestamp,
+                )
+            ).order_by(
+                Consent.type,
+                Consent.category
+            )
+            return query, 200
+        except NoResultFound:
+            return f"No user with id {g.jwt_claims['usr']}", 404
+
+    @use_kwargs(ConsentRegisterSchema)
+    @jwt_required
+    def post(self, type, category, status, timestamp=None, valid_until=None,
+             message=None, source=None):
+        consent = Consent(
+            type=type,
+            category=category,
+            status=status,
+            timestamp=timestamp if timestamp is not None else datetime.now(),
+            user_id=g.jwt_claims['usr'],
+            valid_until=valid_until,
+            message=message,
+            source=source
+        )
+        db.session.add(consent)
+        db.session.commit()
+        return {'id': consent.id}, 201
 
 
 @doc(description="Request password reset link")

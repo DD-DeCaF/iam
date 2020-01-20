@@ -18,9 +18,11 @@ import base64
 import json
 from datetime import datetime, timedelta
 
+import pytest
 from jose import jwt
+from pytz import timezone
 
-from iam.models import Project, User
+from iam.models import Consent, Project, User
 
 
 def test_openapi_schema(app, client):
@@ -217,6 +219,109 @@ def test_user_no_jwt(client):
     """Attempt to get user data with no token."""
     response = client.get("/user")
     assert response.status_code == 401
+
+
+@pytest.mark.parametrize('input', [
+    # full definition
+    {
+        'type': 'gdpr',
+        'category': 'newsletter',
+        'status': 'accepted',
+        'timestamp': datetime.now(timezone('UTC')).isoformat(),
+        'valid_until': datetime.now(timezone('UTC')).isoformat(),
+        'message': 'I consent to the ToS',
+        'source': 'pytest'
+    },
+    # minimal
+    {
+        'type': 'cookie',
+        'category': 'preferences',
+        'status': 'rejected',
+    }
+])
+def test_create_consent(client, session, tokens, input):
+    """Create a new consent."""
+    response = client.post("/consent", json=input, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 201
+    consent_id = response.json['id']
+    assert Consent.query.filter(Consent.id == consent_id).count() == 1
+
+
+@pytest.mark.parametrize('input', [
+    # incorrect type
+    {
+        'type': 'gpdr',
+        'category': 'newsletter',
+        'status': 'accepted',
+    },
+    # incorrect category for 'cookie' consent
+    {
+        'type': 'cookie',
+        'category': 'fumctiomal',
+        'status': 'accepted',
+    },
+    # incorrect status
+    {
+        'type': 'cookie',
+        'category': 'strictly_necessary',
+        'status': 'akcepted',
+    },
+])
+def test_create_consent_fail(client, session, tokens, input):
+    """Create a new consent."""
+    response = client.post("/consent", json=input, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 422
+
+
+def test_get_consent(app, client, session, models, tokens):
+    """Retrieve user consent data based on given token."""
+    response = client.get("/consent", headers={
+        'Authorization': f"Bearer {tokens['read']}",
+    })
+    assert response.status_code == 200
+
+    user_id = jwt.decode(
+        tokens['read'],
+        app.config['RSA_PUBLIC_KEY'],
+        app.config['ALGORITHM'],
+    )['usr']
+
+    # Get expected consents - Consents with most recent timestamp value
+    # for each group of consents that have identical combination of user_id,
+    # type, and category
+    # NOTE: Intentionally using different logic here than in resource.py for
+    #       robustness
+    consents = Consent.query.filter(Consent.user_id == user_id).all()
+    latest_consents = {}
+    for consent in consents:
+        consent_key = f"{consent.type}-{consent.category}"
+        try:
+            latest_consent = latest_consents[consent_key]
+            latest_timestamp = latest_consent.timestamp.isoformat()
+            if consent.timestamp.isoformat() > latest_timestamp:
+                latest_consents[consent_key] = consent
+        except KeyError:
+            latest_consents[consent_key] = consent
+
+    # Test correct length of retrieved consents
+    assert len(response.json) == len(latest_consents)
+
+    # Test for correctness and unique combination of type and category for each
+    # of the user's consents
+    latest_timestamps = [
+        c.timestamp.replace(tzinfo=timezone('UTC')).isoformat()
+        for c in latest_consents.values()
+    ]
+    unique_consents = {}
+    for consent in response.json:
+        assert consent['timestamp'] in latest_timestamps
+        consent_key = f"{consent['type']}-{consent['category']}"
+        assert consent_key not in unique_consents
+        unique_consents[consent_key] = consent
 
 
 def test_reset_request_non_existing_email(client, models):

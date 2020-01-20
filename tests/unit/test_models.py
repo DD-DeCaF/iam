@@ -14,7 +14,10 @@
 
 """Unit tests for the models module."""
 
+import pytest
 from jose import jwt
+
+from iam.models import Consent
 
 
 def test_reset_token(app, models):
@@ -25,3 +28,47 @@ def test_reset_token(app, models):
         encoded_token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
     )
     assert decoded_token["usr"] == user.id
+
+
+@pytest.mark.parametrize('input', [
+    # cookie consent
+    {
+        "type": "cookie",
+        "category": "statistics",
+        "status": "accepted"
+    },
+    # gdpr consent
+    {
+        'type': 'gdpr',
+        'category': 'newsletter',
+        'status': 'rejected',
+    }
+])
+def test_create_consent(models, input):
+    consent = Consent(**input, user=models['user'])
+    assert consent
+
+
+@pytest.mark.parametrize('input', [
+    # invalid category for cookie consent
+    {
+        "type": "cookie",
+        "category": "perfrmance",
+        "status": "accepted"
+    },
+    # invalid status (gdpr consent)
+    {
+        'type': 'gdpr',
+        'category': 'newsletter',
+        'status': 'rej',
+    },
+    # invalid status (cookie consent)
+    {
+        'type': 'cookie',
+        'category': 'statistics',
+        'status': 'akceptted',
+    }
+])
+def test_create_consent_fail(models, input):
+    with pytest.raises(Exception):
+        Consent(**input, user=models['user'])
