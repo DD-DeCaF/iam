@@ -16,8 +16,10 @@
 
 import pytest
 from jose import jwt
+from marshmallow import ValidationError
+from sqlalchemy.exc import DataError
 
-from iam.models import Consent
+from iam.models import Consent, db
 
 
 def test_reset_token(app, models):
@@ -49,26 +51,40 @@ def test_create_consent(models, input):
     assert consent
 
 
+def test_create_consent_fail_on_invalid_cookie_category(models):
+    with pytest.raises(ValidationError):
+        consent = Consent(category="perfrmance",
+                          type="cookie",
+                          status="accepted",
+                          user=models['user'])
+                          
+
+def test_create_consent_fail_on_invalid_type(models):
+    with pytest.raises(DataError):
+        consent = Consent(category="performance",
+                          type="wookie",
+                          status="accepted",
+                          user=models['user'])
+        db.session.add(consent)
+        db.session.commit()
+
+
 @pytest.mark.parametrize('input', [
-    # invalid category for cookie consent
-    {
-        "type": "cookie",
-        "category": "perfrmance",
-        "status": "accepted"
-    },
-    # invalid status (gdpr consent)
+    # invalid reject status
     {
         'type': 'gdpr',
         'category': 'newsletter',
         'status': 'rej',
     },
-    # invalid status (cookie consent)
+    # invalid accept status
     {
         'type': 'cookie',
         'category': 'statistics',
         'status': 'akceptted',
     }
 ])
-def test_create_consent_fail(models, input):
-    with pytest.raises(Exception):
-        Consent(**input, user=models['user'])
+def test_create_consent_fail_on_invalid_status(models, input):
+    with pytest.raises(DataError):
+        consent = Consent(**input, user=models['user'])
+        db.session.add(consent)
+        db.session.commit()

@@ -17,6 +17,7 @@
 import base64
 import json
 from datetime import datetime, timedelta
+from itertools import groupby
 
 import pytest
 from jose import jwt
@@ -249,29 +250,41 @@ def test_create_consent(client, session, tokens, input):
     assert Consent.query.filter(Consent.id == consent_id).count() == 1
 
 
-@pytest.mark.parametrize('input', [
-    # incorrect type
-    {
-        'type': 'gpdr',
-        'category': 'newsletter',
-        'status': 'accepted',
-    },
-    # incorrect category for 'cookie' consent
-    {
+def test_create_consent_fail_on_incorrect_cookie_category(client, session,
+                                                          tokens):
+    """Fail to create a new consent with incorrect cookie category."""
+    data = {
         'type': 'cookie',
         'category': 'fumctiomal',
         'status': 'accepted',
-    },
-    # incorrect status
-    {
+    }
+    response = client.post("/consent", json=data, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 422
+
+
+def test_create_consent_fail_on_incorrect_status(client, session, tokens):
+    """Fail to create a new consent with incorrect status."""
+    data = {
         'type': 'cookie',
         'category': 'strictly_necessary',
         'status': 'akcepted',
-    },
-])
-def test_create_consent_fail(client, session, tokens, input):
-    """Create a new consent."""
-    response = client.post("/consent", json=input, headers={
+    }
+    response = client.post("/consent", json=data, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 422
+
+
+def test_create_consent_fail_on_incorrect_type(client, session, tokens):
+    """Fail to create a new consent with incorrect type."""
+    data = {
+        'type': 'gp_dr',
+        'category': 'newsletter',
+        'status': 'accepted',
+    }
+    response = client.post("/consent", json=data, headers={
         'Authorization': f"Bearer {tokens['write']}",
     })
     assert response.status_code == 422
@@ -284,44 +297,72 @@ def test_get_consent(app, client, session, models, tokens):
     })
     assert response.status_code == 200
 
+
+def test_get_consent_returns_unique_consents(
+        app, client, session, models, tokens):
+    """
+    Test that retrieved user consent data include only one consent per
+    combination of category and type.
+    """
+    response = client.get("/consent", headers={
+        'Authorization': f"Bearer {tokens['read']}",
+    })
     user_id = jwt.decode(
         tokens['read'],
         app.config['RSA_PUBLIC_KEY'],
         app.config['ALGORITHM'],
     )['usr']
-
     # Get expected consents - Consents with most recent timestamp value
     # for each group of consents that have identical combination of user_id,
     # type, and category
-    # NOTE: Intentionally using different logic here than in resource.py for
-    #       robustness
+    # NOTE: Intentionally ordering consents programmatically to test expected
+    #       functioning of the SQL query.
     consents = Consent.query.filter(Consent.user_id == user_id).all()
-    latest_consents = {}
-    for consent in consents:
-        consent_key = f"{consent.type}-{consent.category}"
-        try:
-            latest_consent = latest_consents[consent_key]
-            latest_timestamp = latest_consent.timestamp.isoformat()
-            if consent.timestamp.isoformat() > latest_timestamp:
-                latest_consents[consent_key] = consent
-        except KeyError:
-            latest_consents[consent_key] = consent
-
-    # Test correct length of retrieved consents
+    keyfunc = lambda consent: f"{consent.type}-{consent.category}"
+    latest_consents = {
+        key: max(group, key=lambda c: c.timestamp)
+        for key, group in groupby(sorted(consents, key=keyfunc), key=keyfunc)
+    }
     assert len(response.json) == len(latest_consents)
-
     # Test for correctness and unique combination of type and category for each
     # of the user's consents
-    latest_timestamps = [
-        c.timestamp.replace(tzinfo=timezone('UTC')).isoformat()
-        for c in latest_consents.values()
-    ]
     unique_consents = {}
     for consent in response.json:
-        assert consent['timestamp'] in latest_timestamps
         consent_key = f"{consent['type']}-{consent['category']}"
         assert consent_key not in unique_consents
         unique_consents[consent_key] = consent
+
+
+def test_get_consent_returns_latest_consents(app, client, session, models, 
+                                             tokens):
+    """Test that retrieved user consent data match the latest values."""
+    response = client.get("/consent", headers={
+        'Authorization': f"Bearer {tokens['read']}",
+    })
+    user_id = jwt.decode(
+        tokens['read'],
+        app.config['RSA_PUBLIC_KEY'],
+        app.config['ALGORITHM'],
+    )['usr']
+    # Get expected consents - Consents with most recent timestamp value
+    # for each group of consents that have identical combination of user_id,
+    # type, and category
+    # NOTE: Intentionally ordering consents programmatically to test expected
+    #       functioning of the SQL query.
+    consents = Consent.query.filter(Consent.user_id == user_id).all()
+    keyfunc = lambda consent: f"{consent.type}-{consent.category}"
+    latest_consents = {
+        key: max(group, key=lambda c: c.timestamp)
+        for key, group in groupby(sorted(consents, key=keyfunc), key=keyfunc)
+    }
+    assert len(response.json) == len(latest_consents)
+    # Test that timestamps in our collection match those retrieved via request
+    latest_timestamps = [
+        c.timestamp.isoformat()
+        for c in latest_consents.values()
+    ]
+    for consent in response.json:
+        assert consent['timestamp'] in latest_timestamps
 
 
 def test_reset_request_non_existing_email(client, models):
