@@ -15,11 +15,11 @@
 
 """Marshmallow schemas for marshalling the API endpoints."""
 
-from marshmallow import Schema, ValidationError, fields, validates_schema
+from enum import Enum
 
-from .validators import (
-    validate_consent_category, validate_consent_status, validate_consent_type)
+from marshmallow import Schema, ValidationError, fields, validates, validates_schema
 
+from .enums import CookieConsentCategory, ConsentStatus, ConsentType
 
 class StrictSchema(Schema):
     class Meta:
@@ -58,20 +58,62 @@ class ProjectRequestSchema(StrictSchema):
 class ConsentRegisterSchema(StrictSchema):
     type = fields.String(
         required=True,
-        validate=lambda val: validate_consent_type(val, ValidationError))
-    category = fields.String(required=True)
+        description="Type of the consent, e.g. GDPR or cookie consent")
+    category = fields.String(
+        required=True,
+        description="Category the consent relates to.")
     status = fields.String(
         required=True,
-        validate=lambda val: validate_consent_status(val, ValidationError))
-    timestamp = fields.DateTime()
-    valid_until = fields.DateTime()
-    message = fields.String()
-    source = fields.String()
+        description="Whether the consent was accepted or rejected.")
+    timestamp = fields.DateTime(description="Time of when user responded to "
+                                            "the consent")
+    valid_until = fields.DateTime(description="Time of when the consent should"
+        "be revoked. Null implies unlimited validity")
+    message = fields.String(description="Exact wording of what the user "
+                                        "consented to.")
+    source = fields.String(description="Source of the consent.")
 
     @validates_schema
     def validate_category(self, data, **kwargs):
-        return validate_consent_category(data, data['category'],
-                                         errtype=ValidationError)
+        # Marshmallow's schema validation process removes invalid fields from 
+        # the response. This leads to __getitem__ raising an KeyError if it
+        # can't find the field.
+        # For more info, this occurs in marshmallow(2.x).schema.py:_do_load
+        try:
+            consent_type = data['type']
+        except KeyError:
+            # Field 'type' has been removed from the response, so the data has
+            # already been validated and failed and appropriate response is
+            # expected to be sent to the requester. No need to validate it 
+            # again.
+            return
+        if consent_type == ConsentType.cookie.name:
+            try:
+                CookieConsentCategory[data['category']]
+            except KeyError:
+                raise ValidationError(
+                    f'Invalid cookie consent category "{data["category"]}". '
+                    'Category must be one of '
+                    f'{[c.name for c in CookieConsentCategory]}.')
+
+    @validates('type')
+    def validate_type(self, value, **kwargs):
+        try:
+            ConsentType[value]
+        except KeyError:
+            raise ValidationError(
+                f'Invalid consent type "{value}". Type must be one of '
+                f'{[c.name for c in ConsentType]}.')
+
+    @validates('status')
+    def validate_status(self, value, **kwargs):
+        try:
+            ConsentStatus[value]
+        except KeyError:
+            raise ValidationError(
+                f'Invalid consent status "{value}". Status must be one of '
+                f'{[c.name for c in ConsentStatus]}.')
+        return value
 
 
 # Response schemas
@@ -138,28 +180,10 @@ class PasswordResetSchema(StrictSchema):
 
 
 class ConsentResponseSchema(StrictSchema):
-    type = fields.String(
-        required=True,
-        validate=lambda val: validate_consent_type(val, ValidationError),
-        description="Type of the consent, e.g. GDPR or cookie consent")
-    category = fields.String(
-        required=True,
-        description="Category the consent relates to.")
-    status = fields.String(
-        required=True,
-        validate=lambda val: validate_consent_status(val, ValidationError),
-        description="Whether the consent was accepted or rejected.")
-    timestamp = fields.DateTime(
-        required=True,
-        description="Time of when user responded to the consent")
-    valid_until = fields.DateTime(
-        description="Time of when the consent should be revoked. Null implies "
-                    "unlimited validity")
-    message = fields.String(description="Exact wording of what the user "
-                                        "consented to.")
-    source = fields.String(description="Source of the consent.")
-
-    @validates_schema
-    def validate_category(self, data, **kwargs):
-        validate_consent_category(data, data['category'],
-                                  errtype=ValidationError)
+    type = fields.String(required=True)
+    category = fields.String(required=True)
+    status = fields.String(required=True)
+    timestamp = fields.DateTime(required=True)
+    valid_until = fields.DateTime()
+    message = fields.String()
+    source = fields.String()

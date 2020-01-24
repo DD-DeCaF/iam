@@ -16,19 +16,18 @@
 """Data models."""
 
 import logging
+from enum import Enum
 from datetime import datetime, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
 from jose import jwt
+from marshmallow import ValidationError
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Email, Mail, Personalization
-from sqlalchemy.orm import validates
 
 from . import hasher
 from .app import app
-from .enums import ConsentStatus, ConsentType
-from .validators import (
-    validate_consent_category, validate_consent_status, validate_consent_type)
+from .enums import CookieConsentCategory, ConsentStatus, ConsentType
 
 
 db = SQLAlchemy()
@@ -242,18 +241,28 @@ class Consent(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', back_populates='consents')
 
-    @validates('category')
-    def validate_category(self, key, value):
-        return validate_consent_category(self, value, accessor=getattr,
-                                         errtype=ValueError)
-
-    @validates('status')
-    def validate_status(self, key, value):
-        return validate_consent_status(value, errtype=ValueError)
-
-    @validates('type')
-    def validate_type(self, key, value):
-        return validate_consent_type(value, errtype=ValueError)
+    def __init__(self, *args, **kwargs):
+        # SQLAlchemy cannot validate multiple fields at the same time, so
+        # cookie category is checked on __init__. Alternative would be to check
+        # the category on before db commit, but it could be confused with 
+        # SQL's/SQLAlchemy's validation, and values would have to be accessed
+        # via non-public API.
+        consent_type = kwargs.get('type')
+        if isinstance(consent_type, Enum):
+            consent_type = consent_type.name
+        if consent_type == ConsentType.cookie.name:
+            category = kwargs.get('category')
+            try:
+                CookieConsentCategory[category]
+            except KeyError:
+                # DataError, the exc raise by enum validators, represents
+                # SQL's error, unlike here. Therefore we use Marshmallow's
+                # ValidationError
+                raise ValidationError(
+                    f'Invalid cookie consent category "{category}". '
+                    'Category must be one of '
+                    f'{[c.name for c in CookieConsentCategory]}.')
+        super(Consent, self).__init__(*args, **kwargs)
 
     def __repr__(self):
         """Return a printable representation."""
