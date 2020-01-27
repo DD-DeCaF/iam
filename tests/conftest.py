@@ -84,7 +84,7 @@ def db_fixtures(db_tables):
                          status=ConsentStatus.rejected.name,
                          user=user)
     consent1_5 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.statistics.name,
+                         category=CookieConsentCategory.preferences.name,
                          status=ConsentStatus.accepted.name,
                          user=user)
 
