@@ -18,18 +18,29 @@
 from enum import Enum, auto
 
 
-class ConsentType(Enum):
+class EnumBase(Enum):
+    def __str__(self):
+        """Print `name` instead of `Enum.name`."""
+        # Necessary as either SQLAlchemy or Marshmallow casts values of model's
+        # Enum fields to values of respective Enum classes. (So it converts
+        # "accepted" to ConsentStatus.accepted). But when this value is
+        # serialized for request response, by default it gets serialized to
+        # "ConsentStatus.accepted" instead of just "accepted"
+        return str(self.name)
+
+
+class ConsentType(EnumBase):
     gdpr = auto()
     cookie = auto()
 
 
-class ConsentStatus(Enum):
+class ConsentStatus(EnumBase):
     accepted = auto()
     rejected = auto()
 
 
 # See https://gdpr.eu/cookies/ > Types of Cookies > Purpose
-class CookieConsentCategory(Enum):
+class CookieConsentCategory(EnumBase):
     strictly_necessary = auto()
     preferences = auto()
     statistics = auto()
