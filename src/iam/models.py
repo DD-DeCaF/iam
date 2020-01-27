@@ -16,7 +16,7 @@
 """Data models."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 from flask_sqlalchemy import SQLAlchemy
@@ -233,8 +233,10 @@ class Consent(db.Model):
     type = db.Column(db.Enum(ConsentType), nullable=False)
     category = db.Column(db.Text, nullable=False)
     status = db.Column(db.Enum(ConsentStatus), nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    valid_until = db.Column(db.DateTime)
+    timestamp = db.Column(db.DateTime(timezone=True),
+                          nullable=False,
+                          default=datetime.now(timezone.utc))
+    valid_until = db.Column(db.DateTime(timezone=True))
     message = db.Column(db.Text)
     source = db.Column(db.Text)
 

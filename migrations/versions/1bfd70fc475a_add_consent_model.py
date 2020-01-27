@@ -1,8 +1,8 @@
 """Add consent model
 
-Revision ID: 87e272ec75ad
+Revision ID: 1bfd70fc475a
 Revises: e895b1eb485b
-Create Date: 2020-01-24 11:57:45.952411
+Create Date: 2020-01-27 13:32:46.827195
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '87e272ec75ad'
+revision = '1bfd70fc475a'
 down_revision = 'e895b1eb485b'
 branch_labels = None
 depends_on = None
@@ -23,8 +23,8 @@ def upgrade():
     sa.Column('type', sa.Enum('gdpr', 'cookie', name='consenttype'), nullable=False),
     sa.Column('category', sa.Text(), nullable=False),
     sa.Column('status', sa.Enum('accepted', 'rejected', name='consentstatus'), nullable=False),
-    sa.Column('timestamp', sa.DateTime(), nullable=False),
-    sa.Column('valid_until', sa.DateTime(), nullable=True),
+    sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('valid_until', sa.DateTime(timezone=True), nullable=True),
     sa.Column('message', sa.Text(), nullable=True),
     sa.Column('source', sa.Text(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
