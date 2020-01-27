@@ -15,11 +15,11 @@
 
 """Marshmallow schemas for marshalling the API endpoints."""
 
-from enum import Enum
+from marshmallow import (
+    Schema, ValidationError, fields, validates, validates_schema)
 
-from marshmallow import Schema, ValidationError, fields, validates, validates_schema
+from .enums import ConsentStatus, ConsentType, CookieConsentCategory
 
-from .enums import CookieConsentCategory, ConsentStatus, ConsentType
 
 class StrictSchema(Schema):
     class Meta:
@@ -67,15 +67,16 @@ class ConsentRegisterSchema(StrictSchema):
         description="Whether the consent was accepted or rejected.")
     timestamp = fields.DateTime(description="Time of when user responded to "
                                             "the consent")
-    valid_until = fields.DateTime(description="Time of when the consent should"
-        "be revoked. Null implies unlimited validity")
+    valid_until = fields.DateTime(
+        description="Time of when the consent should"
+                    "be revoked. Null implies unlimited validity")
     message = fields.String(description="Exact wording of what the user "
                                         "consented to.")
     source = fields.String(description="Source of the consent.")
 
     @validates_schema
     def validate_category(self, data, **kwargs):
-        # Marshmallow's schema validation process removes invalid fields from 
+        # Marshmallow's schema validation process removes invalid fields from
         # the response. This leads to __getitem__ raising an KeyError if it
         # can't find the field.
         # For more info, this occurs in marshmallow(2.x).schema.py:_do_load
@@ -84,7 +85,7 @@ class ConsentRegisterSchema(StrictSchema):
         except KeyError:
             # Field 'type' has been removed from the response, so the data has
             # already been validated and failed and appropriate response is
-            # expected to be sent to the requester. No need to validate it 
+            # expected to be sent to the requester. No need to validate it
             # again.
             return
         if consent_type == ConsentType.cookie.name:

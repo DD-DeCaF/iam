@@ -16,8 +16,8 @@
 """Data models."""
 
 import logging
-from enum import Enum
 from datetime import datetime, timedelta
+from enum import Enum
 
 from flask_sqlalchemy import SQLAlchemy
 from jose import jwt
@@ -27,7 +27,7 @@ from sendgrid.helpers.mail import Email, Mail, Personalization
 
 from . import hasher
 from .app import app
-from .enums import CookieConsentCategory, ConsentStatus, ConsentType
+from .enums import ConsentStatus, ConsentType, CookieConsentCategory
 
 
 db = SQLAlchemy()
@@ -244,7 +244,7 @@ class Consent(db.Model):
     def __init__(self, *args, **kwargs):
         # SQLAlchemy cannot validate multiple fields at the same time, so
         # cookie category is checked on __init__. Alternative would be to check
-        # the category on before db commit, but it could be confused with 
+        # the category on before db commit, but it could be confused with
         # SQL's/SQLAlchemy's validation, and values would have to be accessed
         # via non-public API.
         consent_type = kwargs.get('type')

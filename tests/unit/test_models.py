@@ -53,11 +53,11 @@ def test_create_consent(models, input):
 
 def test_create_consent_fail_on_invalid_cookie_category(models):
     with pytest.raises(ValidationError):
-        consent = Consent(category="perfrmance",
-                          type="cookie",
-                          status="accepted",
-                          user=models['user'])
-                          
+        Consent(category="perfrmance",
+                type="cookie",
+                status="accepted",
+                user=models['user'])
+
 
 def test_create_consent_fail_on_invalid_type(models):
     with pytest.raises(DataError):

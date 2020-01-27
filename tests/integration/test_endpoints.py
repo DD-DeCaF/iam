@@ -300,10 +300,7 @@ def test_get_consent(app, client, session, models, tokens):
 
 def test_get_consent_returns_unique_consents(
         app, client, session, models, tokens):
-    """
-    Test that retrieved user consent data include only one consent per
-    combination of category and type.
-    """
+    """Test consents include only one consent per category + type."""
     response = client.get("/consent", headers={
         'Authorization': f"Bearer {tokens['read']}",
     })
@@ -317,8 +314,11 @@ def test_get_consent_returns_unique_consents(
     # type, and category
     # NOTE: Intentionally ordering consents programmatically to test expected
     #       functioning of the SQL query.
+
+    def keyfunc(consent):
+        return f"{consent.type}-{consent.category}"
+
     consents = Consent.query.filter(Consent.user_id == user_id).all()
-    keyfunc = lambda consent: f"{consent.type}-{consent.category}"
     latest_consents = {
         key: max(group, key=lambda c: c.timestamp)
         for key, group in groupby(sorted(consents, key=keyfunc), key=keyfunc)
@@ -333,7 +333,7 @@ def test_get_consent_returns_unique_consents(
         unique_consents[consent_key] = consent
 
 
-def test_get_consent_returns_latest_consents(app, client, session, models, 
+def test_get_consent_returns_latest_consents(app, client, session, models,
                                              tokens):
     """Test that retrieved user consent data match the latest values."""
     response = client.get("/consent", headers={
@@ -349,8 +349,11 @@ def test_get_consent_returns_latest_consents(app, client, session, models,
     # type, and category
     # NOTE: Intentionally ordering consents programmatically to test expected
     #       functioning of the SQL query.
+
+    def keyfunc(consent):
+        return f"{consent.type}-{consent.category}"
+
     consents = Consent.query.filter(Consent.user_id == user_id).all()
-    keyfunc = lambda consent: f"{consent.type}-{consent.category}"
     latest_consents = {
         key: max(group, key=lambda c: c.timestamp)
         for key, group in groupby(sorted(consents, key=keyfunc), key=keyfunc)
