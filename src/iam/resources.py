@@ -293,13 +293,16 @@ class ConsentResource(MethodResource):
     def get(self):
         try:
             # Select the latest user's consents for all unique combinations
-            # of consent.type and consent.category
+            # of consent.type and consent.category.
             # Query adapted from https://stackoverflow.com/questions/40537934
+            # NOTE: If multiple consents with same type, category and timestamp
+            #       are found, returns the one with greatest ID
             subquery = db.session.query(
                 Consent.user_id.label("user_id"),
                 Consent.type.label("type"),
                 Consent.category.label("category"),
-                func.max(Consent.timestamp).label("latest_timestamp")
+                func.max(Consent.timestamp).label("latest_timestamp"),
+                func.max(Consent.id).label("greatest_id"),
             ).group_by(
                 Consent.user_id,
                 Consent.type,
@@ -312,6 +315,7 @@ class ConsentResource(MethodResource):
                     Consent.type == subquery.c.type,
                     Consent.category == subquery.c.category,
                     Consent.timestamp == subquery.c.latest_timestamp,
+                    Consent.id == subquery.c.greatest_id,
                 )
             ).order_by(
                 Consent.type,
