@@ -66,53 +66,30 @@ def db_fixtures(db_tables):
     user2.set_password('hunter2')
     project = Project(name='ProjectName')
 
-    # user1 consents
-    consent1_1 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.statistics.name,
-                         status=ConsentStatus.accepted.name,
-                         user=user)
-    consent1_2 = Consent(type=ConsentType.gdpr.name,
-                         category='newsletter',
-                         status=ConsentStatus.rejected.name,
-                         user=user)
-    consent1_3 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.statistics.name,
-                         status=ConsentStatus.accepted.name,
-                         user=user)
-    consent1_4 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.statistics.name,
-                         status=ConsentStatus.rejected.name,
-                         user=user)
-    consent1_5 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.preferences.name,
-                         status=ConsentStatus.accepted.name,
-                         user=user)
-
-    # user2 consents
-    consent2_1 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.preferences.name,
-                         status=ConsentStatus.accepted.name,
-                         user=user2)
-    consent2_2 = Consent(type=ConsentType.gdpr.name,
-                         category='newsletter',
-                         status=ConsentStatus.rejected.name,
-                         user=user2)
-    consent2_3 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.statistics.name,
-                         status=ConsentStatus.accepted.name,
-                         user=user2)
-    consent2_4 = Consent(type=ConsentType.cookie.name,
-                         category=CookieConsentCategory.statistics.name,
-                         status=ConsentStatus.rejected.name,
-                         user=user2)
+    # user1 consent
+    consent = Consent(type=ConsentType.cookie.name,
+                      category=CookieConsentCategory.statistics.name,
+                      status=ConsentStatus.accepted.name,
+                      user=user)
+    # This consent has the same category and type, and is created more
+    # recently, so on request, this consent should be returned instead.
+    consent_override = Consent(type=ConsentType.cookie.name,
+                               category=CookieConsentCategory.statistics.name,
+                               status=ConsentStatus.rejected.name,
+                               user=user)
+    # This consent has the same category and type, and is created more
+    # recently, but is associated with another user, so on user1's request,
+    # this consent should not be returned.
+    consent_conflict = Consent(type=ConsentType.cookie.name,
+                               category=CookieConsentCategory.statistics.name,
+                               status=ConsentStatus.accepted.name,
+                               user=user2)
 
     db_.session.add(organization)
     db_.session.add(team)
     db_.session.add_all([user, user2])
     db_.session.add(project)
-    db_.session.add_all([consent1_1, consent1_2, consent1_3, consent1_4,
-                         consent1_5, consent2_1, consent2_2, consent2_3,
-                         consent2_4])
+    db_.session.add_all([consent, consent_override, consent_conflict])
     db_.session.commit()
 
 
