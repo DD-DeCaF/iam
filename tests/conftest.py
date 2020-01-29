@@ -141,6 +141,7 @@ def models(db_fixtures, session):
         'team': Team.query.one(),
         'user': User.query.limit(1).one(),
         'project': Project.query.one(),
+        'consent': Consent.query.all()
     }
 
 
