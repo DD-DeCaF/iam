@@ -139,7 +139,7 @@ def models(db_fixtures, session):
     return {
         'organization': Organization.query.one(),
         'team': Team.query.one(),
-        'user': User.query.limit(1).one(),
+        'user': User.query.all(),
         'project': Project.query.one(),
         'consent': Consent.query.all()
     }

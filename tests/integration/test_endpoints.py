@@ -66,8 +66,9 @@ def test_authenticate_failure(app, client, models):
     response = client.post('/authenticate/local')
     assert response.status_code == 422
 
+    user = models['user'][0]
     response = client.post('/authenticate/local', data={
-        'email': models['user'].email,
+        'email': user.email,
         'password': 'invalid',
     })
     assert response.status_code == 401
@@ -75,8 +76,9 @@ def test_authenticate_failure(app, client, models):
 
 def test_authenticate_success(app, client, session, models):
     """Test valid local authentication."""
+    user = models['user'][0]
     response = client.post('/authenticate/local', data={
-        'email': models['user'].email,
+        'email': user.email,
         'password': 'hunter2',
     })
     assert response.status_code == 200
@@ -88,14 +90,15 @@ def test_authenticate_success(app, client, session, models):
         app.config['ALGORITHM'],
     )
     del returned_claims['exp']
-    assert models['user'].claims == returned_claims
+    assert user.claims == returned_claims
 
 
 def test_authenticate_refresh(app, client, session, models):
     """Test the token refresh endpoint."""
+    user = models['user'][0]
     # Authenticate to receive a refresh token
     response = client.post('/authenticate/local', data={
-        'email': models['user'].email,
+        'email': user.email,
         'password': 'hunter2',
     })
     refresh_token = json.loads(response.data)['refresh_token']
@@ -108,7 +111,7 @@ def test_authenticate_refresh(app, client, session, models):
 
     # Check that the returned token is now stored in the database
     assert refresh_token['val'] == \
-        models['user'].refresh_tokens[0].token
+        user.refresh_tokens[0].token
 
     # Expect refreshing token to succeed
     response = client.post('/refresh',
@@ -124,10 +127,10 @@ def test_authenticate_refresh(app, client, session, models):
         app.config['ALGORITHM'],
     )
     del refresh_claims['exp']
-    assert models['user'].claims == refresh_claims
+    assert user.claims == refresh_claims
 
     # Expect refreshing an expired token to fail
-    token = models['user'].refresh_tokens[0]
+    token = user.refresh_tokens[0]
     token.expiry = datetime.now() - timedelta(seconds=1)
     response = client.post('/refresh', data={'refresh_token': token.token})
     assert response.status_code == 401
@@ -378,7 +381,7 @@ def test_reset_request_non_existing_email(client, models):
 
 def test_password_reset(client, models):
     """Change password with valid reset token."""
-    user = models["user"]
+    user = models["user"][0]
     encoded_token = user.get_reset_token()
     new_password = 'password'
     response = client.post(f"/password/reset/{encoded_token}", json={
@@ -390,7 +393,7 @@ def test_password_reset(client, models):
 
 def test_password_reset_expired_token(app, client, models):
     """Attempt to change password with expired token."""
-    user = models["user"]
+    user = models["user"][0]
     claims = {
         "exp": int(datetime.timestamp(datetime.now() - timedelta(minutes=1))),
         "usr": user.id
@@ -408,7 +411,7 @@ def test_password_reset_expired_token(app, client, models):
 
 def test_password_reset_wrong_signature(app, client, models):
     """Attempt to change password using token with wrong signature."""
-    user = models["user"]
+    user = models["user"][0]
     claims = {
         "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1))),
         "usr": user.id

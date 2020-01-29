@@ -23,7 +23,7 @@ from iam.models import Consent, db
 
 def test_reset_token(app, models):
     """Test the get_reset_token method."""
-    user = models["user"]
+    user = models["user"][0]
     encoded_token = user.get_reset_token()
     decoded_token = jwt.decode(
         encoded_token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
@@ -46,16 +46,18 @@ def test_reset_token(app, models):
     }
 ])
 def test_create_consent(models, input):
-    consent = Consent(**input, user=models['user'])
+    user = models['user'][0]
+    consent = Consent(**input, user=user)
     assert consent
 
 
 def test_create_consent_fail_on_invalid_type(models):
+    user = models['user'][0]
     with pytest.raises(DataError):
         consent = Consent(category="performance",
                           type="wookie",
                           status="accepted",
-                          user=models['user'])
+                          user=user)
         db.session.add(consent)
         db.session.commit()
 
@@ -75,7 +77,8 @@ def test_create_consent_fail_on_invalid_type(models):
     }
 ])
 def test_create_consent_fail_on_invalid_status(models, input):
+    user = models['user'][0]
     with pytest.raises(DataError):
-        consent = Consent(**input, user=models['user'])
+        consent = Consent(**input, user=user)
         db.session.add(consent)
         db.session.commit()
