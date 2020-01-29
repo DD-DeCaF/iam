@@ -17,10 +17,13 @@
 import base64
 import json
 from datetime import datetime, timedelta
+from itertools import groupby
 
+import pytest
 from jose import jwt
+from pytz import timezone
 
-from iam.models import Project, User
+from iam.models import Consent, Project, User
 
 
 def test_openapi_schema(app, client):
@@ -63,8 +66,9 @@ def test_authenticate_failure(app, client, models):
     response = client.post('/authenticate/local')
     assert response.status_code == 422
 
+    user = models['user'][0]
     response = client.post('/authenticate/local', data={
-        'email': models['user'].email,
+        'email': user.email,
         'password': 'invalid',
     })
     assert response.status_code == 401
@@ -72,8 +76,9 @@ def test_authenticate_failure(app, client, models):
 
 def test_authenticate_success(app, client, session, models):
     """Test valid local authentication."""
+    user = models['user'][0]
     response = client.post('/authenticate/local', data={
-        'email': models['user'].email,
+        'email': user.email,
         'password': 'hunter2',
     })
     assert response.status_code == 200
@@ -85,14 +90,15 @@ def test_authenticate_success(app, client, session, models):
         app.config['ALGORITHM'],
     )
     del returned_claims['exp']
-    assert models['user'].claims == returned_claims
+    assert user.claims == returned_claims
 
 
 def test_authenticate_refresh(app, client, session, models):
     """Test the token refresh endpoint."""
+    user = models['user'][0]
     # Authenticate to receive a refresh token
     response = client.post('/authenticate/local', data={
-        'email': models['user'].email,
+        'email': user.email,
         'password': 'hunter2',
     })
     refresh_token = json.loads(response.data)['refresh_token']
@@ -105,7 +111,7 @@ def test_authenticate_refresh(app, client, session, models):
 
     # Check that the returned token is now stored in the database
     assert refresh_token['val'] == \
-        models['user'].refresh_tokens[0].token
+        user.refresh_tokens[0].token
 
     # Expect refreshing token to succeed
     response = client.post('/refresh',
@@ -121,10 +127,10 @@ def test_authenticate_refresh(app, client, session, models):
         app.config['ALGORITHM'],
     )
     del refresh_claims['exp']
-    assert models['user'].claims == refresh_claims
+    assert user.claims == refresh_claims
 
     # Expect refreshing an expired token to fail
-    token = models['user'].refresh_tokens[0]
+    token = user.refresh_tokens[0]
     token.expiry = datetime.now() - timedelta(seconds=1)
     response = client.post('/refresh', data={'refresh_token': token.token})
     assert response.status_code == 401
@@ -219,6 +225,152 @@ def test_user_no_jwt(client):
     assert response.status_code == 401
 
 
+@pytest.mark.parametrize('input', [
+    # full definition
+    {
+        'type': 'gdpr',
+        'category': 'newsletter',
+        'status': 'accepted',
+        'timestamp': datetime.now(timezone('UTC')).isoformat(),
+        'valid_until': datetime.now(timezone('UTC')).isoformat(),
+        'message': 'I consent to the ToS',
+        'source': 'pytest'
+    },
+    # minimal
+    {
+        'type': 'cookie',
+        'category': 'preferences',
+        'status': 'rejected',
+    }
+])
+def test_create_consent(client, session, tokens, input):
+    """Create a new consent."""
+    response = client.post("/consent", json=input, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 201
+    consent_id = response.json['id']
+    assert Consent.query.filter(Consent.id == consent_id).count() == 1
+
+
+def test_create_consent_fail_on_incorrect_cookie_category(client, session,
+                                                          tokens):
+    """Fail to create a new consent with incorrect cookie category."""
+    data = {
+        'type': 'cookie',
+        'category': 'fumctiomal',
+        'status': 'accepted',
+    }
+    response = client.post("/consent", json=data, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 422
+
+
+def test_create_consent_fail_on_incorrect_status(client, session, tokens):
+    """Fail to create a new consent with incorrect status."""
+    data = {
+        'type': 'cookie',
+        'category': 'strictly_necessary',
+        'status': 'akcepted',
+    }
+    response = client.post("/consent", json=data, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 422
+
+
+def test_create_consent_fail_on_incorrect_type(client, session, tokens):
+    """Fail to create a new consent with incorrect type."""
+    data = {
+        'type': 'gp_dr',
+        'category': 'newsletter',
+        'status': 'accepted',
+    }
+    response = client.post("/consent", json=data, headers={
+        'Authorization': f"Bearer {tokens['write']}",
+    })
+    assert response.status_code == 422
+
+
+def test_get_consent(app, client, session, models, tokens):
+    """Retrieve user consent data based on given token."""
+    response = client.get("/consent", headers={
+        'Authorization': f"Bearer {tokens['read']}",
+    })
+    assert response.status_code == 200
+
+
+def test_get_consent_returns_unique_consents(
+        app, client, session, models, tokens):
+    """Test consents include only one consent per category + type."""
+    response = client.get("/consent", headers={
+        'Authorization': f"Bearer {tokens['read']}",
+    })
+    user_id = jwt.decode(
+        tokens['read'],
+        app.config['RSA_PUBLIC_KEY'],
+        app.config['ALGORITHM'],
+    )['usr']
+    # Get expected consents - Consents with most recent timestamp value
+    # for each group of consents that have identical combination of user_id,
+    # type, and category
+    # NOTE: Intentionally ordering consents programmatically to test expected
+    #       functioning of the SQL query.
+
+    def keyfunc(consent):
+        return f"{consent.type}-{consent.category}"
+
+    consents = Consent.query.filter(Consent.user_id == user_id).all()
+    latest_consents = {
+        key: max(group, key=lambda c: c.timestamp)
+        for key, group in groupby(sorted(consents, key=keyfunc), key=keyfunc)
+    }
+    assert len(response.json) == len(latest_consents)
+    # Test for correctness and unique combination of type and category for each
+    # of the user's consents
+    unique_consents = {}
+    for consent in response.json:
+        consent_key = f"{consent['type']}-{consent['category']}"
+        assert consent_key not in unique_consents
+        unique_consents[consent_key] = consent
+
+
+def test_get_consent_returns_latest_consents(app, client, session, models,
+                                             tokens):
+    """Test that retrieved user consent data match the latest values."""
+    response = client.get("/consent", headers={
+        'Authorization': f"Bearer {tokens['read']}",
+    })
+    user_id = jwt.decode(
+        tokens['read'],
+        app.config['RSA_PUBLIC_KEY'],
+        app.config['ALGORITHM'],
+    )['usr']
+    # Get expected consents - Consents with most recent timestamp value
+    # for each group of consents that have identical combination of user_id,
+    # type, and category
+    # NOTE: Intentionally ordering consents programmatically to test expected
+    #       functioning of the SQL query.
+
+    def keyfunc(consent):
+        return f"{consent.type}-{consent.category}"
+
+    consents = Consent.query.filter(Consent.user_id == user_id).all()
+    latest_consents = {
+        key: max(group, key=lambda c: c.timestamp)
+        for key, group in groupby(sorted(consents, key=keyfunc), key=keyfunc)
+    }
+    assert len(response.json) == len(latest_consents)
+    # Test that timestamps in our collection match those retrieved via request
+    latest_timestamps = [
+        c.timestamp.isoformat()
+        for c in latest_consents.values()
+    ]
+    for consent in response.json:
+        assert consent['timestamp'] in latest_timestamps
+
+
 def test_reset_request_non_existing_email(client, models):
     """Reset request with non-existing email."""
     response = client.post("/password/reset-request", json={
@@ -229,7 +381,7 @@ def test_reset_request_non_existing_email(client, models):
 
 def test_password_reset(client, models):
     """Change password with valid reset token."""
-    user = models["user"]
+    user = models["user"][0]
     encoded_token = user.get_reset_token()
     new_password = 'password'
     response = client.post(f"/password/reset/{encoded_token}", json={
@@ -241,7 +393,7 @@ def test_password_reset(client, models):
 
 def test_password_reset_expired_token(app, client, models):
     """Attempt to change password with expired token."""
-    user = models["user"]
+    user = models["user"][0]
     claims = {
         "exp": int(datetime.timestamp(datetime.now() - timedelta(minutes=1))),
         "usr": user.id
@@ -259,7 +411,7 @@ def test_password_reset_expired_token(app, client, models):
 
 def test_password_reset_wrong_signature(app, client, models):
     """Attempt to change password using token with wrong signature."""
-    user = models["user"]
+    user = models["user"][0]
     claims = {
         "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1))),
         "usr": user.id

@@ -22,7 +22,8 @@ from iam.models import User
 
 def test_sign_claims(app, models):
     """Test the sign_claims function."""
-    claims = sign_claims(models['user'])
+    user = models['user'][0]
+    claims = sign_claims(user)
     assert len(claims['jwt']) > 0
     assert len(claims['refresh_token']['val']) > 0
     expiry = datetime.fromtimestamp(claims['refresh_token']['exp'])

@@ -20,7 +20,8 @@ from jose import jwt
 
 from iam.app import app as app_
 from iam.app import init_app
-from iam.models import Organization, Project, Team, User
+from iam.enums import ConsentStatus, ConsentType, CookieConsentCategory
+from iam.models import Consent, Organization, Project, Team, User
 from iam.models import db as db_
 
 
@@ -61,11 +62,34 @@ def db_fixtures(db_tables):
     team = Team(name='TeamName', organization=organization)
     user = User(first_name='User', last_name='Name', email='user@name.test')
     user.set_password('hunter2')
+    user2 = User(first_name='User2', last_name='Name2', email='user2@name.test')
+    user2.set_password('hunter2')
     project = Project(name='ProjectName')
+
+    # user1 consent
+    consent = Consent(type=ConsentType.cookie.name,
+                      category=CookieConsentCategory.statistics.name,
+                      status=ConsentStatus.accepted.name,
+                      user=user)
+    # This consent has the same category and type, and is created more
+    # recently, so on request, this consent should be returned instead.
+    consent_override = Consent(type=ConsentType.cookie.name,
+                               category=CookieConsentCategory.statistics.name,
+                               status=ConsentStatus.rejected.name,
+                               user=user)
+    # This consent has the same category and type, and is created more
+    # recently, but is associated with another user, so on user1's request,
+    # this consent should not be returned.
+    consent_conflict = Consent(type=ConsentType.cookie.name,
+                               category=CookieConsentCategory.statistics.name,
+                               status=ConsentStatus.accepted.name,
+                               user=user2)
+
     db_.session.add(organization)
     db_.session.add(team)
-    db_.session.add(user)
+    db_.session.add_all([user, user2])
     db_.session.add(project)
+    db_.session.add_all([consent, consent_override, consent_conflict])
     db_.session.commit()
 
 
@@ -115,8 +139,9 @@ def models(db_fixtures, session):
     return {
         'organization': Organization.query.one(),
         'team': Team.query.one(),
-        'user': User.query.one(),
+        'user': User.query.all(),
         'project': Project.query.one(),
+        'consent': Consent.query.all()
     }
 
 

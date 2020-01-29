@@ -14,14 +14,71 @@
 
 """Unit tests for the models module."""
 
+import pytest
 from jose import jwt
+from sqlalchemy.exc import DataError
+
+from iam.models import Consent, db
 
 
 def test_reset_token(app, models):
     """Test the get_reset_token method."""
-    user = models["user"]
+    user = models["user"][0]
     encoded_token = user.get_reset_token()
     decoded_token = jwt.decode(
         encoded_token, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
     )
     assert decoded_token["usr"] == user.id
+
+
+@pytest.mark.parametrize('input', [
+    # cookie consent
+    {
+        "type": "cookie",
+        "category": "statistics",
+        "status": "accepted"
+    },
+    # gdpr consent
+    {
+        'type': 'gdpr',
+        'category': 'newsletter',
+        'status': 'rejected',
+    }
+])
+def test_create_consent(models, input):
+    user = models['user'][0]
+    consent = Consent(**input, user=user)
+    assert consent
+
+
+def test_create_consent_fail_on_invalid_type(models):
+    user = models['user'][0]
+    with pytest.raises(DataError):
+        consent = Consent(category="performance",
+                          type="wookie",
+                          status="accepted",
+                          user=user)
+        db.session.add(consent)
+        db.session.commit()
+
+
+@pytest.mark.parametrize('input', [
+    # invalid reject status
+    {
+        'type': 'gdpr',
+        'category': 'newsletter',
+        'status': 'rej',
+    },
+    # invalid accept status
+    {
+        'type': 'cookie',
+        'category': 'statistics',
+        'status': 'akceptted',
+    }
+])
+def test_create_consent_fail_on_invalid_status(models, input):
+    user = models['user'][0]
+    with pytest.raises(DataError):
+        consent = Consent(**input, user=user)
+        db.session.add(consent)
+        db.session.commit()

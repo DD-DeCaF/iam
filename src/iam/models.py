@@ -16,7 +16,7 @@
 """Data models."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from flask_sqlalchemy import SQLAlchemy
 from jose import jwt
@@ -25,6 +25,7 @@ from sendgrid.helpers.mail import Email, Mail, Personalization
 
 from . import hasher
 from .app import app
+from .enums import ConsentStatus, ConsentType
 
 
 db = SQLAlchemy()
@@ -87,6 +88,8 @@ class User(db.Model):
     projects = db.relationship('UserProject', back_populates='user')
 
     refresh_tokens = db.relationship('RefreshToken', back_populates='user')
+
+    consents = db.relationship('Consent', back_populates='user')
 
     def __repr__(self):
         """Return a printable representation."""
@@ -218,6 +221,30 @@ class Project(db.Model):
     def __repr__(self):
         """Return a printable representation."""
         return f"<{self.__class__.__name__} {self.id}: {self.name}>"
+
+
+class Consent(db.Model):
+    """User's consent."""
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    type = db.Column(db.Enum(ConsentType), nullable=False)
+    category = db.Column(db.Text, nullable=False)
+    status = db.Column(db.Enum(ConsentStatus), nullable=False)
+    timestamp = db.Column(db.DateTime(timezone=True),
+                          nullable=False,
+                          default=datetime.now(timezone.utc))
+    valid_until = db.Column(db.DateTime(timezone=True))
+    message = db.Column(db.Text)
+    source = db.Column(db.Text)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', back_populates='consents')
+
+    def __repr__(self):
+        """Return a printable representation."""
+        return (f"<{self.__class__.__name__} {self.id}: {self.type} "
+                f"({self.category})>")
 
 
 #
