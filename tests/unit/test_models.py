@@ -16,7 +16,6 @@
 
 import pytest
 from jose import jwt
-from marshmallow import ValidationError
 from sqlalchemy.exc import DataError
 
 from iam.models import Consent, db
@@ -49,14 +48,6 @@ def test_reset_token(app, models):
 def test_create_consent(models, input):
     consent = Consent(**input, user=models['user'])
     assert consent
-
-
-def test_create_consent_fail_on_invalid_cookie_category(models):
-    with pytest.raises(ValidationError):
-        Consent(category="perfrmance",
-                type="cookie",
-                status="accepted",
-                user=models['user'])
 
 
 def test_create_consent_fail_on_invalid_type(models):

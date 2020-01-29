@@ -17,17 +17,15 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
-from enum import Enum
 
 from flask_sqlalchemy import SQLAlchemy
 from jose import jwt
-from marshmallow import ValidationError
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Email, Mail, Personalization
 
 from . import hasher
 from .app import app
-from .enums import ConsentStatus, ConsentType, CookieConsentCategory
+from .enums import ConsentStatus, ConsentType
 
 
 db = SQLAlchemy()
@@ -242,29 +240,6 @@ class Consent(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', back_populates='consents')
-
-    def __init__(self, *args, **kwargs):
-        # SQLAlchemy cannot validate multiple fields at the same time, so
-        # cookie category is checked on __init__. Alternative would be to check
-        # the category on before db commit, but it could be confused with
-        # SQL's/SQLAlchemy's validation, and values would have to be accessed
-        # via non-public API.
-        consent_type = kwargs.get('type')
-        if isinstance(consent_type, Enum):
-            consent_type = consent_type.name
-        if consent_type == ConsentType.cookie.name:
-            category = kwargs.get('category')
-            try:
-                CookieConsentCategory[category]
-            except KeyError:
-                # DataError, the exc raise by enum validators, represents
-                # SQL's error, unlike here. Therefore we use Marshmallow's
-                # ValidationError
-                raise ValidationError(
-                    f'Invalid cookie consent category "{category}". '
-                    'Category must be one of '
-                    f'{[c.name for c in CookieConsentCategory]}.')
-        super(Consent, self).__init__(*args, **kwargs)
 
     def __repr__(self):
         """Return a printable representation."""
