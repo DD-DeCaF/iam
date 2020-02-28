@@ -81,15 +81,26 @@ class User(db.Model):
     last_name = db.Column(db.String(256))
     email = db.Column(db.String(256), unique=True, nullable=False)
 
-    organizations = db.relationship('OrganizationUser', back_populates='user',
-                                    lazy='joined')
-    teams = db.relationship('TeamUser', back_populates='user', lazy='joined')
+    organizations = db.relationship('OrganizationUser',
+                                    back_populates='user',
+                                    lazy='joined',
+                                    cascade='delete, delete-orphan')
+    teams = db.relationship('TeamUser',
+                            back_populates='user',
+                            lazy='joined',
+                            cascade='delete, delete-orphan')
 
-    projects = db.relationship('UserProject', back_populates='user')
+    projects = db.relationship('UserProject',
+                               back_populates='user',
+                               cascade='delete, delete-orphan')
 
-    refresh_tokens = db.relationship('RefreshToken', back_populates='user')
+    refresh_tokens = db.relationship('RefreshToken',
+                                     back_populates='user',
+                                     cascade='delete, delete-orphan')
 
-    consents = db.relationship('Consent', back_populates='user')
+    consents = db.relationship('Consent',
+                               back_populates='user',
+                               cascade='delete, delete-orphan')
 
     def __repr__(self):
         """Return a printable representation."""
