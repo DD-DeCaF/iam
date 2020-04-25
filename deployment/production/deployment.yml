@@ -101,6 +101,11 @@ spec:
           mountPath: "/app/keys"
           readOnly: true
         command: ["flask", "db", "upgrade"]
+        resources:
+          requests:
+            cpu: "1m"
+          limits:
+            cpu: "2000m"
       containers:
       - name: web
         image: gcr.io/dd-decaf-cfbf6/iam:master
@@ -204,7 +209,7 @@ spec:
           initialDelaySeconds: 5
         resources:
           requests:
-            cpu: "10m"
+            cpu: "1m"
           limits:
             cpu: "2000m"
       volumes:
