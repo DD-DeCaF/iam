@@ -34,13 +34,10 @@ ENV PYTHONPATH="${CWD}/src"
 
 WORKDIR "${CWD}"
 
-COPY requirements ./requirements/
-
 # Install openssh to be able to generate rsa keys
 RUN apk add --update --no-cache openssh
 
-# Install python dependencies
-COPY requirements ./requirements
+COPY requirements ./requirements/
 
 RUN set -eux \
     # build-base is required to build grpcio->firebase-admin
