@@ -22,9 +22,10 @@ import prometheus_client
 #   service: The current service (always 'iam')
 #   environment: The current runtime environment ('production' or 'staging')
 USER_COUNT = prometheus_client.Gauge(
-    'decaf_user_count',
+    "decaf_user_count",
     "The current number of users in the database",
-    ['service', 'environment'])
+    ["service", "environment"],
+)
 
 
 # ORGANIZATION_COUNT: The current number of users in the database
@@ -32,9 +33,10 @@ USER_COUNT = prometheus_client.Gauge(
 #   service: The current service (always 'iam')
 #   environment: The current runtime environment ('production' or 'staging')
 ORGANIZATION_COUNT = prometheus_client.Gauge(
-    'decaf_organization_count',
+    "decaf_organization_count",
     "The current number of users in the database",
-    ['service', 'environment'])
+    ["service", "environment"],
+)
 
 
 # PROJECT_COUNT: The current number of projects in the database
@@ -42,6 +44,7 @@ ORGANIZATION_COUNT = prometheus_client.Gauge(
 #   service: The current service (always 'iam')
 #   environment: The current runtime environment ('production' or 'staging')
 PROJECT_COUNT = prometheus_client.Gauge(
-    'decaf_project_count',
+    "decaf_project_count",
     "The current number of projects in the database",
-    ['service', 'environment'])
+    ["service", "environment"],
+)

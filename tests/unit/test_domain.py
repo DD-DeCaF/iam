@@ -22,20 +22,19 @@ from iam.models import User
 
 def test_sign_claims(app, models):
     """Test the sign_claims function."""
-    user = models['user'][0]
+    user = models["user"][0]
     claims = sign_claims(user)
-    assert len(claims['jwt']) > 0
-    assert len(claims['refresh_token']['val']) > 0
-    expiry = datetime.fromtimestamp(claims['refresh_token']['exp'])
+    assert len(claims["jwt"]) > 0
+    assert len(claims["refresh_token"]["val"]) > 0
+    expiry = datetime.fromtimestamp(claims["refresh_token"]["exp"])
     assert datetime.now() < expiry
-    assert datetime.now() + app.config['REFRESH_TOKEN_VALIDITY'] >= expiry
+    assert datetime.now() + app.config["REFRESH_TOKEN_VALIDITY"] >= expiry
 
 
 def test_create_firebase_user(session):
     """Test creating a Firebase user."""
-    user = create_firebase_user('foo_token', {
-        'name': 'Foo Bar',
-        'email': 'foo@bar.dk',
-    })
+    user = create_firebase_user(
+        "foo_token", {"name": "Foo Bar", "email": "foo@bar.dk"}
+    )
     assert isinstance(user, User)
-    assert len(user.claims['prj'].keys()) == 0
+    assert len(user.claims["prj"].keys()) == 0

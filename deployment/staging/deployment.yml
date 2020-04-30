@@ -201,7 +201,6 @@ spec:
           readOnly: true
         - name: prometheus-client
           mountPath: /prometheus-client
-        command: ["gunicorn", "-c", "gunicorn.py", "iam.wsgi:app"]
         readinessProbe:
           httpGet:
             path: /iam/healthz

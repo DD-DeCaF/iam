@@ -4,6 +4,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - BASE_TAG=${BASE_TAG}
+        - BUILD_COMMIT=${BUILD_COMMIT:-unknown}
+        - BUILD_TIMESTAMP=${BUILD_TIMESTAMP:-unknown}
     image: gcr.io/dd-decaf-cfbf6/iam:${IMAGE_TAG:-latest}
     networks:
       default:
@@ -20,9 +24,9 @@ services:
       - postgres
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - SCRIPT_NAME=${SCRIPT_NAME}
       - FLASK_APP=src/iam/wsgi.py
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - SCRIPT_NAME=${SCRIPT_NAME}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:4200}
       - SENTRY_DSN=${SENTRY_DSN}
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME:-admin}
       - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD}
@@ -41,7 +45,6 @@ services:
       - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
       - prometheus_multiproc_dir=/prometheus-client
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
-    command: gunicorn -c gunicorn.py iam.wsgi:app
 
   postgres:
     image: postgres:9.6-alpine
