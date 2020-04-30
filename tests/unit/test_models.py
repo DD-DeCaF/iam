@@ -31,53 +31,42 @@ def test_reset_token(app, models):
     assert decoded_token["usr"] == user.id
 
 
-@pytest.mark.parametrize('input', [
-    # cookie consent
-    {
-        "type": "cookie",
-        "category": "statistics",
-        "status": "accepted"
-    },
-    # gdpr consent
-    {
-        'type': 'gdpr',
-        'category': 'newsletter',
-        'status': 'rejected',
-    }
-])
+@pytest.mark.parametrize(
+    "input",
+    [
+        # cookie consent
+        {"type": "cookie", "category": "statistics", "status": "accepted"},
+        # gdpr consent
+        {"type": "gdpr", "category": "newsletter", "status": "rejected",},
+    ],
+)
 def test_create_consent(models, input):
-    user = models['user'][0]
+    user = models["user"][0]
     consent = Consent(**input, user=user)
     assert consent
 
 
 def test_create_consent_fail_on_invalid_type(models):
-    user = models['user'][0]
+    user = models["user"][0]
     with pytest.raises(DataError):
-        consent = Consent(category="performance",
-                          type="wookie",
-                          status="accepted",
-                          user=user)
+        consent = Consent(
+            category="performance", type="wookie", status="accepted", user=user
+        )
         db.session.add(consent)
         db.session.commit()
 
 
-@pytest.mark.parametrize('input', [
-    # invalid reject status
-    {
-        'type': 'gdpr',
-        'category': 'newsletter',
-        'status': 'rej',
-    },
-    # invalid accept status
-    {
-        'type': 'cookie',
-        'category': 'statistics',
-        'status': 'akceptted',
-    }
-])
+@pytest.mark.parametrize(
+    "input",
+    [
+        # invalid reject status
+        {"type": "gdpr", "category": "newsletter", "status": "rej",},
+        # invalid accept status
+        {"type": "cookie", "category": "statistics", "status": "akceptted",},
+    ],
+)
 def test_create_consent_fail_on_invalid_status(models, input):
-    user = models['user'][0]
+    user = models["user"][0]
     with pytest.raises(DataError):
         consent = Consent(**input, user=user)
         db.session.add(consent)

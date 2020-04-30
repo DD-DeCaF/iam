@@ -43,14 +43,23 @@ def init_app(application, db):
     # that need to import the flaskk app.
     from . import errorhandlers, jwt, resources
     from .models import (
-        Organization, OrganizationProject, OrganizationUser, Project,
-        RefreshToken, Team, TeamProject, TeamUser, User, UserProject)
+        Organization,
+        OrganizationProject,
+        OrganizationUser,
+        Project,
+        RefreshToken,
+        Team,
+        TeamProject,
+        TeamUser,
+        User,
+        UserProject,
+    )
     from .settings import current_config
 
     application.config.from_object(current_config())
 
     # Configure logging
-    logging.config.dictConfig(application.config['LOGGING'])
+    logging.config.dictConfig(application.config["LOGGING"])
 
     logger.info("Logging configured")
 
@@ -59,30 +68,35 @@ def init_app(application, db):
     db.init_app(application)
 
     logger.debug("Initializing sentry")
-    if application.config['SENTRY_DSN']:
-        sentry = Sentry(dsn=application.config['SENTRY_DSN'], logging=True,
-                        level=logging.ERROR)
+    if application.config["SENTRY_DSN"]:
+        sentry = Sentry(
+            dsn=application.config["SENTRY_DSN"],
+            logging=True,
+            level=logging.ERROR,
+        )
         sentry.init_app(application)
 
     logger.debug("Initializing CORS")
     CORS(application)
 
-    if application.config['FEAT_TOGGLE_FIREBASE']:
+    if application.config["FEAT_TOGGLE_FIREBASE"]:
         logger.info("Initializing Firebase")
-        cred = credentials.Certificate({
-            'type': 'service_account',
-            'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
-            'token_uri': 'https://accounts.google.com/o/oauth2/token',
-            'auth_provider_x509_cert_url':
-                'https://www.googleapis.com/oauth2/v1/certs',
-            'project_id': application.config['FIREBASE_PROJECT_ID'],
-            'private_key_id': application.config['FIREBASE_PRIVATE_KEY_ID'],
-            'private_key': application.config['FIREBASE_PRIVATE_KEY'],
-            'client_email': application.config['FIREBASE_CLIENT_EMAIL'],
-            'client_id': application.config['FIREBASE_CLIENT_ID'],
-            'client_x509_cert_url':
-                application.config['FIREBASE_CLIENT_CERT_URL'],
-        })
+        cred = credentials.Certificate(
+            {
+                "type": "service_account",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://accounts.google.com/o/oauth2/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "project_id": application.config["FIREBASE_PROJECT_ID"],
+                "private_key_id": application.config["FIREBASE_PRIVATE_KEY_ID"],
+                "private_key": application.config["FIREBASE_PRIVATE_KEY"],
+                "client_email": application.config["FIREBASE_CLIENT_EMAIL"],
+                "client_id": application.config["FIREBASE_CLIENT_ID"],
+                "client_x509_cert_url": application.config[
+                    "FIREBASE_CLIENT_CERT_URL"
+                ],
+            }
+        )
         firebase_admin.initialize_app(cred)
     else:
         logger.info("Firebase feature toggle is off")
@@ -95,8 +109,7 @@ def init_app(application, db):
     ############################################################################
 
     logger.debug("Registering admin views")
-    admin = Admin(application, template_mode='bootstrap3',
-                  url=f"/admin")
+    admin = Admin(application, template_mode="bootstrap3", url=f"/admin")
     admin.add_view(ModelView(Organization, db.session))
     admin.add_view(ModelView(Team, db.session))
     admin.add_view(ModelView(User, db.session))
@@ -134,7 +147,7 @@ def init_app(application, db):
             print(user)
 
     @application.cli.command()
-    @click.argument('id')
+    @click.argument("id")
     def set_password(id):
         """Set a users password. (Run 'users' to see all user ids)."""
         try:
