@@ -106,7 +106,7 @@ class Default:
                     "propagate": False,
                 }
             },
-            "root": {"level": "DEBUG", "handlers": ["console"],},
+            "root": {"level": "DEBUG", "handlers": ["console"]},
         }
 
 

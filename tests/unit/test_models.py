@@ -37,7 +37,7 @@ def test_reset_token(app, models):
         # cookie consent
         {"type": "cookie", "category": "statistics", "status": "accepted"},
         # gdpr consent
-        {"type": "gdpr", "category": "newsletter", "status": "rejected",},
+        {"type": "gdpr", "category": "newsletter", "status": "rejected"},
     ],
 )
 def test_create_consent(models, input):
@@ -60,9 +60,9 @@ def test_create_consent_fail_on_invalid_type(models):
     "input",
     [
         # invalid reject status
-        {"type": "gdpr", "category": "newsletter", "status": "rej",},
+        {"type": "gdpr", "category": "newsletter", "status": "rej"},
         # invalid accept status
-        {"type": "cookie", "category": "statistics", "status": "akceptted",},
+        {"type": "cookie", "category": "statistics", "status": "akceptted"},
     ],
 )
 def test_create_consent_fail_on_invalid_status(models, input):

@@ -71,7 +71,7 @@ def test_authenticate_failure(app, client, models):
     user = models["user"][0]
     response = client.post(
         "/authenticate/local",
-        data={"email": user.email, "password": "invalid",},
+        data={"email": user.email, "password": "invalid"},
     )
     assert response.status_code == 401
 
@@ -81,7 +81,7 @@ def test_authenticate_success(app, client, session, models):
     user = models["user"][0]
     response = client.post(
         "/authenticate/local",
-        data={"email": user.email, "password": "hunter2",},
+        data={"email": user.email, "password": "hunter2"},
     )
     assert response.status_code == 200
     raw_jwt_token = json.loads(response.data)["jwt"]
@@ -99,7 +99,7 @@ def test_authenticate_refresh(app, client, session, models):
     # Authenticate to receive a refresh token
     response = client.post(
         "/authenticate/local",
-        data={"email": user.email, "password": "hunter2",},
+        data={"email": user.email, "password": "hunter2"},
     )
     refresh_token = json.loads(response.data)["refresh_token"]
 
@@ -145,7 +145,7 @@ def test_create_project(client, session, tokens):
             "teams": [],
             "users": [],
         },
-        headers={"Authorization": f"Bearer {tokens['write']}",},
+        headers={"Authorization": f"Bearer {tokens['write']}"},
     )
     assert response.status_code == 201
     project_id = response.json["id"]
@@ -155,7 +155,7 @@ def test_create_project(client, session, tokens):
 def test_get_projects(client, session, models, tokens):
     """Retrieve list of models."""
     response = client.get(
-        "/projects", headers={"Authorization": f"Bearer {tokens['read']}",}
+        "/projects", headers={"Authorization": f"Bearer {tokens['read']}"}
     )
     assert response.status_code == 200
     assert len(response.json) > 0
@@ -165,7 +165,7 @@ def test_get_project(client, session, models, tokens):
     """Retrieve single models."""
     response = client.get(
         f"/projects/{models['project'].id}",
-        headers={"Authorization": f"Bearer {tokens['read']}",},
+        headers={"Authorization": f"Bearer {tokens['read']}"},
     )
     assert response.status_code == 200
     assert response.json["name"] == "ProjectName"
@@ -181,7 +181,7 @@ def test_put_project(client, session, models, tokens):
             "teams": [],
             "users": [],
         },
-        headers={"Authorization": f"Bearer {tokens['write']}",},
+        headers={"Authorization": f"Bearer {tokens['write']}"},
     )
     assert response.status_code == 204
     project = Project.query.filter(Project.id == models["project"].id).one()
@@ -192,7 +192,7 @@ def test_delete_project(client, session, models, tokens):
     """Delete a project."""
     response = client.delete(
         f"/projects/{models['project'].id}",
-        headers={"Authorization": f"Bearer {tokens['admin']}",},
+        headers={"Authorization": f"Bearer {tokens['admin']}"},
     )
     assert response.status_code == 204
     assert Project.query.filter(Project.id == 1).count() == 0
@@ -208,7 +208,7 @@ def test_keys(app, client):
 def test_user(app, client, session, models, tokens):
     """Retrieve user data based on given token."""
     response = client.get(
-        "/user", headers={"Authorization": f"Bearer {tokens['read']}",}
+        "/user", headers={"Authorization": f"Bearer {tokens['read']}"}
     )
     assert response.status_code == 200
 
@@ -242,7 +242,7 @@ def test_user_no_jwt(client):
             "source": "pytest",
         },
         # minimal
-        {"type": "cookie", "category": "preferences", "status": "rejected",},
+        {"type": "cookie", "category": "preferences", "status": "rejected"},
     ],
 )
 def test_create_consent(client, session, tokens, input):
@@ -250,7 +250,7 @@ def test_create_consent(client, session, tokens, input):
     response = client.post(
         "/consent",
         json=input,
-        headers={"Authorization": f"Bearer {tokens['write']}",},
+        headers={"Authorization": f"Bearer {tokens['write']}"},
     )
     assert response.status_code == 201
     consent_id = response.json["id"]
@@ -269,7 +269,7 @@ def test_create_consent_fail_on_incorrect_cookie_category(
     response = client.post(
         "/consent",
         json=data,
-        headers={"Authorization": f"Bearer {tokens['write']}",},
+        headers={"Authorization": f"Bearer {tokens['write']}"},
     )
     assert response.status_code == 422
 
@@ -284,7 +284,7 @@ def test_create_consent_fail_on_incorrect_status(client, session, tokens):
     response = client.post(
         "/consent",
         json=data,
-        headers={"Authorization": f"Bearer {tokens['write']}",},
+        headers={"Authorization": f"Bearer {tokens['write']}"},
     )
     assert response.status_code == 422
 
@@ -299,7 +299,7 @@ def test_create_consent_fail_on_incorrect_type(client, session, tokens):
     response = client.post(
         "/consent",
         json=data,
-        headers={"Authorization": f"Bearer {tokens['write']}",},
+        headers={"Authorization": f"Bearer {tokens['write']}"},
     )
     assert response.status_code == 422
 
@@ -307,7 +307,7 @@ def test_create_consent_fail_on_incorrect_type(client, session, tokens):
 def test_get_consent(app, client, session, models, tokens):
     """Retrieve user consent data based on given token."""
     response = client.get(
-        "/consent", headers={"Authorization": f"Bearer {tokens['read']}",}
+        "/consent", headers={"Authorization": f"Bearer {tokens['read']}"}
     )
     assert response.status_code == 200
 
@@ -317,7 +317,7 @@ def test_get_consent_returns_unique_consents(
 ):
     """Test consents include only one consent per category + type."""
     response = client.get(
-        "/consent", headers={"Authorization": f"Bearer {tokens['read']}",}
+        "/consent", headers={"Authorization": f"Bearer {tokens['read']}"}
     )
     user_id = jwt.decode(
         tokens["read"], app.config["RSA_PUBLIC_KEY"], app.config["ALGORITHM"],
@@ -351,7 +351,7 @@ def test_get_consent_returns_latest_consents(
 ):
     """Test that retrieved user consent data match the latest values."""
     response = client.get(
-        "/consent", headers={"Authorization": f"Bearer {tokens['read']}",}
+        "/consent", headers={"Authorization": f"Bearer {tokens['read']}"}
     )
     user_id = jwt.decode(
         tokens["read"], app.config["RSA_PUBLIC_KEY"], app.config["ALGORITHM"],

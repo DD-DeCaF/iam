@@ -34,7 +34,7 @@ def test_sign_claims(app, models):
 def test_create_firebase_user(session):
     """Test creating a Firebase user."""
     user = create_firebase_user(
-        "foo_token", {"name": "Foo Bar", "email": "foo@bar.dk",}
+        "foo_token", {"name": "Foo Bar", "email": "foo@bar.dk"}
     )
     assert isinstance(user, User)
     assert len(user.claims["prj"].keys()) == 0
