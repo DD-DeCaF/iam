@@ -19,14 +19,12 @@ FROM dddecaf/postgres-base:${BASE_TAG}
 
 ARG BASE_TAG=alpine
 ARG BUILD_COMMIT
-ARG BUILD_TIMESTAMP
 
 LABEL dk.dtu.biosustain.iam.alpine.vendor="Novo Nordisk Foundation \
-Center for Biosustainability, Technical University of Denmark" \
-    maintainer="niso@biosustain.dtu.dk" \
-    dk.dtu.biosustain.iam.alpine.build.base-tag="${BASE_TAG}" \
-    dk.dtu.biosustain.iam.alpine.build.commit="${BUILD_COMMIT}" \
-    dk.dtu.biosustain.iam.alpine.build.timestamp="${BUILD_TIMESTAMP}"
+Center for Biosustainability, Technical University of Denmark"
+LABEL maintainer="niso@biosustain.dtu.dk"
+LABEL dk.dtu.biosustain.iam.alpine.build.base-tag="${BASE_TAG}"
+LABEL dk.dtu.biosustain.iam.alpine.build.commit="${BUILD_COMMIT}"
 
 ARG CWD="/app"
 
