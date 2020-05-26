@@ -295,7 +295,7 @@ class UserRegisterResource(MethodResource):
         # Check if specified email already exists
         exists = db.session.query(User.id).filter_by(email=email).scalar()
         if exists:
-            return f"User with provided email already exists", 400
+            return "User with provided email already exists", 400
 
         user = User(first_name=first_name, last_name=last_name, email=email)
         user.set_password(password)

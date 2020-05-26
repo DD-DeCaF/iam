@@ -109,7 +109,7 @@ def init_app(application, db):
     ############################################################################
 
     logger.debug("Registering admin views")
-    admin = Admin(application, template_mode="bootstrap3", url=f"/admin")
+    admin = Admin(application, template_mode="bootstrap3", url="/admin")
     admin.add_view(ModelView(Organization, db.session))
     admin.add_view(ModelView(Team, db.session))
     admin.add_view(ModelView(User, db.session))
