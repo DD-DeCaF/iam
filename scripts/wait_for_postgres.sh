@@ -27,6 +27,6 @@ while [[ ! "$(docker-compose logs --no-color postgres)" = *"PostgreSQL init proc
 done
 
 echo "Waiting for postgres to accept connections..."
-until docker-compose exec -T postgres psql -U postgres -l > /dev/null; do
+until docker-compose exec -T postgres pg_isready --username postgres --quiet; do
   sleep 1
 done
