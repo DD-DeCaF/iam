@@ -16,7 +16,12 @@
 """Marshmallow schemas for marshalling the API endpoints."""
 
 from marshmallow import (
-    Schema, ValidationError, fields, validates, validates_schema)
+    Schema,
+    ValidationError,
+    fields,
+    validates,
+    validates_schema,
+)
 
 from .enums import ConsentStatus, ConsentType, CookieConsentCategory
 
@@ -28,6 +33,7 @@ class StrictSchema(Schema):
 
 # Request schemas
 ################################################################################
+
 
 class LocalCredentialsSchema(StrictSchema):
     email = fields.String(required=True, description="Email address")
@@ -58,20 +64,25 @@ class ProjectRequestSchema(StrictSchema):
 class ConsentRegisterSchema(StrictSchema):
     type = fields.String(
         required=True,
-        description="Type of the consent, e.g. GDPR or cookie consent")
+        description="Type of the consent, e.g. GDPR or cookie consent",
+    )
     category = fields.String(
-        required=True,
-        description="Category the consent relates to.")
+        required=True, description="Category the consent relates to."
+    )
     status = fields.String(
         required=True,
-        description="Whether the consent was accepted or rejected.")
-    timestamp = fields.DateTime(description="Time of when user responded to "
-                                            "the consent")
+        description="Whether the consent was accepted or rejected.",
+    )
+    timestamp = fields.DateTime(
+        description="Time of when user responded to " "the consent"
+    )
     valid_until = fields.DateTime(
         description="Time of when the consent should"
-                    "be revoked. Null implies unlimited validity")
-    message = fields.String(description="Exact wording of what the user "
-                                        "consented to.")
+        "be revoked. Null implies unlimited validity"
+    )
+    message = fields.String(
+        description="Exact wording of what the user " "consented to."
+    )
     source = fields.String(description="Source of the consent.")
 
     @validates_schema
@@ -81,7 +92,7 @@ class ConsentRegisterSchema(StrictSchema):
         # can't find the field.
         # For more info, this occurs in marshmallow(2.x).schema.py:_do_load
         try:
-            consent_type = data['type']
+            consent_type = data["type"]
         except KeyError:
             # Field 'type' has been removed from the response, so the data has
             # already been validated and failed and appropriate response is
@@ -90,30 +101,33 @@ class ConsentRegisterSchema(StrictSchema):
             return
         if consent_type == ConsentType.cookie.name:
             try:
-                CookieConsentCategory[data['category']]
+                CookieConsentCategory[data["category"]]
             except KeyError:
                 raise ValidationError(
                     f'Invalid cookie consent category "{data["category"]}". '
-                    'Category must be one of '
-                    f'{[c.name for c in CookieConsentCategory]}.')
+                    "Category must be one of "
+                    f"{[c.name for c in CookieConsentCategory]}."
+                )
 
-    @validates('type')
+    @validates("type")
     def validate_type(self, value, **kwargs):
         try:
             ConsentType[value]
         except KeyError:
             raise ValidationError(
                 f'Invalid consent type "{value}". Type must be one of '
-                f'{[c.name for c in ConsentType]}.')
+                f"{[c.name for c in ConsentType]}."
+            )
 
-    @validates('status')
+    @validates("status")
     def validate_status(self, value, **kwargs):
         try:
             ConsentStatus[value]
         except KeyError:
             raise ValidationError(
                 f'Invalid consent status "{value}". Status must be one of '
-                f'{[c.name for c in ConsentStatus]}.')
+                f"{[c.name for c in ConsentStatus]}."
+            )
         return value
 
 
@@ -125,9 +139,11 @@ class RefreshTokenSchema(StrictSchema):
     val = fields.String(
         required=True,
         description="Refresh token. Use this to request a new JWT when it "
-                    "expires")
-    exp = fields.Integer(required=True,
-                         description="Refresh token expiry (unix time)")
+        "expires",
+    )
+    exp = fields.Integer(
+        required=True, description="Refresh token expiry (unix time)"
+    )
 
 
 class TokenSchema(StrictSchema):
@@ -144,7 +160,7 @@ class JWKKeysSchema(StrictSchema):
 
     keys = fields.List(
         fields.Nested(JWKSchema),
-        description=("List of public keys used for signing.")
+        description=("List of public keys used for signing."),
     )
 
 

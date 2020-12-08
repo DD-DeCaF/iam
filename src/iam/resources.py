@@ -33,16 +33,35 @@ from .domain import create_firebase_user, sign_claims
 from .jwt import jwt_require_claim, jwt_required
 from .metrics import ORGANIZATION_COUNT, PROJECT_COUNT, USER_COUNT
 from .models import (
-    Consent, Organization, Project, RefreshToken, User, UserProject, db)
+    Consent,
+    Organization,
+    Project,
+    RefreshToken,
+    User,
+    UserProject,
+    db,
+)
 from .schemas import (
-    ConsentRegisterSchema, ConsentResponseSchema, FirebaseCredentialsSchema,
-    JWKKeysSchema, JWTSchema, LocalCredentialsSchema, PasswordResetSchema,
-    ProjectRequestSchema, ProjectResponseSchema, RefreshRequestSchema,
-    ResetRequestSchema, TokenSchema, UserRegisterSchema, UserResponseSchema)
+    ConsentRegisterSchema,
+    ConsentResponseSchema,
+    FirebaseCredentialsSchema,
+    JWKKeysSchema,
+    JWTSchema,
+    LocalCredentialsSchema,
+    PasswordResetSchema,
+    ProjectRequestSchema,
+    ProjectResponseSchema,
+    RefreshRequestSchema,
+    ResetRequestSchema,
+    TokenSchema,
+    UserRegisterSchema,
+    UserResponseSchema,
+)
 
 
 def init_app(app):
     """Register API resources on the provided Flask application."""
+
     def register(path, resource):
         app.add_url_rule(path, view_func=resource.as_view(resource.__name__))
         with warnings.catch_warnings():
@@ -50,8 +69,8 @@ def init_app(app):
             docs.register(resource, endpoint=resource.__name__)
 
     docs = FlaskApiSpec(app)
-    app.add_url_rule('/healthz', healthz.__name__, healthz)
-    app.add_url_rule('/metrics', metrics.__name__, metrics)
+    app.add_url_rule("/healthz", healthz.__name__, healthz)
+    app.add_url_rule("/metrics", metrics.__name__, metrics)
     register("/authenticate/local", LocalAuthResource)
     register("/authenticate/firebase", FirebaseAuthResource)
     register("/refresh", RefreshResource)
@@ -74,8 +93,8 @@ def healthz():
     checks = []
 
     # Database ping
-    db.session.execute('select version()').fetchall()
-    checks.append({'name': "DB Connectivity", 'status': 'pass'})
+    db.session.execute("select version()").fetchall()
+    checks.append({"name": "DB Connectivity", "status": "pass"})
 
     return jsonify(checks)
 
@@ -83,13 +102,15 @@ def healthz():
 def metrics():
     """Expose metrics to prometheus."""
     # Update persistent metrics like database counts
-    labels = ('iam', os.environ['ENVIRONMENT'])
+    labels = ("iam", os.environ["ENVIRONMENT"])
     USER_COUNT.labels(*labels).set(User.query.count())
     ORGANIZATION_COUNT.labels(*labels).set(Organization.query.count())
     PROJECT_COUNT.labels(*labels).set(Project.query.count())
 
-    return Response(prometheus_client.generate_latest(),
-                    mimetype=prometheus_client.CONTENT_TYPE_LATEST)
+    return Response(
+        prometheus_client.generate_latest(),
+        mimetype=prometheus_client.CONTENT_TYPE_LATEST,
+    )
 
 
 @doc(description="Authenticate with email credentials")
@@ -100,13 +121,12 @@ class LocalAuthResource(MethodResource):
     @marshal_with(TokenSchema, code=200)
     def post(self, email, password):
         """Authenticate with credentials in the local database."""
-        if not app.config['FEAT_TOGGLE_LOCAL_AUTH']:
+        if not app.config["FEAT_TOGGLE_LOCAL_AUTH"]:
             return "Local user authentication is disabled", 501
 
         try:
             user = User.query.filter(
-                User.email == email,
-                User.password.isnot(None),
+                User.email == email, User.password.isnot(None),
             ).one()
             if user.check_password(password):
                 return sign_claims(user)
@@ -124,7 +144,7 @@ class FirebaseAuthResource(MethodResource):
     @marshal_with(TokenSchema, code=200)
     def post(self, uid, token):
         """Authenticate with Firebase uid and token."""
-        if not app.config['FEAT_TOGGLE_FIREBASE']:
+        if not app.config["FEAT_TOGGLE_FIREBASE"]:
             return "Firebase authentication is disabled", 501
 
         try:
@@ -132,9 +152,8 @@ class FirebaseAuthResource(MethodResource):
         except ValueError:
             return "Invalid firebase credentials", 401
 
-        if 'email' not in decoded_token:
-            decoded_token['email'] = (
-                auth.get_user(uid).provider_data[0].email)
+        if "email" not in decoded_token:
+            decoded_token["email"] = auth.get_user(uid).provider_data[0].email
         try:
             user = User.query.filter_by(firebase_uid=uid).one()
 
@@ -142,7 +161,7 @@ class FirebaseAuthResource(MethodResource):
             try:
                 # no firebase user for this provider, but they may have
                 # signed up with a different provider but the same email
-                user = User.query.filter_by(email=decoded_token['email']).one()
+                user = User.query.filter_by(email=decoded_token["email"]).one()
             except NoResultFound:
                 # no such user - create a new one
                 user = create_firebase_user(uid, decoded_token)
@@ -162,51 +181,55 @@ class RefreshResource(MethodResource):
             token = RefreshToken.query.filter_by(token=refresh_token).one()
             user = User.query.filter_by(id=token.user_id).one()
             if datetime.now() >= token.expiry:
-                return ("The refresh token has expired, please re-authenticate",
-                        401)
+                return (
+                    "The refresh token has expired, please re-authenticate",
+                    401,
+                )
 
             claims = {
-                'exp': int((datetime.now() + app.config['JWT_VALIDITY'])
-                           .strftime('%s'))
+                "exp": int(
+                    (datetime.now() + app.config["JWT_VALIDITY"]).strftime("%s")
+                )
             }
             claims.update(user.claims)
-            return {'jwt': jwt.encode(claims,
-                                      app.config['RSA_PRIVATE_KEY'],
-                                      app.config['ALGORITHM'])}
+            return {
+                "jwt": jwt.encode(
+                    claims,
+                    app.config["RSA_PRIVATE_KEY"],
+                    app.config["ALGORITHM"],
+                )
+            }
         except NoResultFound:
             return "Invalid refresh token", 401
 
 
-@doc(description="""List of public keys used for JWT signing.
+@doc(
+    description="""List of public keys used for JWT signing.
 See [RFC 7517](https://tools.ietf.org/html/rfc7517) or [the OpenID Connect
 implementation](https://connect2id.com/products/server/docs/api/jwk-set#keys)"""
-     )
+)
 class PublicKeysResource(MethodResource):
     @marshal_with(JWKKeysSchema, code=200)
     def get(self):
-        return {'keys': [app.config['RSA_PUBLIC_KEY']]}
+        return {"keys": [app.config["RSA_PUBLIC_KEY"]]}
 
 
 @doc(description="List projects")
 class ProjectsResource(MethodResource):
     @marshal_with(ProjectResponseSchema(many=True), code=200)
     def get(self):
-        return Project.query.filter(Project.id.in_(g.jwt_claims['prj'])), 200
+        return Project.query.filter(Project.id.in_(g.jwt_claims["prj"])), 200
 
     @use_kwargs(ProjectRequestSchema)
     @jwt_required
     def post(self, name):
-        user = User.query.filter(User.id == g.jwt_claims['usr']).one()
+        user = User.query.filter(User.id == g.jwt_claims["usr"]).one()
         project = Project(name=name)
-        user_project = UserProject(
-            user=user,
-            project=project,
-            role='admin',
-        )
+        user_project = UserProject(user=user, project=project, role="admin",)
         db.session.add(project)
         db.session.add(user_project)
         db.session.commit()
-        return {'id': project.id}, 201
+        return {"id": project.id}, 201
 
 
 @doc(description="List projects")
@@ -214,10 +237,13 @@ class ProjectResource(MethodResource):
     @marshal_with(ProjectResponseSchema(), code=200)
     def get(self, project_id):
         try:
-            return Project.query.filter(
-                Project.id == project_id,
-                Project.id.in_(g.jwt_claims['prj'])
-            ).one(), 200
+            return (
+                Project.query.filter(
+                    Project.id == project_id,
+                    Project.id.in_(g.jwt_claims["prj"]),
+                ).one(),
+                200,
+            )
         except NoResultFound:
             return f"No project with id {project_id}", 404
 
@@ -226,13 +252,12 @@ class ProjectResource(MethodResource):
     def put(self, project_id, name):
         try:
             project = Project.query.filter(
-                Project.id == project_id,
-                Project.id.in_(g.jwt_claims['prj'])
+                Project.id == project_id, Project.id.in_(g.jwt_claims["prj"])
             ).one()
         except NoResultFound:
             return f"No project with id {project_id}", 404
         else:
-            jwt_require_claim(project.id, 'write')
+            jwt_require_claim(project.id, "write")
             project.name = name
             db.session.commit()
             return "", 204
@@ -241,13 +266,12 @@ class ProjectResource(MethodResource):
     def delete(self, project_id):
         try:
             project = Project.query.filter(
-                Project.id == project_id,
-                Project.id.in_(g.jwt_claims['prj'])
+                Project.id == project_id, Project.id.in_(g.jwt_claims["prj"])
             ).one()
         except NoResultFound:
             return f"No project with id {project_id}", 404
         else:
-            jwt_require_claim(project.id, 'admin')
+            jwt_require_claim(project.id, "admin")
             db.session.delete(project)
             db.session.commit()
             return "", 204
@@ -259,7 +283,7 @@ class UserResource(MethodResource):
     @jwt_required
     def get(self):
         try:
-            return User.query.filter(User.id == g.jwt_claims['usr']).one(), 200
+            return User.query.filter(User.id == g.jwt_claims["usr"]).one(), 200
         except NoResultFound:
             return f"No user with id {g.jwt_claims['usr']}", 404
 
@@ -271,13 +295,9 @@ class UserRegisterResource(MethodResource):
         # Check if specified email already exists
         exists = db.session.query(User.id).filter_by(email=email).scalar()
         if exists:
-            return f"User with provided email already exists", 400
+            return "User with provided email already exists", 400
 
-        user = User(
-            first_name=first_name,
-            last_name=last_name,
-            email=email
-        )
+        user = User(first_name=first_name, last_name=last_name, email=email)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -285,8 +305,10 @@ class UserRegisterResource(MethodResource):
         return sign_claims(user)
 
 
-@doc(description="Retrieve and submit user consents for the user claim in the "
-                 "provided JWT")
+@doc(
+    description="Retrieve and submit user consents for the user claim in the "
+    "provided JWT"
+)
 class ConsentResource(MethodResource):
     @marshal_with(ConsentResponseSchema(many=True), code=200)
     @jwt_required
@@ -297,29 +319,30 @@ class ConsentResource(MethodResource):
             # Query adapted from https://stackoverflow.com/questions/40537934
             # NOTE: If multiple consents with same type, category and timestamp
             #       are found, returns the one with greatest ID
-            subquery = db.session.query(
-                Consent.user_id.label("user_id"),
-                Consent.type.label("type"),
-                Consent.category.label("category"),
-                func.max(Consent.timestamp).label("latest_timestamp"),
-                func.max(Consent.id).label("greatest_id"),
-            ).group_by(
-                Consent.user_id,
-                Consent.type,
-                Consent.category,
-            ).subquery()
-            query = db.session.query(Consent).join(
-                subquery,
-                and_(
-                    Consent.user_id == g.jwt_claims['usr'],
-                    Consent.type == subquery.c.type,
-                    Consent.category == subquery.c.category,
-                    Consent.timestamp == subquery.c.latest_timestamp,
-                    Consent.id == subquery.c.greatest_id,
+            subquery = (
+                db.session.query(
+                    Consent.user_id.label("user_id"),
+                    Consent.type.label("type"),
+                    Consent.category.label("category"),
+                    func.max(Consent.timestamp).label("latest_timestamp"),
+                    func.max(Consent.id).label("greatest_id"),
                 )
-            ).order_by(
-                Consent.type,
-                Consent.category
+                .group_by(Consent.user_id, Consent.type, Consent.category,)
+                .subquery()
+            )
+            query = (
+                db.session.query(Consent)
+                .join(
+                    subquery,
+                    and_(
+                        Consent.user_id == g.jwt_claims["usr"],
+                        Consent.type == subquery.c.type,
+                        Consent.category == subquery.c.category,
+                        Consent.timestamp == subquery.c.latest_timestamp,
+                        Consent.id == subquery.c.greatest_id,
+                    ),
+                )
+                .order_by(Consent.type, Consent.category)
             )
             return query, 200
         except NoResultFound:
@@ -327,21 +350,29 @@ class ConsentResource(MethodResource):
 
     @use_kwargs(ConsentRegisterSchema)
     @jwt_required
-    def post(self, type, category, status, timestamp=None, valid_until=None,
-             message=None, source=None):
+    def post(
+        self,
+        type,
+        category,
+        status,
+        timestamp=None,
+        valid_until=None,
+        message=None,
+        source=None,
+    ):
         consent = Consent(
             type=type,
             category=category,
             status=status,
             timestamp=timestamp if timestamp is not None else datetime.now(),
-            user_id=g.jwt_claims['usr'],
+            user_id=g.jwt_claims["usr"],
             valid_until=valid_until,
             message=message,
-            source=source
+            source=source,
         )
         db.session.add(consent)
         db.session.commit()
-        return {'id': consent.id}, 201
+        return {"id": consent.id}, 201
 
 
 @doc(description="Request password reset link")

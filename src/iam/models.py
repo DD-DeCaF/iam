@@ -38,10 +38,11 @@ class Organization(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
-    teams = db.relationship('Team', back_populates='organization')
-    users = db.relationship('OrganizationUser', back_populates='organization')
-    projects = db.relationship('OrganizationProject',
-                               back_populates='organization')
+    teams = db.relationship("Team", back_populates="organization")
+    users = db.relationship("OrganizationUser", back_populates="organization")
+    projects = db.relationship(
+        "OrganizationProject", back_populates="organization"
+    )
 
     def __repr__(self):
         """Return a printable representation."""
@@ -54,13 +55,14 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
-                                nullable=False)
-    organization = db.relationship('Organization', back_populates='teams')
+    organization_id = db.Column(
+        db.Integer, db.ForeignKey("organization.id"), nullable=False
+    )
+    organization = db.relationship("Organization", back_populates="teams")
 
-    users = db.relationship('TeamUser', back_populates='team', lazy='joined')
+    users = db.relationship("TeamUser", back_populates="team", lazy="joined")
 
-    projects = db.relationship('TeamProject', back_populates='team')
+    projects = db.relationship("TeamProject", back_populates="team")
 
     def __repr__(self):
         """Return a printable representation."""
@@ -81,31 +83,37 @@ class User(db.Model):
     last_name = db.Column(db.String(256))
     email = db.Column(db.String(256), unique=True, nullable=False)
 
-    organizations = db.relationship('OrganizationUser',
-                                    back_populates='user',
-                                    lazy='joined',
-                                    cascade='delete, delete-orphan')
-    teams = db.relationship('TeamUser',
-                            back_populates='user',
-                            lazy='joined',
-                            cascade='delete, delete-orphan')
+    organizations = db.relationship(
+        "OrganizationUser",
+        back_populates="user",
+        lazy="joined",
+        cascade="delete, delete-orphan",
+    )
+    teams = db.relationship(
+        "TeamUser",
+        back_populates="user",
+        lazy="joined",
+        cascade="delete, delete-orphan",
+    )
 
-    projects = db.relationship('UserProject',
-                               back_populates='user',
-                               cascade='delete, delete-orphan')
+    projects = db.relationship(
+        "UserProject", back_populates="user", cascade="delete, delete-orphan"
+    )
 
-    refresh_tokens = db.relationship('RefreshToken',
-                                     back_populates='user',
-                                     cascade='delete, delete-orphan')
+    refresh_tokens = db.relationship(
+        "RefreshToken", back_populates="user", cascade="delete, delete-orphan"
+    )
 
-    consents = db.relationship('Consent',
-                               back_populates='user',
-                               cascade='delete, delete-orphan')
+    consents = db.relationship(
+        "Consent", back_populates="user", cascade="delete, delete-orphan"
+    )
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f"<{self.__class__.__name__} {self.id}: {self.full_name} "
-                f"({self.email})>")
+        return (
+            f"<{self.__class__.__name__} {self.id}: {self.full_name} "
+            f"({self.email})>"
+        )
 
     @property
     def full_name(self):
@@ -125,12 +133,13 @@ class User(db.Model):
     @property
     def claims(self):
         """Return this users' claims for use in a JWT."""
+
         def add_claim(id, role):
             """Add claims, if there is no existing higher claim."""
             if id in project_claims:
-                if role == 'read' and project_claims[id] in ('admin', 'write'):
+                if role == "read" and project_claims[id] in ("admin", "write"):
                     return
-                if role == 'write' and project_claims[id] == 'admin':
+                if role == "write" and project_claims[id] == "admin":
                     return
 
             project_claims[id] = role
@@ -138,15 +147,15 @@ class User(db.Model):
         project_claims = {}
 
         for user_role in self.organizations:
-            if user_role.role == 'owner':
+            if user_role.role == "owner":
                 # Add admin role for all projects in the organization
                 for project_role in user_role.organization.projects:
-                    add_claim(project_role.project.id, 'admin')
+                    add_claim(project_role.project.id, "admin")
 
                 # Add admin role for all projects in organization teams
                 for team in user_role.organization.teams:
                     for team_role in team.projects:
-                        add_claim(team_role.project.id, 'admin')
+                        add_claim(team_role.project.id, "admin")
             else:
                 # Add the assigned role for all projects in the organization
                 for org_role in user_role.organization.projects:
@@ -161,12 +170,12 @@ class User(db.Model):
         for user_role in self.projects:
             add_claim(user_role.project.id, user_role.role)
 
-        return {'usr': self.id, 'prj': project_claims}
+        return {"usr": self.id, "prj": project_claims}
 
     def get_reset_token(self):
         claims = {
             "exp": int(datetime.timestamp(datetime.now() + timedelta(hours=1))),
-            "usr": self.id
+            "usr": self.id,
         }
         return jwt.encode(
             claims, app.config["RSA_PRIVATE_KEY"], app.config["ALGORITHM"]
@@ -186,13 +195,15 @@ class User(db.Model):
             personalization = Personalization()
             personalization.add_to(Email(self.email))
             personalization.dynamic_template_data = {
-                "link":
-                    f"{app.config['ROOT_URL']}/password-reset/{token}"
+                "link": f"{app.config['ROOT_URL']}/password-reset/{token}"
             }
             mail.add_personalization(personalization)
             sendgrid.client.mail.send.post(request_body=mail.get())
-            return '''An email has been sent with instructions
-                        to reset your password.''', 200
+            return (
+                """An email has been sent with instructions
+                        to reset your password.""",
+                200,
+            )
         except Exception as error:
             logger.warning(
                 "Unable to send email with password reset link", exc_info=error
@@ -211,8 +222,7 @@ class RefreshToken(db.Model):
 
     def __repr__(self):
         """Return a printable representation."""
-        return f"<{self.__class__.__name__} {self.token}: " \
-               f"{self.expiry}>"
+        return f"<{self.__class__.__name__} {self.token}: " f"{self.expiry}>"
 
 
 class Project(db.Model):
@@ -221,13 +231,17 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
 
-    organizations = db.relationship('OrganizationProject',
-                                    back_populates='project',
-                                    cascade='all, delete-orphan')
-    teams = db.relationship('TeamProject', back_populates='project',
-                            cascade='all, delete-orphan')
-    users = db.relationship('UserProject', back_populates='project',
-                            cascade='all, delete-orphan')
+    organizations = db.relationship(
+        "OrganizationProject",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    teams = db.relationship(
+        "TeamProject", back_populates="project", cascade="all, delete-orphan"
+    )
+    users = db.relationship(
+        "UserProject", back_populates="project", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         """Return a printable representation."""
@@ -242,106 +256,132 @@ class Consent(db.Model):
     type = db.Column(db.Enum(ConsentType), nullable=False)
     category = db.Column(db.Text, nullable=False)
     status = db.Column(db.Enum(ConsentStatus), nullable=False)
-    timestamp = db.Column(db.DateTime(timezone=True),
-                          nullable=False,
-                          default=datetime.now(timezone.utc))
+    timestamp = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=datetime.now(timezone.utc),
+    )
     valid_until = db.Column(db.DateTime(timezone=True))
     message = db.Column(db.Text)
     source = db.Column(db.Text)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', back_populates='consents')
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", back_populates="consents")
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f"<{self.__class__.__name__} {self.id}: {self.type} "
-                f"({self.category})>")
+        return (
+            f"<{self.__class__.__name__} {self.id}: {self.type} "
+            f"({self.category})>"
+        )
 
 
 #
 # Association tables
 #
 
+
 class OrganizationUser(db.Model):
     """Role for a user belonging to an organization."""
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
-                                primary_key=True)
-    organization = db.relationship('Organization', back_populates='users')
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    user = db.relationship('User', back_populates='organizations')
-    role = db.Column(db.Enum('owner', 'member', name='organization_user_roles'),
-                     nullable=False)
+    organization_id = db.Column(
+        db.Integer, db.ForeignKey("organization.id"), primary_key=True
+    )
+    organization = db.relationship("Organization", back_populates="users")
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    user = db.relationship("User", back_populates="organizations")
+    role = db.Column(
+        db.Enum("owner", "member", name="organization_user_roles"),
+        nullable=False,
+    )
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
-                f"{self.organization}>")
+        return (
+            f"<{self.__class__.__name__} {self.role}: {self.user} in "
+            f"{self.organization}>"
+        )
 
 
 class TeamUser(db.Model):
     """Role for a user belonging to a team."""
 
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
-    team = db.relationship('Team', back_populates='users')
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    user = db.relationship('User', back_populates='teams')
-    role = db.Column(db.Enum('maintainer', 'member', name='team_user_roles'),
-                     nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id"), primary_key=True)
+    team = db.relationship("Team", back_populates="users")
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    user = db.relationship("User", back_populates="teams")
+    role = db.Column(
+        db.Enum("maintainer", "member", name="team_user_roles"), nullable=False
+    )
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f"<{self.__class__.__name__} {self.role}: {self.user} in "
-                f"{self.team}>")
+        return (
+            f"<{self.__class__.__name__} {self.role}: {self.user} in "
+            f"{self.team}>"
+        )
 
 
 class OrganizationProject(db.Model):
     """Access rule for an organization to a project."""
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
-                                primary_key=True)
-    organization = db.relationship('Organization', back_populates='projects')
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
-                           primary_key=True)
-    project = db.relationship('Project', back_populates='organizations')
-    role = db.Column(db.Enum('admin', 'write', 'read', name='project_roles'),
-                     nullable=False)
+    organization_id = db.Column(
+        db.Integer, db.ForeignKey("organization.id"), primary_key=True
+    )
+    organization = db.relationship("Organization", back_populates="projects")
+    project_id = db.Column(
+        db.Integer, db.ForeignKey("project.id"), primary_key=True
+    )
+    project = db.relationship("Project", back_populates="organizations")
+    role = db.Column(
+        db.Enum("admin", "write", "read", name="project_roles"), nullable=False
+    )
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f"<{self.__class__.__name__} {self.organization} has role "
-                f"{self.role} in {self.project}>")
+        return (
+            f"<{self.__class__.__name__} {self.organization} has role "
+            f"{self.role} in {self.project}>"
+        )
 
 
 class TeamProject(db.Model):
     """Access rule for a team to a project."""
 
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
-    team = db.relationship('Team', back_populates='projects')
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
-                           primary_key=True)
-    project = db.relationship('Project', back_populates='teams')
-    role = db.Column(db.Enum('admin', 'write', 'read', name='project_roles'),
-                     nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id"), primary_key=True)
+    team = db.relationship("Team", back_populates="projects")
+    project_id = db.Column(
+        db.Integer, db.ForeignKey("project.id"), primary_key=True
+    )
+    project = db.relationship("Project", back_populates="teams")
+    role = db.Column(
+        db.Enum("admin", "write", "read", name="project_roles"), nullable=False
+    )
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f"<{self.__class__.__name__} {self.team} has role "
-                f"{self.role} in {self.project}>")
+        return (
+            f"<{self.__class__.__name__} {self.team} has role "
+            f"{self.role} in {self.project}>"
+        )
 
 
 class UserProject(db.Model):
     """Access role for a user to a project."""
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    user = db.relationship('User', back_populates='projects')
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'),
-                           primary_key=True)
-    project = db.relationship('Project', back_populates='users')
-    role = db.Column(db.Enum('admin', 'write', 'read', name='project_roles'),
-                     nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    user = db.relationship("User", back_populates="projects")
+    project_id = db.Column(
+        db.Integer, db.ForeignKey("project.id"), primary_key=True
+    )
+    project = db.relationship("Project", back_populates="users")
+    role = db.Column(
+        db.Enum("admin", "write", "read", name="project_roles"), nullable=False
+    )
 
     def __repr__(self):
         """Return a printable representation."""
-        return (f"<{self.__class__.__name__} {self.user} has role "
-                f"{self.role} in {self.project}>")
+        return (
+            f"<{self.__class__.__name__} {self.user} has role "
+            f"{self.role} in {self.project}>"
+        )

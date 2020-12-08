@@ -58,32 +58,38 @@ def db_fixtures(db_tables):
     These are installed session-wide and shared for performance reasons, but
     tests may of course create their own encapsulated test data if needed.
     """
-    organization = Organization(name='OrgName')
-    team = Team(name='TeamName', organization=organization)
-    user = User(first_name='User', last_name='Name', email='user@name.test')
-    user.set_password('hunter2')
-    user2 = User(first_name='User2', last_name='Name2', email='user2@name.test')
-    user2.set_password('hunter2')
-    project = Project(name='ProjectName')
+    organization = Organization(name="OrgName")
+    team = Team(name="TeamName", organization=organization)
+    user = User(first_name="User", last_name="Name", email="user@name.test")
+    user.set_password("hunter2")
+    user2 = User(first_name="User2", last_name="Name2", email="user2@name.test")
+    user2.set_password("hunter2")
+    project = Project(name="ProjectName")
 
     # user1 consent
-    consent = Consent(type=ConsentType.cookie.name,
-                      category=CookieConsentCategory.statistics.name,
-                      status=ConsentStatus.accepted.name,
-                      user=user)
+    consent = Consent(
+        type=ConsentType.cookie.name,
+        category=CookieConsentCategory.statistics.name,
+        status=ConsentStatus.accepted.name,
+        user=user,
+    )
     # This consent has the same category and type, and is created more
     # recently, so on request, this consent should be returned instead.
-    consent_override = Consent(type=ConsentType.cookie.name,
-                               category=CookieConsentCategory.statistics.name,
-                               status=ConsentStatus.rejected.name,
-                               user=user)
+    consent_override = Consent(
+        type=ConsentType.cookie.name,
+        category=CookieConsentCategory.statistics.name,
+        status=ConsentStatus.rejected.name,
+        user=user,
+    )
     # This consent has the same category and type, and is created more
     # recently, but is associated with another user, so on user1's request,
     # this consent should not be returned.
-    consent_conflict = Consent(type=ConsentType.cookie.name,
-                               category=CookieConsentCategory.statistics.name,
-                               status=ConsentStatus.accepted.name,
-                               user=user2)
+    consent_conflict = Consent(
+        type=ConsentType.cookie.name,
+        category=CookieConsentCategory.statistics.name,
+        status=ConsentStatus.accepted.name,
+        user=user2,
+    )
 
     db_.session.add(organization)
     db_.session.add(team)
@@ -123,7 +129,8 @@ def session(db_tables, connection):
     # rolled back independently of the session state.
     transaction = connection.begin()
     db_.session = db_.create_scoped_session(
-        options={'bind': connection, 'binds': {}})
+        options={"bind": connection, "binds": {}}
+    )
     yield db_.session
 
     # Roll back anything that occurred in the test session and reset the db
@@ -137,11 +144,11 @@ def session(db_tables, connection):
 def models(db_fixtures, session):
     """Provide preinstalled db fixtures queried from the current db session."""
     return {
-        'organization': Organization.query.one(),
-        'team': Team.query.one(),
-        'user': User.query.all(),
-        'project': Project.query.one(),
-        'consent': Consent.query.all()
+        "organization": Organization.query.one(),
+        "team": Team.query.one(),
+        "user": User.query.all(),
+        "project": Project.query.one(),
+        "consent": Consent.query.all(),
     }
 
 
@@ -149,28 +156,19 @@ def models(db_fixtures, session):
 def tokens(app):
     """Provide user 1 with read, write and admin JWT claims to project 1."""
     return {
-        'read': jwt.encode(
-            {
-                'usr': 1,
-                'prj': {1: 'read'}
-            },
-            app.config['RSA_PRIVATE_KEY'],
-            app.config['ALGORITHM'],
+        "read": jwt.encode(
+            {"usr": 1, "prj": {1: "read"}},
+            app.config["RSA_PRIVATE_KEY"],
+            app.config["ALGORITHM"],
         ),
-        'write': jwt.encode(
-            {
-                'usr': 1,
-                'prj': {1: 'write'}
-            },
-            app.config['RSA_PRIVATE_KEY'],
-            app.config['ALGORITHM'],
+        "write": jwt.encode(
+            {"usr": 1, "prj": {1: "write"}},
+            app.config["RSA_PRIVATE_KEY"],
+            app.config["ALGORITHM"],
         ),
-        'admin': jwt.encode(
-            {
-                'usr': 1,
-                'prj': {1: 'admin'}
-            },
-            app.config['RSA_PRIVATE_KEY'],
-            app.config['ALGORITHM'],
+        "admin": jwt.encode(
+            {"usr": 1, "prj": {1: "admin"}},
+            app.config["RSA_PRIVATE_KEY"],
+            app.config["ALGORITHM"],
         ),
     }
